@@ -85,7 +85,7 @@ Twelve capabilities, all **in scope for v1** (the operator marked nothing out), 
 - **Licence.** MIT. Dependencies are acceptable only while the MIT outcome holds. ruamel.yaml (MIT) is the YAML library, chosen for comment fidelity.
 - **Distribution.** A GitHub repository that users clone and install into a user-space bin; binary name `lspd`. Private until the first release, public at the first release. Ships alongside Dictum v1.3.0 (pending on Dictum main at scaffold time). `[REVISIT]` this doc set is authored against v1.2.0; run the upgrade walk when v1.3.0 is vendored.
 - **Schema.** Exactly the Dictum template's keys plus three additions the operator has decided: `arm:` on an assertion, `owed:` for a deferred assertion, and a required top-level `schema_version:` (integer, equal to the `lspd` major version, written by `init`; a mismatch is a validation error). Anything else is an error. The schema is owned by this project; the operator is the author of the Dictum standard but this project acts as a **third party** and does not contribute the schema back into the template.
-- **Numeric IDs are prohibited — a rule tighter than the standard.** Dictum's grammar allows numeric tokens (`CAP-003`); `lspd` rejects them as map keys because LLMs work poorly with numbered IDs. Only semantic IDs (`CAP-MODEL-CREATE`) are accepted. This is a deliberate compatibility narrowing: a Dictum-conforming map that uses numeric IDs fails `lspd` validation until its IDs are re-minted. `[REVISIT]` the operator, as the standard's author, may introduce this rule in a future major revision of Dictum; until then it is this product's own. The exact grammar of a "numeric" segment is an open question below.
+- **Numeric IDs are prohibited — a rule tighter than the standard.** Dictum's grammar allows numeric tokens (`CAP-003`); `lspd` rejects them as map keys because LLMs work poorly with numbered IDs. Only semantic IDs (`CAP-MODEL-CREATE`) are accepted: a segment consisting entirely of digits is rejected, while digits inside a segment (`API-V2-USERS`, `SCREEN-3D`) are fine. This is a deliberate compatibility narrowing: a Dictum-conforming map that uses numeric IDs fails `lspd` validation until its IDs are re-minted. `[REVISIT]` the operator, as the standard's author, may introduce this rule in a future major revision of Dictum; until then it is this product's own.
 - **Versioning.** A change to the Dictum binding-map template is a new major version of `lspd`. The file's `schema_version` tracks it.
 - **Ordering.** Edits preserve existing order and append; only `format` reorders.
 - **Writes against an invalid file are allowed.** The rigid schema gives comments a defined place, so the tool can read and rewrite a file that carries findings; pre- and post-write findings are reported.
@@ -105,7 +105,7 @@ Twelve capabilities, all **in scope for v1** (the operator marked nothing out), 
 
 ## Open Questions
 
-- `[GAP]` Precise grammar of the numeric prohibition: a segment consisting only of digits is rejected (`CAP-003`); is a digit *inside* a segment (`API-V2-USERS`, `SCREEN-3D`) allowed? Owned here until decided; Domain then encodes it in the ID invariant.
+None open. The numeric-prohibition grammar was settled on 2026-09-17: a segment consisting **entirely** of digits is rejected (`CAP-003`); digits used as indicators inside a segment (`API-V2-USERS`, `SCREEN-3D`) are allowed. Domain & Data encodes this in the ID invariant.
 
 ## Dependencies & Cross-references
 
