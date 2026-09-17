@@ -37,9 +37,12 @@ The advisory tooling is installed in `.claude/` (MIT):
 bare name, resolve them under `dictum/` in this repo. Never edit the vendored
 copy; upgrades re-vendor a newer signed tag and run the upgrade walk.
 
-**Product docs:** the manifest, binding map, build-status record, and the
-concern docs are placed by `doc-scaffold` (not yet run). Until then this repo
-has no doc set and no product code.
+**Product docs:** the doc set lives under [`docs/`](docs/) — `docs/manifest.yaml`
+(authoritative), one concern doc per in-scope concern, and `docs/README.md`
+(derived index). Scaffolded 2026-09-17 by `doc-scaffold`; every concern is at
+Sketch targeting Contract-grade. `bindings.yaml` and the build-status record
+(`docs/IMPLEMENTATION.md`) are created during the build, not before. There is
+no product code yet.
 
 ## Working conventions
 

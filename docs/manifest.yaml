@@ -1,0 +1,70 @@
+# Product-profile manifest — dictum-binder (Dictum STANDARD Part 7; templates/manifest.template.md).
+# Single source of truth for traits, scope, and doc maturity. README.md in this directory is DERIVED from it.
+# Doc maturity only — implementation status lives in the Delivery Process build-status record.
+
+product: dictum-binder
+packaging: per-concern
+authoring_granularity: fine
+
+# Stamped at scaffold (2026-09-17) from the vendored release under dictum/ (signed tag v1.2.0, tag object 48040ba).
+# The tool is intended to ship alongside Dictum v1.3.0; the upgrade walk is owed when that tag is vendored
+# ([REVISIT] in product-and-requirements.md).
+authored_against: v1.2.0
+standard_source: https://github.com/pnjacket/dictum
+
+traits:
+  interface_kinds: [cli]
+  interactive_ui: false            # no UI → User Experience, Accessibility out (absent)
+  deployed_service: false          # no running service → Operations, Observability out (absent)
+  persists_data: true              # the one file it owns: bindings.yaml
+  third_party_deps: true           # ruamel.yaml (comment round-trip) → Integrations in
+  perf_scale_needs: false          # operator's call: no target; fix in the wild → Performance out (deferred)
+  multi_locale: false
+  commercial: false                # MIT, distributed open source → Business & Legal in, minimal
+  regulated: false
+  security_risk: []                # local single-user file tool; no auth, PII, secrets, or network
+  code_authorship: model-authored  # raises Governance source-provenance: a best-effort detection pass is owed
+
+# out_of_scope_subaspects = published `key` values from the matching dictum/concerns/11.x spec (Part 9).
+# The KIND of each scope-out (absent | deferred) and its justification are recorded in the doc's Non-goals.
+concerns:
+  product-and-requirements:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: product-and-requirements.md,
+      out_of_scope_subaspects: [market-competitive-context, stakeholders-decision-makers] }
+  domain-and-data:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: domain-and-data.md,
+      out_of_scope_subaspects: [data-classification-tags, reference-seed-data] }
+  architecture:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: architecture.md,
+      out_of_scope_subaspects: [boundaries-isolation-model, logical-deployment-topology, scalability-resilience-patterns] }
+  interfaces-and-contracts:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: interfaces-and-contracts.md,
+      out_of_scope_subaspects: [http-rpc-api-surface, library-sdk-surface, event-surface, ui-entrypoints, pagination-filtering-rate-limit-conventions] }
+  quality-and-testing:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: quality-and-testing.md,
+      out_of_scope_subaspects: [specialized-testing, test-stage-fidelity-mapping, manual-exploratory] }
+  delivery-process:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: delivery-process.md,
+      out_of_scope_subaspects: [external-tracker-binding] }
+  security-and-privacy:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: security-and-privacy.md,
+      out_of_scope_subaspects: [authentication-mechanism, authorization, encryption, session-management, data-protection-mechanisms-per-sensitive-field] }
+  governance-and-compliance:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: governance-and-compliance.md,
+      out_of_scope_subaspects: [data-handling-policy, audit-requirements, compliance-framework-mapping, records-retention-data-residency, consent-management] }
+  user-experience:                          { in_scope: false }   # interactive_ui: false (absent)
+  operations-and-infrastructure:            { in_scope: false }   # deployed_service: false (absent)
+  observability-and-monitoring:             { in_scope: false }   # deployed_service: false (absent)
+  integrations-and-external-dependencies:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: integrations-and-external-dependencies.md,
+      out_of_scope_subaspects: [fidelity-substitution, data-mapping] }
+  performance-and-scalability:              { in_scope: false }   # perf_scale_needs: false — DEFERRED, re-entry note in product-and-requirements.md Non-goals
+  accessibility-and-internationalization:   { in_scope: false }   # interactive_ui: false, multi_locale: false (absent)
+  business-and-legal:
+    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: business-and-legal.md,
+      out_of_scope_subaspects: [commercial-licensing-model-tiers, tier-capability-entitlements-limits, pricing, business-slas, contractual-agreements, ip-copyright-provenance] }
+
+# Enhancement lifecycle (Part 10d) — CURRENT state only; history rides on git.
+reference_granularity: entity
+tombstones: {}
+staleness: {}
