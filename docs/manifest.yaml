@@ -29,7 +29,7 @@ traits:
 # The KIND of each scope-out (absent | deferred) and its justification are recorded in the doc's Non-goals.
 concerns:
   product-and-requirements:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: product-and-requirements.md,
+    { in_scope: true, current_rung: specified, target_rung: contract-grade, location: product-and-requirements.md,
       out_of_scope_subaspects: [market-competitive-context, stakeholders-decision-makers] }
   domain-and-data:
     { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: domain-and-data.md,
