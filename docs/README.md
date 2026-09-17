@@ -7,7 +7,7 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 | Concern | In scope | Location | Current rung | Target |
 |---|---|---|---|---|
 | Product & Requirements | yes | [product-and-requirements.md](product-and-requirements.md) | contract-grade | contract-grade |
-| Domain & Data | yes | [domain-and-data.md](domain-and-data.md) | sketch | contract-grade |
+| Domain & Data | yes | [domain-and-data.md](domain-and-data.md) | contract-grade | contract-grade |
 | Architecture | yes | [architecture.md](architecture.md) | sketch | contract-grade |
 | Interfaces & Contracts (CLI) | yes | [interfaces-and-contracts.md](interfaces-and-contracts.md) | sketch | contract-grade |
 | Quality & Testing | yes | [quality-and-testing.md](quality-and-testing.md) | sketch | contract-grade |
@@ -24,4 +24,4 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 
 **Traits:** CLI only · not interactive · not deployed · persists one file · one third-party dependency (ruamel.yaml) · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
 
-**Build-ready gate:** every in-scope concern at contract-grade and published. Product & Requirements is at contract-grade (2026-09-17, still draft); the rest are at sketch. Next: `doc-levelup` in dependency order — Domain & Data / Architecture → Interfaces → downstream.
+**Build-ready gate:** every in-scope concern at contract-grade and published. Product & Requirements and Domain & Data are at contract-grade (2026-09-17, still draft); the rest are at sketch. Next: `doc-levelup` Architecture → Interfaces → downstream.

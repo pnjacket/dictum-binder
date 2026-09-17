@@ -32,7 +32,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: product-and-requirements.md,
       out_of_scope_subaspects: [market-competitive-context, stakeholders-decision-makers] }
   domain-and-data:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: domain-and-data.md,
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: domain-and-data.md,
       out_of_scope_subaspects: [data-classification-tags, reference-seed-data] }
   architecture:
     { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: architecture.md,
