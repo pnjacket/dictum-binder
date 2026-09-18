@@ -12,7 +12,7 @@ version: 0.3.0
 
 # Delivery Process — dictum-binder
 
-> One-line: six headless slices from `main`, a Definition of Done that is Quality's six gates plus a build-status row, an empty substitution set, a hand-minted `bindings.yaml` conformed through `lspd` right before the `v1.0.0` tag, and the in-repo record as the only tracker.
+> One-line: six headless slices from `main`, a Definition of Done that is Quality's six gates plus a build-status row, an empty substitution set, an LLM-written `bindings.yaml` (written without the tool, then conformed through `lspd`) right before the `v1.0.0` tag, and the in-repo record as the only tracker.
 <!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, one round). Owned contracts are process-shaped and fully stated in Requirements; Contracts points there (Part 4). The build-status record docs/IMPLEMENTATION.md is created with slice 1 from dictum/templates/build-status.template.md. -->
 
 ## Purpose & Scope
@@ -61,7 +61,7 @@ Dependency-ordered; each slice names what it *realises* and what it *completes*.
 | 3 | **Writes** — `set`, `add-locator`, `add-field`, `add-assertion`, `remove`, `coverage` | headless | `CLI-SET`, `CLI-ADD-LOCATOR`, `CLI-ADD-FIELD`, `CLI-ADD-ASSERTION`, `CLI-REMOVE`, `CLI-COVERAGE-GET`, `CLI-COVERAGE-FULLY-BOUND`, `CLI-COVERAGE-CURATED`; `OUT-WRITE-RESULT`, `OUT-COVERAGE`; `PATTERN-VALIDATE-AROUND-WRITE`, `PATTERN-ATOMIC-REPLACE`; `INV-ORDER-PRESERVED`, `INV-ATOMIC-WRITE`; `ERR-NOT-FOUND`, `ERR-DUPLICATE`, `ERR-INPUT-INVALID`; `COMPONENT-COMMANDS` (partial); `CAP-SET`, `CAP-ADD`, `CAP-REMOVE`, `CAP-COVERAGE`; `SUCCESS-COMPLETE-OPS` (partial) | everything listed except `COMPONENT-COMMANDS` and `SUCCESS-COMPLETE-OPS` | E2E per capability; atomic-write injection test; order-preservation diffs |
 | 4 | **Comments** — carriers in Loader and Emitter, `comment get/set/unset`, comments in the `set` projection | headless | `CLI-COMMENT-GET`, `CLI-COMMENT-SET`, `CLI-COMMENT-UNSET`; `OUT-COMMENT`; `INV-COMMENT-ANCHORED` (full); `CAP-COMMENT`; `SUCCESS-ROUNDTRIP` (partial) | the three `CLI-*`, `OUT-COMMENT`, `INV-COMMENT-ANCHORED`, `CAP-COMMENT` | E2E for `CAP-COMMENT`; seven-anchor round-trip fixtures |
 | 5 | **Format and path check** — `format`, `format --check`, `--check-paths` | headless | `CLI-FORMAT`; `OUT-FORMAT-RESULT`; `INV-CANONICAL-FIXPOINT`; `CAP-FORMAT`, `CAP-PATHCHECK`; `COMPONENT-COMMANDS`; `SUCCESS-ROUNDTRIP`, `SUCCESS-COMPLETE-OPS` | all listed | golden fixpoint over every fixture; E2E for both capabilities |
-| 6 | **Release** — CI workflow with the six gates; README with install instructions, the schema checksum, and the rules JSON Schema cannot express; source-provenance pass recorded; the repository's own `bindings.yaml` minted by hand in canonical style, then conformed and verified through `lspd validate` and `lspd format --check`; version `1.0.0` in `pyproject.toml`; tag `v1.0.0` | verification-only | `SUCCESS-SCHEMA-MATCH`; Governance's provenance register; Business & Legal's naming compliance in the README; `SUCCESS-CROSS-MODEL` (begins after release, operator-recorded) | `SUCCESS-SCHEMA-MATCH`; the release gate | release-gate checklist, recorded in `docs/IMPLEMENTATION.md` |
+| 6 | **Release** — CI workflow with the six gates; README with install instructions, the schema checksum, and the rules JSON Schema cannot express; source-provenance pass recorded; the repository's own `bindings.yaml` written by an LLM in canonical style **without using `lspd`**, then conformed and verified through `lspd validate` and `lspd format --check`; version `1.0.0` in `pyproject.toml`; tag `v1.0.0` | verification-only | `SUCCESS-SCHEMA-MATCH`; Governance's provenance register; Business & Legal's naming compliance in the README; `SUCCESS-CROSS-MODEL` (begins after release, operator-recorded) | `SUCCESS-SCHEMA-MATCH`; the release gate | release-gate checklist, recorded in `docs/IMPLEMENTATION.md` |
 
 Slices land in this order; a later slice never starts before the earlier one's row reads Verified at `merge`.
 
@@ -87,7 +87,7 @@ Every in-scope concern (the ten in the manifest) at Contract-grade **and publish
 - All work on `main` until `v1.0.0`; commits at checkpoints; never pushed unless the operator says so.
 - CI: GitHub Actions on every push, Python 3.11 on Ubuntu, running the six gates (Quality).
 - **First target: `1.0.0`**, so `schema_version` is `1` from the first release with no decoupling.
-- The version is **hand-stamped** once in `pyproject.toml` as part of the release slice; the tag `v1.0.0` must equal it (release gate).
+- The version is **stamped by the implementing LLM** once in `pyproject.toml` as part of the release slice, never derived from the tag; the tag `v1.0.0` must equal it (release gate).
 - The release is a **plain git tag**; no GitHub Release object, no published wheel. The repository goes public at that tag.
 - Semantic versioning thereafter: a Dictum template change is a major (`ADR-MAJOR-PER-TEMPLATE`); anything additive within the surface is a minor.
 
@@ -105,15 +105,15 @@ None open.
 
 1. **Slice 3 lands.** The implementer finishes `set`, `add-*`, `remove`, `coverage`; the coverage-map meta-test passes; CI is green; the row for slice 3 is set Built, Verified `merge`, proof "E2E `CAP-SET`/`CAP-ADD`/`CAP-REMOVE`/`CAP-COVERAGE` + atomic-write injection", *Realizes* lists the IDs above, *Completes* lists all but `COMPONENT-COMMANDS` and `SUCCESS-COMPLETE-OPS`. Commit at checkpoint.
 2. **A contract turns out wrong mid-build.** Slice 4 reveals that a trailing comment on a flow line cannot be distinguished from a comment on the next line in one edge case. The implementer stops, runs `doc-feature` to amend `INV-COMMENT-ANCHORED` in Domain (classified `breaking` for the Loader), the doc re-publishes, and only then does the code change. The record's slice 4 row stays unbuilt until the amended contract is realised.
-3. **Release slice.** The operator writes `bindings.yaml` for this repository by hand in canonical style, mapping every `COMPONENT-*`, `CLI-*`, `ENTITY-*`, `INV-*` to `src/lspd/` symbols and tests. An LLM then runs `lspd validate` and `lspd format --check`, fixes findings through `lspd`, and the release-gate checklist is ticked in the record. `pyproject.toml` says `1.0.0`; `git tag v1.0.0`.
+3. **Release slice.** An LLM writes `bindings.yaml` for this repository in canonical style without invoking `lspd`, mapping every `COMPONENT-*`, `CLI-*`, `ENTITY-*`, `INV-*` to `src/lspd/` symbols and tests. It then runs `lspd validate` and `lspd format --check`, fixes findings through `lspd`, and the release-gate checklist is ticked in the record. `pyproject.toml` says `1.0.0`; `git tag v1.0.0`.
 
 ## Design Decisions
 
 | Decision | Rationale |
 |---|---|
 | Six slices, foundation first | The pipeline is shared by every capability; proving it alone before any capability keeps later slices small and attributable |
-| Binding record lives in the build-status rows until the release slice | The operator will not depend on an unfinished tool for its own bookkeeping; the row carries the same information until the map is minted |
-| Release = plain tag; version hand-stamped | Minimal ceremony for a clone-and-install tool; a tag-derived version would add a build-time dependency for no gain |
+| Binding record lives in the build-status rows until the release slice | The operator will not depend on an unfinished tool for its own bookkeeping; the row carries the same information until an LLM writes the map |
+| Release = plain tag; version stamped by the LLM in `pyproject.toml` | Minimal ceremony for a clone-and-install tool; a tag-derived version would add a build-time dependency for no gain |
 | `1.0.0` first | Keeps `schema_version` equal to the major from the start, as Domain contracts |
 | Branching inside the build ungoverned | Implementation-level; the doc set governs what lands and how it is proven, not the local workflow |
 
