@@ -146,7 +146,7 @@ The owned contracts are table- and prose-shaped and fully stated in Requirements
 
 ## Acceptance criteria
 
-1. A meta-test enumerates every `PERSONA-*`, `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*`, `SEC-*`, `POLICY-*`, `DEP-*`, `ENV-*`, `TOOL-*`, `LEGAL-*` ID **from the register lines of the owning docs' Contracts sections only** (never from prose or code blocks, where illustrative IDs such as `ENTITY-USER` appear as example data), plus `E2E-STANDARD`, and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
+1. A meta-test enumerates every `PERSONA-*`, `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*`, `SEC-*`, `POLICY-*`, `DEP-*`, `ENV-*`, `TOOL-*`, `LEGAL-*` ID **from the register lines of the owning docs' Contracts sections only** — a register line being a Contracts-section table row whose first cell's first token is the ID (never from prose, list items, or code blocks, where illustrative IDs such as `ENTITY-USER` appear as example data), plus `E2E-STANDARD`, and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
 2. Every one of the seven gates in *Quality bars* is a required CI job; a pull request cannot merge with any red.
 3. The E2E tier invokes every `CLI-*` element in default state and per optional flag (meta-test over the recorded invocations).
 4. The `trace`-based line-coverage report shows 100 % with every exclusion carrying a reason (fitness test).

@@ -35,12 +35,12 @@ Two environments, both running the product's own real code with **no substitutio
 
 ### Provisioning / IaC
 
-- `ENV-LOCAL` is provisioned by two commands from a clean checkout: create a venv on Python 3.11 and `pip install -e .[dev]`. No other setup exists.
-- `ENV-CI` is provisioned by `.github/workflows/ci.yml`: Ubuntu runner, `actions/setup-python` at 3.11, `pip install .[dev]` for gates 1–5 and 7, and a fresh venv with the built wheel for the E2E tier. The workflow file is the reproducible definition; a change to it is a change to `ENV-CI`.
+- Provisioning of `ENV-LOCAL`: two commands from a clean checkout — create a venv on Python 3.11 and `pip install -e .[dev]`. No other setup exists.
+- Provisioning of `ENV-CI`: `.github/workflows/ci.yml` — Ubuntu runner, `actions/setup-python` at 3.11, `pip install .[dev]` for gates 1–5 and 7, and a fresh venv with the built wheel for the E2E tier. The workflow file is the reproducible definition; a change to it is a change to `ENV-CI`.
 
 ### Dev-toolchain register
 
-Five build/test-time tools, each version-pinned, none imported by product code, none a runtime dependency: ruff, pyrefly, setuptools, and the two GitHub Actions the workflow uses. The pins are the `TOOL-*` rows in Contracts; Integrations owns the one runtime `DEP-*` only. The standard library's `unittest` and `trace` are not tools to pin — they are fixed by the interpreter version, which is the platform dimension of `ENV-*`.
+Five build/test-time tools, each version-pinned to the series current on 2026-09-18 (verified against PyPI and GitHub releases), none imported by product code, none a runtime dependency: ruff, pyrefly, setuptools, and the two GitHub Actions the workflow uses. The pins are the `TOOL-*` rows in Contracts; a series bump is a doc-led change to the row first, then to the file; Integrations owns the one runtime `DEP-*` only. The standard library's `unittest` and `trace` are not tools to pin — they are fixed by the interpreter version, which is the platform dimension of `ENV-*`.
 
 ## Open Questions
 
@@ -73,22 +73,22 @@ Register form: table row, ID in the first cell.
 
 | ID | Environment | Per-external fidelity | `auth:` | Platform / host | Test tiers | Provisioning |
 |---|---|---|---|---|---|---|
-| `ENV-LOCAL` | The developer's machine | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11 (floor), Linux (Debian 12 in practice); other platforms unsupported | all five tiers, E2E against the editable install's console script | clean checkout → venv on 3.11 → `pip install -e .[dev]` |
+| `ENV-LOCAL` | The developer's machine | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11 (floor), Linux (Debian 12 in practice); other platforms supported wherever Python 3.11 runs but untested (Quality's deferred CI matrix) | all five tiers, E2E against the editable install's console script | clean checkout → venv on 3.11 → `pip install -e .[dev]` |
 | `ENV-CI` | GitHub Actions runner | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11, `ubuntu-latest` | gates 1–5 and 7 against `pip install .[dev]`; E2E tier against a fresh venv with the built wheel; gate 6 skipped until `bindings.yaml` exists. **This is the binding fidelity for the staged DoD** | `.github/workflows/ci.yml` |
 
 ### Dev-toolchain register
 
 | ID | Tool · role | Pin (policy) | Runs in | Licence |
 |---|---|---|---|---|
-| `TOOL-RUFF` | ruff · lint and format check (Quality gate 3) | minor series current at slice 1 (`>=X.Y,<X.(Y+1)`), bumped deliberately in its own commit | `ENV-LOCAL`, `ENV-CI` | MIT, zero dependencies |
-| `TOOL-PYREFLY` | pyrefly · static type check, strict (Quality gate 4) | minor series current at slice 1, bumped deliberately | `ENV-LOCAL`, `ENV-CI` | MIT, zero dependencies |
-| `TOOL-SETUPTOOLS` | setuptools · build backend (`[build-system] requires`) | major series current at slice 1 | both (build) | MIT (vendors `packaging`; infrastructure under Governance's scope statement) |
-| `TOOL-ACTIONS-CHECKOUT` | `actions/checkout` · CI checkout step | pinned to a major tag | `ENV-CI` | MIT |
-| `TOOL-ACTIONS-SETUP-PYTHON` | `actions/setup-python` · CI interpreter step | pinned to a major tag, `python-version: "3.11"` | `ENV-CI` | MIT |
+| `TOOL-RUFF` | ruff · lint and format check (Quality gate 3) | `>=0.16,<0.17` (0.16.8 current on 2026-09-18), bumped deliberately in its own commit | `ENV-LOCAL`, `ENV-CI` | MIT, zero dependencies |
+| `TOOL-PYREFLY` | pyrefly · static type check, strict (Quality gate 4) | `>=1.3,<1.4` (1.3.1 current on 2026-09-18), bumped deliberately | `ENV-LOCAL`, `ENV-CI` | MIT, zero dependencies |
+| `TOOL-SETUPTOOLS` | setuptools · build backend (`[build-system] requires`) | `>=84,<85` (84.0.0 current on 2026-09-18) | both (build) | MIT (vendors `packaging`; infrastructure under Governance's scope statement) |
+| `TOOL-ACTIONS-CHECKOUT` | `actions/checkout` · CI checkout step | `@v7` (v7.0.1 current on 2026-09-18) | `ENV-CI` | MIT |
+| `TOOL-ACTIONS-SETUP-PYTHON` | `actions/setup-python` · CI interpreter step | `@v7` (v7.0.0 current on 2026-09-18), `python-version: "3.11"` | `ENV-CI` | MIT |
 
 ## Acceptance criteria
 
-1. A fitness test asserts `pyproject.toml` pins `ruff`, `pyrefly` (dev extra) and `setuptools` (build-system) within the series each `TOOL-*` row states, and that `.github/workflows/ci.yml` pins both actions to a major tag and sets `python-version: "3.11"`.
+1. A fitness test asserts `pyproject.toml` pins `ruff` to `>=0.16,<0.17` and `pyrefly` to `>=1.3,<1.4` (dev extra) and `setuptools` to `>=84,<85` (build-system), and that `.github/workflows/ci.yml` uses `actions/checkout@v7`, `actions/setup-python@v7`, and `python-version: "3.11"` — the values in the `TOOL-*` rows.
 2. The workflow file names the seven gate steps and the E2E tier's fresh-venv wheel install (`ENV-CI` row).
 3. The manifest's `out_of_scope_subaspects` for this concern equals the six keys in Non-goals, each `absent` with its trait fact (Part 9 residual checklist).
 4. `DEP-RUFF` and `DEP-PYREFLY` are tombstoned in the manifest with `superseded_by` pointing here, and no live reference to either remains in `docs/`.

@@ -15,7 +15,7 @@ standard_source: https://github.com/pnjacket/dictum
 traits:
   interface_kinds: [cli]
   interactive_ui: false            # no UI → User Experience, Accessibility out (absent)
-  deployed_service: false          # no running service → Operations, Observability out (absent)
+  deployed_service: false          # no running service → Observability out (absent); Operations is IN anyway via the toolchain clause (see its entry)
   persists_data: true              # the one file it owns: bindings.yaml
   third_party_deps: true           # ruamel.yaml (comment round-trip) → Integrations in
   perf_scale_needs: false          # operator's call: no target; fix in the wild → Performance out (deferred)
