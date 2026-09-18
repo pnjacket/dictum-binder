@@ -142,11 +142,11 @@ None open.
 
 ## Examples / Worked scenarios
 
-1. **Reading a hand-edited file.** A model added `- { path: src/x.py, symbol: f, lines: 40-52 }`. `validate` reports `INV-CLOSED-KEYS` (unknown key `lines`) and `INV-NO-LINE-NUMBERS`, both errors, anchored at `ENTITY-X` locator 2; exit 1. The model runs `remove --locator` and `add-locator` without `lines`.
+1. **Reading a hand-edited file.** A model added `- { path: src/x.py, symbol: f, lines: 40-52 }`. `validate` reports `INV-CLOSED-KEYS` (unknown key `lines`) and `INV-NO-LINE-NUMBERS`, both errors, anchored at `ENTITY-X` locator 2; exit 1. Both findings are error-level, so every `lspd` write is refused (`ERR-FILE-INVALID`) until the model deletes the `lines:` key **by hand**; it then re-runs `validate` (clean) and continues through `lspd`.
 2. **Promoting an owed assertion.** `INV-EMAIL-UNIQUE` carries `{ owed: slice-9 }`. Slice 9 lands its test. The agent runs `remove INV-EMAIL-UNIQUE --assertion owed=slice-9` then `add-assertion INV-EMAIL-UNIQUE` with path, symbol, run. A single entry carrying both `owed` and the triple would have been rejected (`INV-ASSERTION-SHAPE`).
 3. **Format as a fixpoint.** A populated map in insertion order is formatted: bindings re-sorted, `fields` untouched, every comment still on its anchor, trailing comments re-emitted trailing. A second `format` is a byte-identical no-op (`INV-CANONICAL-FIXPOINT`).
 4. **Numeric ID.** A converter emits `CAP-003`. `validate` reports `INV-ID-GRAMMAR` with the message naming the all-digit segment; `API-V2-USERS` in the same file passes.
-5. **Two carriers.** A locator has `# old` above it and `# new` trailing. `validate` reports `INV-COMMENT-ANCHORED`; the maintainer deletes one by hand or via `comment set`, which replaces both with one.
+5. **Two carriers.** A locator has `# old` above it and `# new` trailing. `validate` reports `INV-COMMENT-ANCHORED`; the maintainer deletes one **by hand** — the finding is error-level, so every write, `comment set` included, is refused with `ERR-FILE-INVALID` until it is gone.
 
 ## Design Decisions
 
