@@ -38,7 +38,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: architecture.md,
       out_of_scope_subaspects: [boundaries-isolation-model, logical-deployment-topology, scalability-resilience-patterns] }
   interfaces-and-contracts:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: interfaces-and-contracts.md,
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: interfaces-and-contracts.md,
       out_of_scope_subaspects: [http-rpc-api-surface, library-sdk-surface, event-surface, ui-entrypoints, pagination-filtering-rate-limit-conventions] }
   quality-and-testing:
     { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: quality-and-testing.md,
