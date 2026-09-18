@@ -42,7 +42,7 @@ Owns how the tool gets built and proven: the slice rule and types, the Definitio
 **Merge gate** (`ENV` = the developer machine or the CI runner; nothing substituted). A slice is done when all of the following hold on the commit that lands it:
 
 1. Every contract the slice *completes* has the tests the coverage map assigns it (Quality), and every `CLI-*` it touches has its contract test and edge-input cases.
-2. Quality's six gates are green: pytest all tiers, 100 % coverage with reasoned exclusions, ruff, mypy strict, schema-file equality, and (from the release slice on) dogfood `validate` and `format --check`.
+2. Quality's six gates are green: `unittest` all tiers, 100 % line coverage with reasoned exclusions, ruff, pyrefly strict, schema-file equality, and (from the release slice on) dogfood `validate` and `format --check`.
 3. **The build-status row is updated** — an explicit exit criterion, not a by-product: slice built, Verified at `merge`, proof named, *Completes* column filled.
 4. Bindings the slice realises are **listed in the row's *Realizes* column**; the map file itself is not written until the release slice (operator's decision, Non-goals). The row is the binding record until then.
 5. No doc changed except through the doc-led flow: a contract change during the build goes through `doc-feature` first, re-publishes the touched doc, and then the code catches up. Code never leads.

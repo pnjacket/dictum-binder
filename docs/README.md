@@ -14,14 +14,14 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 | Delivery Process | yes | [delivery-process.md](delivery-process.md) | contract-grade | contract-grade |
 | Security & Privacy | yes (baseline) | [security-and-privacy.md](security-and-privacy.md) | contract-grade | contract-grade |
 | Governance & Compliance | yes (baseline, raised) | [governance-and-compliance.md](governance-and-compliance.md) | contract-grade | contract-grade |
-| Integrations & External Dependencies | yes (module) | [integrations-and-external-dependencies.md](integrations-and-external-dependencies.md) | sketch | contract-grade |
-| Business & Legal | yes (module, minimal) | [business-and-legal.md](business-and-legal.md) | sketch | contract-grade |
+| Integrations & External Dependencies | yes (module) | [integrations-and-external-dependencies.md](integrations-and-external-dependencies.md) | contract-grade | contract-grade |
+| Business & Legal | yes (module, minimal) | [business-and-legal.md](business-and-legal.md) | contract-grade | contract-grade |
 | User Experience | no — absent (no UI) | — | — | — |
 | Operations & Infrastructure | no — absent (no service) | — | — | — |
 | Observability & Monitoring | no — absent (no service) | — | — | — |
 | Performance & Scalability | no — **deferred** (operator's call; re-entry note in Product Non-goals) | — | — | — |
 | Accessibility & i18n | no — absent (no UI, single locale) | — | — | — |
 
-**Traits:** CLI only · not interactive · not deployed · persists one file · one third-party dependency (ruamel.yaml) · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
+**Traits:** CLI only · not interactive · not deployed · persists one file · one runtime dependency (ruamel.yaml) plus ruff and pyrefly for development, all MIT · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
 
-**Build-ready gate:** every in-scope concern at contract-grade and published. Eight concerns are at contract-grade (2026-09-17, still draft); Integrations and Business & Legal are at sketch. Next: `doc-levelup` Integrations → Business & Legal.
+**Build-ready gate:** every in-scope concern at contract-grade and published. All ten in-scope concerns are at contract-grade (2026-09-17) and still `draft`. Next: a `doc-maturity-auditor` run, then the publish step (strip build markers, flip status, bump versions) to pass the build-ready gate.

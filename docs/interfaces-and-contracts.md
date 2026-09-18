@@ -173,7 +173,7 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 
 1. A contract test per `CLI-*` element exercising its happy path against a fixture and asserting the exact `result` projection and exit code.
 2. A forced-condition test per row of the `ERR-*` catalog, asserting `ok:false`, the code, the `details` shape, the exit code, and that stdout holds exactly one JSON document and stderr is empty without `--debug`.
-3. `OUT-ENVELOPE` conformance: a JSON Schema for the envelope (test-side) validates the output of every test in 1 and 2; key order is asserted textually.
+3. `OUT-ENVELOPE` conformance: a test-side shape assertion (own helper: fixed key set, types, nullability) checks the output of every test in 1 and 2; key order is asserted textually.
 4. Bounded output: with a fixture of at least fifty bindings, `get` of two IDs yields exactly two `OUT-BINDING`s and the document contains no other binding's ID string; `list --kind INV` yields only `INV` summaries.
 5. `--help` at all three levels exits 0 with plain text naming every argument of that level; the set of commands in `lspd --help` equals the set of `CLI-*` command paths.
 6. `schema` raw output is byte-identical to `lspd.schema.json` and `schema --checksum` equals its SHA-256 (`SUCCESS-SCHEMA-MATCH`).
