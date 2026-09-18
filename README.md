@@ -11,7 +11,7 @@ start at [`docs/README.md`](docs/README.md), the index derived from
 
 dictum-binder is an independent tool for Dictum binding maps. It is not part of
 the official Dictum project and is not endorsed or certified by it. It targets
-Dictum v1.3.0 binding maps.
+Dictum v1.2.0 binding maps (the vendored, authored-against release).
 
 Status: doc set at Contract-grade, in re-draft after audit fixes, not yet re-published; no product code yet.
 

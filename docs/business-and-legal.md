@@ -41,7 +41,7 @@ Dictum's naming policy (`TRADEMARK.md` in the Dictum repository; not a registere
 - refers to Dictum by name in its project name (`dictum-binder`), description, and README, which the policy permits;
 - implements nothing of the standard's *text* and republishes none of it beyond the vendored `dictum/` cache with its own licence files (Governance);
 - carries an **explicit line in the README**: *"dictum-binder is an independent tool for Dictum binding maps. It is not part of the official Dictum project and is not endorsed or certified by it."* — the operator's choice over relying on the factual description alone;
-- describes conformance factually and with a version (*"targets Dictum v1.3.0 binding maps"*), never as certification;
+- describes conformance factually and with a version — the manifest's `authored_against` tag, mechanically, so today *"targets Dictum v1.2.0 binding maps"* and v1.3.0 only once the upgrade walk lands — never as certification;
 - acts as a **third party** although the operator authors the standard: the canonical schema stays owned here and is not contributed back into Dictum's template (Product constraint).
 
 These facts are the checkable constraint `LEGAL-DICTUM-NAMING`.
