@@ -17,11 +17,11 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 | Integrations & External Dependencies | yes (module) | [integrations-and-external-dependencies.md](integrations-and-external-dependencies.md) | contract-grade | contract-grade |
 | Business & Legal | yes (module, minimal) | [business-and-legal.md](business-and-legal.md) | contract-grade | contract-grade |
 | User Experience | no — absent (no UI) | — | — | — |
-| Operations & Infrastructure | no — absent (no service; staged DoD needs no fidelity map — both trigger halves evaluated) | — | — | — |
+| Operations & Infrastructure | yes (module, minimal — pulled in 2026-09-17: a toolchain to pin is an ENV fact) | [operations-and-infrastructure.md](operations-and-infrastructure.md) | contract-grade | contract-grade |
 | Observability & Monitoring | no — absent (no service) | — | — | — |
 | Performance & Scalability | no — **deferred** (operator's call; re-entry note in Product Non-goals) | — | — | — |
 | Accessibility & i18n | no — absent (no UI, single locale) | — | — | — |
 
-**Traits:** CLI only · not interactive · not deployed · persists one file · one runtime dependency (ruamel.yaml) plus ruff and pyrefly for development, all MIT · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
+**Traits:** CLI only · not interactive · not deployed (but a toolchain to pin, so Operations is in minimally) · persists one file · one runtime dependency (ruamel.yaml) plus ruff and pyrefly as pinned tooling, all MIT · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
 
-**Build-ready gate:** every in-scope concern at contract-grade and published. **Build-ready.** All ten in-scope concerns are at contract-grade and **published** (2026-09-17, doc version 1.1.0 each): published at 1.0.0 after a `doc-maturity-auditor` pass, then re-published at 1.1.0 after the `implementation-planner`'s first-build reconciliation was applied through `doc-feature`. Next: slice 1 of the build playbook in [delivery-process.md](delivery-process.md), which creates `docs/IMPLEMENTATION.md`.
+**Build-ready gate:** every in-scope concern at contract-grade and published. **Not build-ready (deliberately unpublished).** Eleven in-scope concerns at contract-grade. After the second `doc-maturity-auditor` pass (2026-09-17) its findings were applied through `doc-feature`, Operations & Infrastructure was pulled in, and `DEP-RUFF`/`DEP-PYREFLY` were retired in favour of `TOOL-RUFF`/`TOOL-PYREFLY`; the nine touched docs are back at `draft` (version unchanged at 1.1.0) and the new Operations doc is `draft` 0.1.0. Only Business & Legal remains `published`. Next: a third audit; if clean, the operator decides on publishing.

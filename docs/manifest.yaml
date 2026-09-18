@@ -53,7 +53,10 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: governance-and-compliance.md,
       out_of_scope_subaspects: [data-handling-policy, audit-requirements, compliance-framework-mapping, records-retention-data-residency, consent-management] }
   user-experience:                          { in_scope: false }   # interactive_ui: false (absent)
-  operations-and-infrastructure:            { in_scope: false }   # absent — BOTH halves of the 11.10 trigger evaluated 2026-09-17: no running service, and the staged DoD needs no ENV fidelity map (single environment, empty substitution set; delivery-process.md Non-goals). Tool pins live in Integrations as gate-fatal DEP-* by recorded decision.
+  operations-and-infrastructure:
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: operations-and-infrastructure.md,
+      out_of_scope_subaspects: [per-component-deployment-spec, runtime-configuration, runbooks, backups-disaster-recovery, capacity-scaling, network-ingress-edge] }
+    # pulled IN 2026-09-17 (second audit): a toolchain to pin is an ENV fact (11.10 owned contract 4); no running service
   observability-and-monitoring:             { in_scope: false }   # deployed_service: false (absent)
   integrations-and-external-dependencies:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: integrations-and-external-dependencies.md,
@@ -66,5 +69,7 @@ concerns:
 
 # Enhancement lifecycle (Part 10d) — CURRENT state only; history rides on git.
 reference_granularity: entity
-tombstones: {}
+tombstones:                       # retired IDs (never reused/renamed)
+  DEP-RUFF:    { retired_in: RETIRED_REF, superseded_by: [TOOL-RUFF] }      # tooling is Ops-owned (11.10/11.12), not a DEP
+  DEP-PYREFLY: { retired_in: RETIRED_REF, superseded_by: [TOOL-PYREFLY] }
 staleness: {}

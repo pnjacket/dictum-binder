@@ -6,7 +6,7 @@ behavior: core
 trigger: always
 in-scope-subaspects: [domain-entities-relationships, identifiers, business-invariants-rules, lifecycle-states, persistence-storage-schema, consistency-transactions, migrations-versioning]
 current-rung: contract-grade
-status: published
+status: draft
 version: 1.1.0
 ---
 
@@ -48,7 +48,7 @@ Two value types carry the identifier contracts: `ENTITY-CONTRACT-ID` (the map ke
 
 ### Business invariants / rules
 
-Stated as checkable conditions in Contracts (`INV-*`). Summary by theme: identity and grammar (`INV-ID-GRAMMAR`, `INV-ID-UNIQUE`), version (`INV-SCHEMA-VERSION`), closed shape (`INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-PATH-FORM`, `INV-SYMBOL-NONEMPTY`, `INV-ROLE-VALUES`, `INV-WIRE-SUBSET`, `INV-ASSERTION-SHAPE`, `INV-FIELD-NAME`, `INV-COVERAGE-WELLFORMED`), uniqueness inside a binding (`INV-LOCATOR-UNIQUE`, `INV-ASSERTION-UNIQUE`), comments (`INV-COMMENT-ANCHORED`), bytes (`INV-BYTES`), the two template hygiene rules kept advisory (`INV-ROLE-REQUIRES-WIRE`, `INV-OWNED-TWICE`), and the tool's behavioural guarantees over the data (`INV-CANONICAL-FIXPOINT`, `INV-ORDER-PRESERVED`, `INV-ATOMIC-WRITE`).
+Stated as checkable conditions in Contracts (`INV-*`). Summary by theme: identity and grammar (`INV-ID-GRAMMAR`, `INV-ID-UNIQUE`), version (`INV-SCHEMA-VERSION`), closed shape (`INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-PATH-FORM`, `INV-SYMBOL-NONEMPTY`, `INV-ROLE-VALUES`, `INV-WIRE-SUBSET`, `INV-ASSERTION-SHAPE`, `INV-FIELD-NAME`, `INV-COVERAGE-WELLFORMED`), uniqueness inside a binding (`INV-LOCATOR-UNIQUE`, `INV-ASSERTION-UNIQUE`), comments (`INV-COMMENT-ANCHORED`), bytes (`INV-BYTES`), the opt-in path check (`INV-PATH-EXISTS`), the two template hygiene rules kept advisory (`INV-ROLE-REQUIRES-WIRE`, `INV-OWNED-TWICE`), and the tool's behavioural guarantees over the data (`INV-CANONICAL-FIXPOINT`, `INV-ORDER-PRESERVED`, `INV-ATOMIC-WRITE`).
 
 ### Lifecycle & states
 
@@ -206,8 +206,8 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 | `INV-COVERAGE-WELLFORMED` | Every kind in `fully_bound` and every `curated` key matches `[A-Z][A-Z0-9]+`; `fully_bound` has no duplicates; no kind appears in both; every curated reason is non-empty; the block, when present, has at least one field | write-gated; checked on every read |
 | `INV-LOCATOR-UNIQUE` | Within a binding, no two locators share (`path`, `symbol`) | write-gated (`add-locator` refuses a duplicate); checked on every read |
 | `INV-ASSERTION-UNIQUE` | Within a binding, no two assertions share their identity | write-gated; checked on every read |
-| `INV-COMMENT-ANCHORED` | Every comment line belongs to exactly one anchor per the carrier rules; no anchor has two carriers | write-gated (the tool only writes at anchors); checked on every read |
-| `INV-BYTES` | The file is UTF-8 without BOM, LF line endings only, no trailing whitespace on any line | write-gated; checked on every read (a BOM or CRLF is an error, not normalised) |
+| `INV-COMMENT-ANCHORED` | Every comment belongs to exactly one anchor per the carrier rules, and no anchor has two carriers. **Boundary with the parse layer** (fixability drives the outcome): a comment the Loader cannot attach to any anchor at all (it sits where no anchor exists) makes the file unloadable → `ERR-PARSE`, exit 2; a loadable file with two carriers on one anchor → this finding, exit 1 | write-gated (the tool only writes at anchors); checked on every read |
+| `INV-BYTES` | The file is UTF-8 without BOM, LF line endings only, no trailing whitespace on any line. **Boundary with the parse layer** (fixability drives the outcome): non-UTF-8 bytes, a BOM, or CRLF make the file unloadable → `ERR-PARSE`, exit 2, never normalised; trailing whitespace on a loadable file → this finding, exit 1 | write-gated; checked on every read |
 | `INV-ROLE-REQUIRES-WIRE` | *advisory* — a binding with any `role` on a locator has a `wire` block (template hygiene rule) | advisory: warning on read and after write |
 | `INV-OWNED-TWICE` | *advisory* — no (`path`, `symbol`) pair appears as a locator under two different contract IDs (template hygiene rule) | advisory: warning on read and after write |
 | `INV-CANONICAL-FIXPOINT` | For any loadable map `m`, `format(format(m)) == format(m)` byte-for-byte; for a map already in canonical layout, `dump(load(m)) == m` | tool property, asserted by golden tests (Quality); not a store constraint |
@@ -216,13 +216,13 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 
 ## Acceptance criteria
 
-1. One assertion per `INV-*` (Quality's coverage map): each write-gated invariant has a synthetic fixture that violates it, and `validate` reports exactly that finding code at the expected anchor with exit 1; each advisory one reports a warning with exit 0.
-2. `INV-ID-GRAMMAR`: a table-driven test with at least `CAP-003` (reject), `API-V2-USERS` (accept), `SCREEN-3D` (accept), `cap-003` (reject), `CAP` (reject), `ENTITY-ORDER.status` (reject).
-3. `INV-ID-UNIQUE`: a fixture with a duplicated key fails to load with exit 2.
-4. `INV-CANONICAL-FIXPOINT`: for every public fixture and every synthetic fixture, `format` twice equals `format` once; for the canonical golden fixture, load-then-dump is byte-identical.
-5. `INV-ORDER-PRESERVED`: a contract test appends via each `add-*` and `set` on a multi-binding fixture and asserts the diff is limited to the appended lines.
-6. `INV-ATOMIC-WRITE`: a test that forces a failure after the temporary file is written (a post-validation error injected, or a rename made to fail) and asserts the target is byte-identical to its original.
-7. `INV-COMMENT-ANCHORED`: fixtures for each of the seven anchor kinds round-trip; a fixture with a stray comment and one with two carriers each produce the finding.
+1. One assertion per `INV-*` (Quality's coverage map): each write-gated invariant has a synthetic fixture that violates it, and `validate` reports exactly that finding code at the expected anchor with exit 1; each advisory one reports a warning with exit 0. The unloadable halves of `INV-BYTES` (BOM, CRLF, non-UTF-8) and `INV-COMMENT-ANCHORED` (no anchor exists) are `ERR-PARSE` forcings with exit 2 instead.
+2. Grammar table for `INV-ID-GRAMMAR`: a table-driven test with at least `CAP-003` (reject), `API-V2-USERS` (accept), `SCREEN-3D` (accept), `cap-003` (reject), `CAP` (reject), `ENTITY-ORDER.status` (reject).
+3. Duplicate-key fixture for `INV-ID-UNIQUE`: a fixture with a duplicated key fails to load with exit 2.
+4. Fixpoint tests for `INV-CANONICAL-FIXPOINT`: for every public fixture and every synthetic fixture, `format` twice equals `format` once; for the canonical golden fixture, load-then-dump is byte-identical.
+5. Order-preservation diffs for `INV-ORDER-PRESERVED`: a contract test appends via each `add-*` and `set` on a multi-binding fixture and asserts the diff is limited to the appended lines.
+6. Injected-failure test for `INV-ATOMIC-WRITE`: a test that forces a failure after the temporary file is written (a post-validation error injected, or a rename made to fail) and asserts the target is byte-identical to its original.
+7. Anchor fixtures for `INV-COMMENT-ANCHORED`: fixtures for each of the seven anchor kinds round-trip; a fixture with two carriers on one anchor produces the finding (exit 1); a fixture with a comment where no anchor exists is `ERR-PARSE` (exit 2).
 8. The canonical example in *Persistence* is itself a golden fixture: it validates clean and is a `format` fixpoint (bindings in byte order, comments only at anchors, quoting and padding per the rules above).
-9. `INV-PATH-EXISTS`: a fixture with one missing path passes without `--check-paths` and fails with it; `add-locator` of a missing path is refused only with the flag.
+9. Opt-in path fixture for `INV-PATH-EXISTS`: a fixture with one missing path passes without `--check-paths` and fails with it; `add-locator` of a missing path is refused only with the flag.
 

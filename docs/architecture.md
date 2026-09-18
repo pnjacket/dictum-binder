@@ -6,7 +6,7 @@ behavior: core
 trigger: always
 in-scope-subaspects: [component-decomposition-responsibilities, component-interactions-data-flow, cross-cutting-patterns, technology-choices, adr-register]
 current-rung: contract-grade
-status: published
+status: draft
 version: 1.1.0
 ---
 
@@ -81,7 +81,7 @@ None open.
 ## Dependencies & Cross-references
 
 - Consumes `CAP-*` (Product): each Commands module realises one capability; `ENTITY-*` and `INV-*` (Domain): the Model realises the entities, the Validator the invariants.
-- Referenced by Interfaces (every `CLI-*` element is owned by `COMPONENT-CLI` and served by `COMPONENT-COMMANDS`; the envelope `OUT-*` is emitted by `COMPONENT-RENDERER`; the `ERR-*` catalog realises `PATTERN-ERROR-ENVELOPE`), Delivery (slices map to components), Integrations (`DEP-RUAMEL-YAML` for the one runtime library; `DEP-RUFF`, `DEP-PYREFLY` for the gates), Security (`PATTERN-ATOMIC-REPLACE` is the file-footprint guarantee), Quality (fitness checks below).
+- Referenced by Interfaces (every `CLI-*` element is owned by `COMPONENT-CLI` and served by `COMPONENT-COMMANDS`; the envelope `OUT-*` is emitted by `COMPONENT-RENDERER`; the `ERR-*` catalog realises `PATTERN-ERROR-ENVELOPE`), Delivery (slices map to components), Integrations (`DEP-RUAMEL-YAML` for the one runtime library) and Operations (`TOOL-RUFF`, `TOOL-PYREFLY` for the gates; `ENV-LOCAL`/`ENV-CI`), Security (`PATTERN-ATOMIC-REPLACE` is the file-footprint guarantee), Quality (fitness checks below).
 
 ## Examples / Worked scenarios
 

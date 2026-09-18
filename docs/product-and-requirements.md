@@ -6,7 +6,7 @@ behavior: core
 trigger: always
 in-scope-subaspects: [problem-motivation, target-users-personas, goals-success-criteria, capability-register, constraints-assumptions, risks]
 current-rung: contract-grade
-status: published
+status: draft
 version: 1.1.0
 ---
 
@@ -206,11 +206,11 @@ Operations the standard performs on the map, and the command that serves each (t
 
 Each maps to an observable check; Quality owns the test definitions.
 
-1. `SUCCESS-ROUNDTRIP` — a golden test per public fixture: `dump(load(F)) == F` for canonical `F`; `format(format(F)) == format(F)` for every `F`.
-2. `SUCCESS-COMPLETE-OPS` — a contract test per row of the operations table above; the test suite fails if a row has no test.
-3. `SUCCESS-BOUNDED-OUTPUT` — contract tests on `get` and `list` assert the envelope's payload equals exactly the selected entries; a fixture with many bindings is used so leakage would be visible.
-4. `SUCCESS-CROSS-MODEL` — recorded by the operator per trial session: `validate` exit 0 with no errors and `format` producing no diff. Not automated; the record is the check.
-5. `SUCCESS-SCHEMA-MATCH` — a CI test computes the shipped file's SHA-256 and asserts equality with `lspd schema --checksum` and with the README value.
+1. Golden tests for `SUCCESS-ROUNDTRIP` — a golden test per public fixture: `dump(load(F)) == F` for canonical `F`; `format(format(F)) == format(F)` for every `F`.
+2. Operations-table tests for `SUCCESS-COMPLETE-OPS` — a contract test per row of the operations table above; the test suite fails if a row has no test.
+3. Bounded-output tests for `SUCCESS-BOUNDED-OUTPUT` — contract tests on `get` and `list` assert the envelope's payload equals exactly the selected entries; a fixture with many bindings is used so leakage would be visible.
+4. Operator record for `SUCCESS-CROSS-MODEL` — recorded by the operator per trial session: `validate` exit 0 with no errors and `format` producing no diff. Not automated; the record is the check.
+5. Checksum test for `SUCCESS-SCHEMA-MATCH` — a CI test computes the shipped file's SHA-256 and asserts equality with `lspd schema --checksum` and with the README value.
 6. Every `CAP-*` row's failure paths — each named exit-1 and exit-2 condition has a forced-condition contract test (Interfaces' `ERR-###` catalog names the forcing).
 7. Every `PERSONA-*` is referenced by at least one `CAP-*`, and every `CAP-*` by at least one `SUCCESS-*`.
 

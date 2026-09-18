@@ -6,7 +6,7 @@ behavior: core
 trigger: always
 in-scope-subaspects: [test-pyramid-test-types, coverage-map, real-flow-e2e-standard, quality-bars-gates, test-data-strategy]
 current-rung: contract-grade
-status: published
+status: draft
 version: 1.1.0
 ---
 
@@ -21,7 +21,7 @@ Owns the test tiers, the coverage map over every in-scope contract ID, the real-
 ## Non-goals / Out-of-scope
 
 - `specialized-testing` — `absent`: no performance (deferred at product level), security (no attack surface beyond a local file; Security's negative assertions are ordinary contract tests here), or accessibility (no UI) testing.
-- `test-stage-fidelity-mapping` — `absent`: a single environment; there is no release-infra stage distinct from the merge gate (Operations is absent).
+- `test-stage-fidelity-mapping` — `absent`: fidelity does not differ by tier or environment — Operations' map has two environments (`ENV-LOCAL`, `ENV-CI`) with identical, fully real fidelity and an empty substitution set, so there is nothing to map per stage.
 - `manual-exploratory` — `absent`: all gates are automated; no manual test programme exists. The one operator-recorded criterion (`SUCCESS-CROSS-MODEL`) is a product observation, not a test.
 - No property-based or fuzz testing library: test dependencies are strictly MIT (`hypothesis` is MPL-2.0). `absent` by decision.
 - **No branch coverage.** Every branch-capable coverage tool (coverage.py, slipcover, covers) is Apache-licensed and excluded by the MIT-only rule; the standard library's `trace` measures lines only. `deferred` — `[FUTURE-SCOPE]` re-entry: an MIT-licensed branch-coverage tool, or an own `sys.settrace`-based tracer if the operator judges it worth a few hundred lines.
@@ -54,7 +54,7 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | golden | golden: `emit(load(F)) == F` for every canonical fixture; `format(format(F)) == format(F)` for every fixture | `SUCCESS-ROUNDTRIP` |
 | contract | contract: one test per row of Product's operations table, named after the row; a meta-test asserts every row has a test | `SUCCESS-COMPLETE-OPS` |
 | contract | contract: fifty-binding fixture; `get` of two IDs and `list --kind` yield exactly the selected entries and no other ID string | `SUCCESS-BOUNDED-OUTPUT` |
-| — | n/a — automated: an operator observation recorded per trial session (validate clean + `format --check` exit 0); the automated half is `CLI-FORMAT --check`'s contract test | `SUCCESS-CROSS-MODEL` |
+| — | n/a — not automated: an operator observation recorded per trial session (validate clean + `format --check` exit 0); the automated half is `CLI-FORMAT --check`'s contract test | `SUCCESS-CROSS-MODEL` |
 | contract | CI: SHA-256 of `lspd.schema.json` == `lspd schema --checksum` == README value | `SUCCESS-SCHEMA-MATCH` |
 | unit, golden | unit: construction and `to_plain`/`from_plain` round trip per entity; golden: every entity appears in the canonical fixture | `ENTITY-MAP`, `ENTITY-BINDING`, `ENTITY-LOCATOR`, `ENTITY-FIELD-LOCATOR`, `ENTITY-WIRE`, `ENTITY-ASSERTION`, `ENTITY-COVERAGE`, `ENTITY-COMMENT`, `ENTITY-FINDING` |
 | unit | unit: table-driven accept/reject sets (Domain acceptance 2 and the path rules) | `ENTITY-CONTRACT-ID`, `ENTITY-PATH` |
@@ -78,17 +78,18 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | contract | contract: forced per the catalog's *Forced by* column; `details` shape asserted | `ERR-USAGE` … `ERR-INTERNAL` (twelve, incl. `ERR-SCHEMA-VERSION` and `ERR-FILE-INVALID`) |
 | contract, fitness | contract and fitness: exactly the *Forced by* and *Realised by* checks in each Security row | `SEC-ZERO-NETWORK` … `SEC-TRUST-BOUNDARY` (eight) |
 | E2E | the E2E tier itself; a meta-test asserts every `CAP-*` has a journey | the real-flow standard defined below (referenced by Delivery as its proof of done) |
-| fitness, contract | fitness: `pyproject.toml` declares exactly ruamel.yaml `>=0.19,<0.20`, ruff, pyrefly (Integrations acceptance 1); contract: import of ruamel monkeypatched to fail → `ERR-INTERNAL` while `--help` succeeds (Integrations acceptance 3) | `DEP-RUAMEL-YAML`, `DEP-RUFF`, `DEP-PYREFLY` |
+| fitness, contract | fitness: `pyproject.toml` declares exactly ruamel.yaml `>=0.19,<0.20` as the runtime dependency (Integrations acceptance 1); contract: import of ruamel monkeypatched to fail → `ERR-INTERNAL` while `--help` succeeds (Integrations acceptance 3) | `DEP-RUAMEL-YAML` |
+| fitness | fitness: `pyproject.toml` and `.github/workflows/ci.yml` pin every tool within its `TOOL-*` row's series; the workflow names the seven gate steps, the 3.11 interpreter, and the fresh-venv wheel install for E2E (Operations acceptance 1–2) | `ENV-LOCAL`, `ENV-CI`, `TOOL-RUFF`, `TOOL-PYREFLY`, `TOOL-SETUPTOOLS`, `TOOL-ACTIONS-CHECKOUT`, `TOOL-ACTIONS-SETUP-PYTHON` |
 | fitness | fitness: `LICENSE` is the MIT text with the contracted copyright line; README names MIT and the contribution sentence | `POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT` |
 | fitness (gate 7) | the licence gate `tools/licence_gate.py` over the resolved environment on every CI run; a unit test feeds it a fake BSD distribution and a fake metadata-less one and asserts both fail | `POLICY-INBOUND-MIT-ONLY` |
 | fitness | fitness: every `SOURCE:` comment in the tree parses to the token form and names `MIT` | `POLICY-SOURCE-MARKER` |
-| — | n/a — automated: a release-slice review whose record (the filled provenance register with a non-empty residual) is the check; the release-gate checklist requires it (Delivery) | `POLICY-PROVENANCE-PASS` |
+| — | n/a — not automated: a release-slice review whose record (the filled provenance register with a non-empty residual) is the check; the release-gate checklist requires it (Delivery) | `POLICY-PROVENANCE-PASS` |
 | fitness | fitness: README contains the independence sentence verbatim; conformance phrases use the versioned form; `--help` and README never say certified/official/endorsed about Dictum outside that sentence; no paragraph in the **product artifacts** (`README.md`, `docs/`, `src/`, `tests/`, `tools/`) duplicates the standard's normative text — `dictum/`, `.claude/`, and `CLAUDE.md` are vendored Dictum tooling and exempt | `POLICY-NAMING-ENFORCEMENT`, `LEGAL-DICTUM-NAMING` |
 | fitness | fitness: Delivery acceptance 2, 3, 6 (record ↔ tests ↔ minted IDs; docs never trail code) | Delivery's slice rule, DoD, playbook, build-status record |
 
 ### Real-flow E2E standard
 
-`E2E-STANDARD` — a journey exercises the product's **own code for real**: it runs the **installed `lspd` executable** (console script) as a subprocess with a real working directory and real files, and asserts the real stdout, stderr, exit code, and resulting file bytes. Nothing of the product is imported into the test process for the E2E tier; no in-process shortcut. There are no external dependencies to substitute and no login to bypass, so the substitution set is empty and stated as such. The CLI has no screens; the "operate every control" rule maps to: **every `CLI-*` element is invoked at least once in its default state (no optional flags) and once per optional flag**, asserting a non-error outcome where the contract promises one. Environment: locally, the editable install in the developer's venv; in CI, a wheel built from the commit and installed into a fresh venv before the tier runs. Rule (a) of the standard applies: a test may compute an expected canonical file through the pure `emitter` module in the test process, which injects nothing into the subprocess.
+`E2E-STANDARD` — a journey exercises the product's **own code for real**: it runs the **installed `lspd` executable** (console script) as a subprocess with a real working directory and real files, and asserts the real stdout, stderr, exit code, and resulting file bytes. Nothing of the product is imported into the test process for the E2E tier; no in-process shortcut. There are no external dependencies to substitute and no login to bypass, so the substitution set is empty and stated as such. The CLI has no screens; the "operate every control" rule maps to: **every `CLI-*` element is invoked at least once in its default state (no optional flags) and once per optional flag**, asserting a non-error outcome where the contract promises one. Environment: `ENV-LOCAL` (the editable install in the developer's venv) and `ENV-CI` (a wheel built from the commit and installed into a fresh venv before the tier runs — the binding fidelity for the staged DoD), per Operations' map. Rule (a) of the standard applies: a test may compute an expected canonical file through the pure `emitter` module in the test process, which injects nothing into the subprocess.
 
 ### Quality bars & gates
 
@@ -119,7 +120,7 @@ None open.
 ## Dependencies & Cross-references
 
 - Consumes every ID minted by Product, Domain, Architecture, and Interfaces (the map above); the `ERR-*` *Forced by* column and Architecture's acceptance list are the forcing sources.
-- Referenced by Delivery (`E2E-STANDARD` and the seven gates are the DoD; the incident record lives in build-status), Security (its negative assertions become contract tests here), Governance (gate 7 is `POLICY-INBOUND-MIT-ONLY`; the `SOURCE:` and naming checks in the fitness tier are `POLICY-SOURCE-MARKER` and `POLICY-NAMING-ENFORCEMENT`; the MIT-only test-dependency rule), Business & Legal (`LEGAL-DICTUM-NAMING`'s check), Integrations (`DEP-*` fitness).
+- Referenced by Delivery (`E2E-STANDARD` and the seven gates are the DoD; the incident record lives in build-status), Security (its negative assertions become contract tests here), Governance (gate 7 is `POLICY-INBOUND-MIT-ONLY`; the `SOURCE:` and naming checks in the fitness tier are `POLICY-SOURCE-MARKER` and `POLICY-NAMING-ENFORCEMENT`; the MIT-only test-dependency rule), Business & Legal (`LEGAL-DICTUM-NAMING`'s check), Integrations (`DEP-*` fitness), Operations (`ENV-*`/`TOOL-*` fitness; gates 3 and 4 are `TOOL-RUFF` and `TOOL-PYREFLY`).
 
 ## Examples / Worked scenarios
 
@@ -145,7 +146,7 @@ The owned contracts are table- and prose-shaped and fully stated in Requirements
 
 ## Acceptance criteria
 
-1. A meta-test enumerates every `PERSONA-*`, `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*`, `SEC-*`, `POLICY-*`, `DEP-*`, `LEGAL-*` ID **from the register lines of the owning docs' Contracts sections only** (never from prose or code blocks, where illustrative IDs such as `ENTITY-USER` appear as example data), plus `E2E-STANDARD`, and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
+1. A meta-test enumerates every `PERSONA-*`, `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*`, `SEC-*`, `POLICY-*`, `DEP-*`, `ENV-*`, `TOOL-*`, `LEGAL-*` ID **from the register lines of the owning docs' Contracts sections only** (never from prose or code blocks, where illustrative IDs such as `ENTITY-USER` appear as example data), plus `E2E-STANDARD`, and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
 2. Every one of the seven gates in *Quality bars* is a required CI job; a pull request cannot merge with any red.
 3. The E2E tier invokes every `CLI-*` element in default state and per optional flag (meta-test over the recorded invocations).
 4. The `trace`-based line-coverage report shows 100 % with every exclusion carrying a reason (fitness test).

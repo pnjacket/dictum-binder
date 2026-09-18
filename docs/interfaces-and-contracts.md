@@ -6,7 +6,7 @@ behavior: core
 trigger: always
 in-scope-subaspects: [cli-surface, error-model-catalog, versioning-compatibility]
 current-rung: contract-grade
-status: published
+status: draft
 version: 1.1.0
 ---
 
@@ -132,7 +132,7 @@ Register form: table row, ID in the first cell.
 
 ### CLI elements (`CLI-*`)
 
-Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every reading element: `ERR-FILE-MISSING`, `ERR-FILE-TOO-LARGE`, `ERR-IO`, `ERR-PARSE`, and — every element except `validate` — `ERR-SCHEMA-VERSION`; on every writing element additionally `ERR-FILE-INVALID`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
+Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every element that reads the file (all but `init`, `schema`, `--help`, `--version`): `ERR-FILE-MISSING`, `ERR-FILE-TOO-LARGE`, `ERR-IO`, `ERR-PARSE`, and — every reader except `validate` — `ERR-SCHEMA-VERSION`; on every element that writes an existing file (all writers but `init`) additionally `ERR-FILE-INVALID`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
 
 | ID | Signature | Inputs (required · optional) | Output (`result`) | Element-specific errors | Pre / post · side effects | Serves |
 |---|---|---|---|---|---|---|
@@ -164,7 +164,7 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 | `ERR-FILE-MISSING` | The target file does not exist (any element except `init`, `schema`, `--help`, `--version`) | 2 | run in an empty temporary directory |
 | `ERR-FILE-EXISTS` | `init` when the target exists | 1 | `init` twice |
 | `ERR-IO` | The target cannot be read or written: permission denied, is a directory, unwritable directory for the temporary file | 2 | a directory named `bindings.yaml`; a read-only directory for writes |
-| `ERR-PARSE` | The bytes are not a YAML document the Loader accepts: syntax error, duplicate key, not a mapping at top level, BOM or CRLF (`INV-BYTES` at the byte edge), a comment with no anchor | 2 | one fixture per condition |
+| `ERR-PARSE` | The bytes are not a YAML document the Loader can turn into a Model: syntax error, duplicate key, not a mapping at top level, non-UTF-8, BOM or CRLF (the unloadable half of `INV-BYTES`), a comment where no anchor exists (the unloadable half of `INV-COMMENT-ANCHORED`). Fixability drives the code: none of these can be fixed through `lspd` | 2 | one fixture per condition |
 | `ERR-FILE-TOO-LARGE` | The target exceeds 10 MiB and `--no-size-limit` was not given (checked before parsing; `SEC-FAIL-CLOSED`) | 1 | a generated file of 10 MiB + 1 byte; the same with the flag passes |
 | `ERR-SCHEMA-VERSION` | The file's `schema_version` is missing, not an integer, or differs from the binary's `SCHEMA_VERSION`; raised by every element except `validate` before any other work | 1 | a fixture with `schema_version: 2` under `get`, `set`, `format` |
 | `ERR-FILE-INVALID` | A write element found error-level findings in the pre-validation pass; `details.findings` carries them; nothing written | 1 | `add-locator` against a fixture with a `lines:` key elsewhere in the file; `format` against the same fixture |
@@ -177,7 +177,7 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 
 1. A contract test per `CLI-*` element exercising its happy path against a fixture and asserting the exact `result` projection and exit code.
 2. A forced-condition test per row of the `ERR-*` catalog, asserting `ok:false`, the code, the `details` shape, the exit code, and that stdout holds exactly one JSON document and stderr is empty without `--debug`.
-3. `OUT-ENVELOPE` conformance: a test-side shape assertion (own helper: fixed key set, types, nullability) checks the output of every test in 1 and 2; key order is asserted textually.
+3. Envelope conformance for `OUT-ENVELOPE`: a test-side shape assertion (own helper: fixed key set, types, nullability) checks the output of every test in 1 and 2; key order is asserted textually.
 4. Bounded output: with a fixture of at least fifty bindings, `get` of two IDs yields exactly two `OUT-BINDING`s and the document contains no other binding's ID string; `list --kind INV` yields only `INV` summaries.
 5. `--help` at all three levels exits 0 with plain text naming every argument of that level; the set of commands in `lspd --help` equals the set of `CLI-*` command paths.
 6. `schema` raw output is byte-identical to `lspd.schema.json` and `schema --checksum` equals its SHA-256 (`SUCCESS-SCHEMA-MATCH`).
