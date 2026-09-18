@@ -65,7 +65,7 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | golden | golden (as `SUCCESS-ROUNDTRIP`) | `INV-CANONICAL-FIXPOINT` |
 | contract | contract: each `add-*`/`set`/`coverage`/`comment` on a multi-binding **canonical** fixture; diff limited to the touched lines (a non-canonical fixture also shows the layout repair; order still preserved) | `INV-ORDER-PRESERVED` |
 | unit | unit: injected failure after the temporary file is written → target byte-identical, no temp file left | `INV-ATOMIC-WRITE` |
-| fitness, unit | fitness: import confinement (ruamel only in `loader.py`, no other third-party import anywhere), sole writer (`emitter.py`), acyclic left-to-right imports; unit per component as above; one unit test per rule-table entry in `COMPONENT-SCHEMA` proving the generated checker and the generated JSON Schema agree on that entry | `COMPONENT-CLI` … `COMPONENT-SCHEMA` (eight) |
+| fitness, unit | fitness: import confinement (ruamel only in `loader.py`, no other third-party import anywhere), sole writer (`emitter.py`), acyclic imports with flow components importing none of each other and only `cli.py` orchestrating; unit per component as above; one unit test per rule-table entry in `COMPONENT-SCHEMA` proving the generated checker and the generated JSON Schema agree on that entry | `COMPONENT-CLI` … `COMPONENT-SCHEMA` (eight) |
 | contract | contract: one forced test per error source (Architecture acceptance 3); stderr empty without `--debug` | `PATTERN-ERROR-ENVELOPE` |
 | contract | contract: pre-warning reported and write proceeds; shape-breaking input rejected with file bytes identical | `PATTERN-VALIDATE-AROUND-WRITE` |
 | unit | as `INV-ATOMIC-WRITE` | `PATTERN-ATOMIC-REPLACE` |
