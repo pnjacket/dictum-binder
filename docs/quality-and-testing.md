@@ -40,7 +40,7 @@ Five tiers, all standard-library `unittest`, one package directory per tier unde
 | **Unit** | `COMPONENT-MODEL`, `COMPONENT-VALIDATOR`, `COMPONENT-EMITTER`, `COMPONENT-LOADER`, `COMPONENT-SCHEMA` in isolation | direct calls; one test method per `INV-*`; `subTest` for table-driven grammar cases | `tests/unit/` |
 | **Golden** | The canonical layout and round-trip fidelity | fixture files under `tests/fixtures/`; `load`→`emit` byte comparison; `format` fixpoint | `tests/golden/` |
 | **Contract** | Every `CLI-*`, `OUT-*`, `ERR-*` | in-process `lspd.cli.main(argv)` with captured stdout/stderr and exit code, in a `tempfile` directory; exact projection and key-order assertions | `tests/contract/` |
-| **Fitness** | Structural and textual rules owned by Architecture, Security, Governance, Business & Legal, Delivery, and Integrations | `ast` and text over the repository: import confinement, sole writer, acyclic pipeline, pragma reasons, forbidden imports (`SEC-*`), `SOURCE:` marker form (`POLICY-SOURCE-MARKER`), README/LICENSE/`--help` wording (`LEGAL-DICTUM-NAMING`), `pyproject.toml` dependency set (`DEP-*`), build-status record ↔ tests ↔ minted IDs (Delivery) | `tests/fitness/` |
+| **Fitness** | Structural and textual rules owned by Architecture, Interfaces (the `--help` tree walk), Security, Governance, Business & Legal, Delivery, Operations, and Integrations | `ast` and text over the repository: import confinement, sole writer, acyclic pipeline, pragma reasons, forbidden imports (`SEC-*`), `SOURCE:` marker form (`POLICY-SOURCE-MARKER`), README/LICENSE/`--help` wording (`LEGAL-DICTUM-NAMING`), `pyproject.toml` dependency set (`DEP-*`), build-status record ↔ tests ↔ minted IDs (Delivery) | `tests/fitness/` |
 | **E2E** | Every `CAP-*` through the real installed binary | `subprocess.run(["lspd", …])` per `E2E-STANDARD` | `tests/e2e/` |
 
 ### Coverage map
@@ -109,7 +109,7 @@ Merge gate — **seven gates**, all required, run by CI on every push and pull r
 
 - **Synthetic only, hand-written**, under `tests/fixtures/`, each file opening with a header comment that states what it exercises. No real-world map is copied in; adapting one is an LLM's job outside this repository.
 - **Golden canonical fixture**: Domain's *Persistence* example, verbatim, is `tests/fixtures/canonical.yaml`; it must validate clean and be a `format` fixpoint.
-- **One violating fixture per write-gated `INV-*`** and one per `ERR-PARSE` condition, named after the code (`inv-no-line-numbers.yaml` — which uses the `:NN` suffix form so that exactly one code fires; a `lines:` key fires `INV-CLOSED-KEYS` too — `err-parse-duplicate-key.yaml`).
+- **One violating fixture per write-gated `INV-*`** and one per `ERR-PARSE` condition, named after the code (`inv-no-line-numbers.yaml` uses the `:NN` suffix form and `inv-comment-text.yaml` the bare-`#` form so that exactly one code fires; a `lines:` key also fires `INV-CLOSED-KEYS` and a trailing-whitespace comment also fires `INV-BYTES`; `err-parse-duplicate-key.yaml`).
 - **A fifty-binding fixture** for bounded-output tests, generated deterministically by a test helper (not committed as a file) so its size can grow without repository churn.
 - Test and tooling dependencies: `ruff` and `pyrefly` only — both MIT with zero transitive dependencies. Test runner, coverage, licence gate, and shape assertions are standard library or own code.
 

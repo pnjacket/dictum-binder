@@ -36,7 +36,7 @@ One runtime dependency (`DEP-RUAMEL-YAML`), minted in Contracts, imported by `CO
 
 - **ruamel.yaml parse failure** on the target file → `ERR-PARSE`, exit 2 (`SEC-FAIL-CLOSED`). No fallback parser; the failure is the contracted outcome.
 - **ruamel.yaml import failure** (package missing or broken) → `ERR-INTERNAL`, exit 2, message naming the missing package. There is no degraded mode: without a YAML parser the tool has no function.
-- **Behavioural drift across ruamel.yaml versions** (comment attachment, round-trip token layout): contained at the Loader edge; the Emitter never depends on the library (`ADR-LOAD-RUAMEL-EMIT-OWN`), so output bytes cannot drift. Loader-side drift is caught by the golden and seven-anchor round-trip tests (Quality) before a version bump lands.
+- **Behavioural drift across ruamel.yaml versions** (node line/column reporting, which the Loader's line-adjacency anchoring relies on; parse-error classes): contained at the Loader edge; the Emitter never depends on the library (`ADR-LOAD-RUAMEL-EMIT-OWN`), so output bytes cannot drift. Loader-side drift is caught by the golden and seven-anchor round-trip tests (Quality) before a version bump lands.
 - Tool failures (ruff, pyrefly) are Operations' `TOOL-*` concern: they affect CI gates only, never the product.
 
 ### Criticality
@@ -77,7 +77,7 @@ Register form: table row, ID in the first cell.
 
 | ID | Package · role | Contract (how used) | Auth | Failure modes → outcome | Fallback | Criticality | Fidelity substitution | Version pinning | Licence |
 |---|---|---|---|---|---|---|---|---|---|
-| `DEP-RUAMEL-YAML` | ruamel.yaml · runtime | Round-trip loader (`YAML(typ="rt")`) used by `COMPONENT-LOADER` to parse the target file's bytes into a comment-bearing object that the Loader converts into the Model; imported lazily inside `load()` so `schema`, `--help`, and `--version` never touch it; never used to emit | none | parse error → `ERR-PARSE` (exit 2); duplicate key → `ERR-PARSE`; import failure → `ERR-INTERNAL` (exit 2); version drift in comment attachment → caught by the golden and anchor tests before a bump lands | none — no parser, no product | app-fatal (except `schema`, `--help`, `--version`, which do not import it) | n/a — real everywhere; nothing substituted | `>=0.19,<0.20`; series bumps deliberate, gated by golden tier + licence gate | MIT, zero required dependencies |
+| `DEP-RUAMEL-YAML` | ruamel.yaml · runtime | Round-trip loader (`YAML(typ="rt")`) used by `COMPONENT-LOADER` to parse the target file's bytes into a node tree with line positions from which the Loader builds the Model and derives comment anchors by line adjacency; imported lazily inside `load()` so `schema`, `--help`, and `--version` never touch it; never used to emit | none | parse error → `ERR-PARSE` (exit 2); duplicate key → `ERR-PARSE`; import failure → `ERR-INTERNAL` (exit 2); version drift in node position reporting or error classes → caught by the golden and anchor tests before a bump lands | none — no parser, no product | app-fatal (except `schema`, `--help`, `--version`, which do not import it) | n/a — real everywhere; nothing substituted | `>=0.19,<0.20`; series bumps deliberate, gated by golden tier + licence gate | MIT, zero required dependencies |
 
 ## Acceptance criteria
 
