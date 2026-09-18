@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [vertical-slice-rule-slice-types, definition-of-done, build-playbook-sequence, work-item-hierarchy-slice-level, build-ready-gate-scope, verified-build-status-tracking, branching-release-versioning]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Delivery Process — dictum-binder
 
 > One-line: six headless slices from `main`, a Definition of Done that is Quality's six gates plus a build-status row, an empty substitution set, an LLM-written `bindings.yaml` (written without the tool, then conformed through `lspd`) right before the `v1.0.0` tag, and the in-repo record as the only tracker.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, one round). Owned contracts are process-shaped and fully stated in Requirements; Contracts points there (Part 4). The build-status record docs/IMPLEMENTATION.md is created with slice 1 from dictum/templates/build-status.template.md. -->
 
 ## Purpose & Scope
 
@@ -24,7 +23,7 @@ Owns how the tool gets built and proven: the slice rule and types, the Definitio
 - `external-tracker-binding` — `absent`: no external tracker; the in-repo build-status record is the tracker. (GitHub Issues may carry inbound demand after the repository goes public; that would enter as a tracker-binding declaration through the enhancement lifecycle as ordinary demand — no re-entry note is owed for an `absent` subject.)
 - **Branching inside the build is not governed by the doc set.** Until `v1.0.0` the work happens on `main`; how the implementer arranges local branches or commits between checkpoints is an implementation-level matter the operator deliberately leaves outside this document. `absent` by decision. Post-release branching re-enters when a second release is planned, `[FUTURE-SCOPE]`.
 - No signed tags, no GitHub Release objects, no published wheel: the release is the tag alone; users clone and install. `absent` by decision.
-- No release-infrastructure gate distinct from the merge gate beyond the checklist below: there is no infrastructure (Operations absent). The substitution set is **empty and stated**: no externals; nothing substituted; own code real at every gate.
+- No release-infrastructure gate distinct from the merge gate beyond the checklist below: there is no infrastructure (Operations absent). The substitution set is **empty and stated**: no externals; nothing substituted; own code real at every gate. **Operations & Infrastructure stays out on both halves of its trigger** (evaluated 2026-09-17): no running service, and this staged DoD needs no `ENV-*` fidelity map because there is exactly one environment fidelity — the CI runner and the developer venv run the same real code with nothing substituted. Build-tool pins are held in Integrations as gate-fatal `DEP-*` rather than an Ops `TOOL-*` register, a recorded decision there.
 - No tool-maintained binding map during the build (see the playbook): relying on an unfinished tool for its own bookkeeping is a risk the operator declines. `deferred` — re-entry at the release slice, where the map is minted.
 
 ## Requirements
@@ -132,5 +131,3 @@ The owned contracts are process-shaped and fully stated in *Requirements* (Part 
 5. At the tag `v1.0.0`: `pyproject.toml` version equals `1.0.0`; a fresh-venv wheel install passes the E2E tier; README checksum equals `lspd schema --checksum`; the repository's `bindings.yaml` validates clean and `format --check` exits 0.
 6. A commit that touches `src/` and changes any published doc in the same commit fails a fitness check, unless the doc change is a version bump produced by the doc-led flow — code never leads the docs.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

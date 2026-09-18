@@ -6,14 +6,13 @@ behavior: baseline
 trigger: always
 in-scope-subaspects: [trust-boundaries, secrets-credential-handling, threat-model]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Security & Privacy — dictum-binder
 
 > One-line: a minimal-risk local tool whose entire security surface is eight negative and hygiene assertions — no network, no execution, a bounded file footprint, no ambient configuration, fail-closed parsing with a lift-able size cap, symlinks resolved to their final target, no secrets, one trust boundary — each a forced contract test.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, one round). Owns SEC-* (register form: table row, ID in first cell). No ROLE-*, no per-interface authz: no users, no protected resources (Non-goals). Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -104,5 +103,3 @@ Register form: table row, ID in the first cell. Each assertion names its realisi
 3. `ERR-FILE-TOO-LARGE` and `--no-size-limit` appear in Interfaces' catalog and global options and have their contract tests.
 4. The threat-model table has a non-empty *Assertion* cell in every row; a row without one would be an unbacked claim and fails review.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

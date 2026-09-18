@@ -6,14 +6,13 @@ behavior: baseline
 trigger: always
 in-scope-subaspects: [license-ip-compliance, source-provenance]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Governance & Compliance — dictum-binder
 
 > One-line: MIT outbound; MIT-only inbound over every declared package and its transitive tree, enforced in CI by an own standard-library script; the interpreter, pip, and build backend exempt as infrastructure; contributions under MIT with nothing more; and — because the code is model-authored — a `SOURCE:`-marker discipline plus an LLM-driven detection pass whose residual is recorded before the first release.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, one round plus one clarification). Owns POLICY-* and the two registers (register form: table row, ID in first cell). The provenance register's rows are filled by the release slice's pass; its shape and the residual clause are contracted here. Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -108,5 +107,3 @@ Filled by the release slice's pass; the contract is its shape and its residual c
 4. `LICENSE` at the root is the MIT text; the README names MIT, the contribution terms, and the Dictum attribution line (`POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT`).
 5. The naming fitness test in Quality exists and checks all four clauses of `LEGAL-DICTUM-NAMING` (`POLICY-NAMING-ENFORCEMENT`).
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

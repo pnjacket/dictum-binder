@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [problem-motivation, target-users-personas, goals-success-criteria, capability-register, constraints-assumptions, risks]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Product & Requirements — dictum-binder
 
 > One-line: a deterministic command-line tool, installed as `lspd`, that is the reader, writer, and validator of a Dictum project's `bindings.yaml`, so that the binding map has one canonical style and a predictable token cost regardless of which LLM or human touches it.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive; two rounds beyond Specified). Owns PERSONA-*, CAP-*, SUCCESS-* — minted in Contracts below (register form = table row, ID in first cell). Every other occurrence of those IDs in this set is a reference. Publish once the set reaches the build-ready gate. -->
 
 ## Purpose & Scope
 
@@ -215,5 +214,3 @@ Each maps to an observable check; Quality owns the test definitions.
 6. Every `CAP-*` row's failure paths — each named exit-1 and exit-2 condition has a forced-condition contract test (Interfaces' `ERR-###` catalog names the forcing).
 7. Every `PERSONA-*` is referenced by at least one `CAP-*`, and every `CAP-*` by at least one `SUCCESS-*`.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

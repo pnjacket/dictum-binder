@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [domain-entities-relationships, identifiers, business-invariants-rules, lifecycle-states, persistence-storage-schema, consistency-transactions, migrations-versioning]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Domain & Data — dictum-binder
 
 > One-line: the binding map as a closed data model — the file, its bindings, locators, assertions, coverage declaration, and anchored comments — with the invariants that make one canonical style checkable and the canonical layout that *is* the storage schema.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, two rounds). Owns ENTITY-* and INV-* (register form: table row, ID in first cell). A validation finding's `code` IS the violated INV-* ID — owned once here; Interfaces mints the command-level ERR-* catalog separately. Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -221,5 +220,3 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 7. `INV-COMMENT-ANCHORED`: fixtures for each of the seven anchor kinds round-trip; a fixture with a stray comment and one with two carriers each produce the finding.
 8. The canonical example in *Persistence* is itself a golden fixture: it validates clean and is a `format` fixpoint.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

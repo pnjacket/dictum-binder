@@ -53,7 +53,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: governance-and-compliance.md,
       out_of_scope_subaspects: [data-handling-policy, audit-requirements, compliance-framework-mapping, records-retention-data-residency, consent-management] }
   user-experience:                          { in_scope: false }   # interactive_ui: false (absent)
-  operations-and-infrastructure:            { in_scope: false }   # deployed_service: false (absent)
+  operations-and-infrastructure:            { in_scope: false }   # absent — BOTH halves of the 11.10 trigger evaluated 2026-09-17: no running service, and the staged DoD needs no ENV fidelity map (single environment, empty substitution set; delivery-process.md Non-goals). Tool pins live in Integrations as gate-fatal DEP-* by recorded decision.
   observability-and-monitoring:             { in_scope: false }   # deployed_service: false (absent)
   integrations-and-external-dependencies:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: integrations-and-external-dependencies.md,

@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [test-pyramid-test-types, coverage-map, real-flow-e2e-standard, quality-bars-gates, test-data-strategy]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Quality & Testing — dictum-binder
 
 > One-line: five `unittest` tiers, a coverage map that gives every minted ID a test or a stated reason, 100 % line coverage from the standard library's `trace` as a gate with written exclusions, `pyrefly` strict and ruff, zero retries, synthetic fixtures only, an MIT-only toolchain, and an E2E standard that drives the installed `lspd` binary through every element in its default state.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, two rounds). Owns E2E-STANDARD and the coverage map (table-shaped; Contracts points to Requirements per Part 4). Rows for IDs minted later (DEP-*, SEC-*, LEGAL-*, POLICY-*) are added when those concerns reach Contract-grade — see the forward-reference note in the map. -->
 
 ## Purpose & Scope
 
@@ -151,5 +150,3 @@ The owned contracts are table- and prose-shaped and fully stated in Requirements
 4. The `trace`-based line-coverage report shows 100 % with every exclusion carrying a reason (fitness test).
 5. `tests/fixtures/canonical.yaml` is byte-identical to the example block in Domain's *Persistence* section (a test extracts the block and compares).
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

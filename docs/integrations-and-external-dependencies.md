@@ -6,14 +6,13 @@ behavior: module
 trigger: third-party-deps (manifest trait `third_party_deps`)
 in-scope-subaspects: [per-external-contract, failure-modes-fallback-degradation, criticality, version-pinning]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Integrations & External Dependencies — dictum-binder
 
 > One-line: one runtime dependency, ruamel.yaml, app-fatal, pinned to a range, confined to one module, its failure surface mapped to the error model; two zero-dependency development tools, ruff and pyrefly; nothing else, by the MIT-only rule.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup; the interview's dependency decisions were taken during the Governance level-up and the MIT-only research). Owns DEP-* (register form: table row, ID in first cell). Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -92,5 +91,3 @@ Register form: table row, ID in the first cell.
 3. `ERR-PARSE` and `ERR-INTERNAL` forcings for `DEP-RUAMEL-YAML` exist (Interfaces' catalog; a test monkeypatches the import to fail and asserts `ERR-INTERNAL` while `--help` still succeeds).
 4. Every `DEP-*` row has a non-empty criticality and pinning cell (review check; the spec's under-specification finding).
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

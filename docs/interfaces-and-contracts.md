@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [cli-surface, error-model-catalog, versioning-compatibility]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Interfaces & Contracts — dictum-binder
 
 > One-line: the `lspd` command surface — nineteen elements, their typed inputs with empty-value semantics, one JSON envelope with fixed projections, a total error catalog, and a compatibility promise — precise enough that an LLM agent drives it without ever opening `bindings.yaml`.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, two rounds). Owns CLI-*, OUT-*, ERR-* (register form: table row, ID in first cell). Consumes CAP-* (Product), ENTITY-*/INV-* (Domain), COMPONENT-*/PATTERN-* (Architecture). Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -181,5 +180,3 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 8. `set` accepts the exact document `get` returned for the same ID (comments included) and the file is byte-identical afterwards (round trip through the projection).
 9. Every `CLI-*` names a `CAP-*` it serves and every `CAP-*` is served by at least one `CLI-*`.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

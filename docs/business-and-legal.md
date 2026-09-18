@@ -6,14 +6,13 @@ behavior: module
 trigger: distributed (open source), plus an ip-trademark constraint (the Dictum naming policy)
 in-scope-subaspects: [eula-tos, ip-trademark-constraints]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Business & Legal — dictum-binder
 
 > One-line: non-commercial and distributed — the MIT licence with David H. Jung as holder is the entire terms of use, and the one legal constraint is Dictum's naming policy, honoured as a third party with an explicit "not the official Dictum project" line in the README.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive). Mostly-scoped-out concern: Contract-grade reached by fully asserting the residual (Part 9 checklist). Owns LEGAL-* (register form: table row, ID in first cell). Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -84,5 +83,3 @@ The terms of use are the `LICENSE` file itself (EULA/ToS, prose-shaped; Contract
 2. Clause (3) is checked by the same test: no file outside `dictum/` contains a paragraph longer than two sentences that also appears in `dictum/STANDARD.md` or `dictum/concerns/*.md`.
 3. The manifest's `out_of_scope_subaspects` for this concern equals exactly the six keys listed in Non-goals, each with its `absent` justification (the Part 9 residual checklist, verified by the `doc-maturity-auditor`).
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

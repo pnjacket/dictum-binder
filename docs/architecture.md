@@ -6,14 +6,13 @@ behavior: core
 trigger: always
 in-scope-subaspects: [component-decomposition-responsibilities, component-interactions-data-flow, cross-cutting-patterns, technology-choices, adr-register]
 current-rung: contract-grade
-status: draft
-version: 0.3.0
+status: published
+version: 1.0.0
 ---
 
 # Architecture — dictum-binder
 
 > One-line: a single-process Python CLI in eight components — parse the one file with comment fidelity, validate it against a schema that is a single Python source, mutate a plain model, validate again, emit the byte-specified canonical layout through an own emitter, replace the file atomically, and render one JSON envelope.
-<!-- BUILD: Contract-grade as of 2026-09-17 (doc-levelup, interactive, one round — every proposal accepted). Owns COMPONENT-*, PATTERN-*, ADR-* (register form: table row, ID in first cell). Publish with the set. -->
 
 ## Purpose & Scope
 
@@ -150,5 +149,3 @@ Register form: table row, ID in the first cell.
 6. **Schema single source**: CI regenerates `lspd.schema.json` from `COMPONENT-SCHEMA` and fails on any diff; `lspd schema --checksum` equals the SHA-256 of the file.
 7. **Pipeline direction**: a test asserts the module import graph is acyclic and no component imports a component to its left in the flow diagram.
 
----
-<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->
