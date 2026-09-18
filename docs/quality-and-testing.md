@@ -73,9 +73,11 @@ Every in-scope ID minted so far has a row; an ID with no observable check has an
 | `ADR-LOAD-RUAMEL-EMIT-OWN`, `ADR-JSONSCHEMA-RUNTIME`, `ADR-ARGPARSE`, `ADR-SCHEMA-SINGLE-SOURCE`, `ADR-NO-LOGGING` | fitness: import confinement; no `logging` import anywhere; `argparse` is the only CLI library; schema file regenerated and diffed in CI | fitness |
 | `CLI-INIT` … `CLI-VERSION` (nineteen) | contract: happy path with exact `result`; **edge inputs per input-bearing element**: every optional flag *absent* (behaviour per its row), *empty string* (`ERR-USAGE`), and one *malformed* value (`ERR-USAGE` for enumerations and command-line grammar, `ERR-INPUT-INVALID` for domain values such as a `..` path) | contract |
 | `OUT-ENVELOPE` … `OUT-SCHEMA` (thirteen) | contract: a test-side JSON Schema of each projection validates every captured output; key order asserted textually for the envelope | contract |
-| `ERR-USAGE` … `ERR-INTERNAL` (nine) | contract: forced per the catalog's *Forced by* column; `details` shape asserted | contract |
+| `ERR-USAGE` … `ERR-INTERNAL` (ten) | contract: forced per the catalog's *Forced by* column; `details` shape asserted | contract |
+| `SEC-ZERO-NETWORK` … `SEC-TRUST-BOUNDARY` (eight) | contract and fitness: exactly the *Forced by* and *Realised by* checks in each Security row | contract, fitness |
 | `E2E-STANDARD` | the E2E tier itself; a meta-test asserts every `CAP-*` has a journey | E2E |
-| `DEP-*`, `SEC-*`, `POLICY-*`/provenance register, `LEGAL-*`, Delivery's slice/DoD contracts | rows owed by each concern's level-up (forward reference) | — |
+| `DEP-*`, Governance's provenance register, `LEGAL-*` | rows owed by each concern's level-up (forward reference) | — |
+| Delivery's slice rule, DoD, playbook, build-status record | fitness: Delivery acceptance 2, 3, 6 (record ↔ tests ↔ minted IDs; docs never trail code) | fitness |
 
 ### Real-flow E2E standard (`E2E-STANDARD`)
 
@@ -134,7 +136,7 @@ The owned contracts are table- and prose-shaped and fully stated in Requirements
 
 ## Acceptance criteria
 
-1. A meta-test enumerates every `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*` ID from the docs and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
+1. A meta-test enumerates every `CAP-*`, `SUCCESS-*`, `ENTITY-*`, `INV-*`, `COMPONENT-*`, `PATTERN-*`, `ADR-*`, `CLI-*`, `OUT-*`, `ERR-*`, `SEC-*` ID from the docs and asserts each has a row in a machine-readable copy of the coverage map (`tests/coverage_map.py`) and that every non-`n/a` row names at least one existing test function.
 2. Every gate in *Quality bars* is a required CI job; a pull request cannot merge with any red.
 3. The E2E tier invokes every `CLI-*` element in default state and per optional flag (meta-test over the recorded invocations).
 4. Coverage report shows 100 % with every exclusion carrying a reason (fitness test).

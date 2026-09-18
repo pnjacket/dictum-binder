@@ -35,7 +35,7 @@ Owns the CLI surface (`cli-surface`), the error model (`error-model-catalog`), a
 ### Global conventions
 
 - **Binary** `lspd`. Invocation: `lspd [global options] <command> [subcommand] [arguments]`.
-- **Global options**, valid before any command: `--file PATH` (target map; default `./bindings.yaml`; no upward search); `--human` (readable rendering); `--check-paths` (enables `CAP-PATHCHECK` wherever validation runs); `--debug` (traceback on stderr in addition to the envelope); `--help`; `--version` (plain text `lspd <semver>`).
+- **Global options**, valid before any command: `--file PATH` (target map; default `./bindings.yaml`; no upward search; symlinks resolved to the final target, `SEC-SYMLINK-FINAL-TARGET`); `--human` (readable rendering); `--check-paths` (enables `CAP-PATHCHECK` wherever validation runs); `--no-size-limit` (lifts the 10 MiB target-size cap, `SEC-FAIL-CLOSED`); `--debug` (traceback on stderr in addition to the envelope); `--help`; `--version` (plain text `lspd <semver>`).
 - **Output**: exactly one document on stdout per invocation. JSON envelope (`OUT-ENVELOPE`) by default; `--human` rendering otherwise. Exceptions: `--help` and `--version` print plain text; `schema` prints the raw schema document or the raw checksum line. stderr carries only `--debug` tracebacks.
 - **Exit codes** per `PATTERN-EXIT-CODES`: `0` clean or warnings only · `1` caller-fixable · `2` environment · `130` interrupted.
 - **Empty values.** An empty-string argument anywhere is `ERR-USAGE`. There is no "unset" meaning for an empty value; unsetting is always an explicit command. An omitted optional argument means "not present", never a default value.
@@ -51,7 +51,7 @@ Nineteen elements, minted in Contracts: `CLI-INIT`, `CLI-VALIDATE`, `CLI-FORMAT`
 
 ### Error model / catalog
 
-Total and content-negotiated in the CLI sense (`PATTERN-ERROR-ENVELOPE`): every failure from every source, including argparse's own usage errors, file I/O, ruamel parse errors, and unexpected exceptions, is one of the nine `ERR-*` codes in Contracts, rendered in the envelope (JSON) or the human form. A raw traceback or argparse's default stderr text reaching the caller is a contract violation.
+Total and content-negotiated in the CLI sense (`PATTERN-ERROR-ENVELOPE`): every failure from every source, including argparse's own usage errors, file I/O, ruamel parse errors, and unexpected exceptions, is one of the ten `ERR-*` codes in Contracts, rendered in the envelope (JSON) or the human form. A raw traceback or argparse's default stderr text reaching the caller is a contract violation.
 
 ### Versioning & compatibility
 
@@ -113,7 +113,7 @@ Register form: table row, ID in the first cell.
 | ID | Shape |
 |---|---|
 | `OUT-ENVELOPE` | The one JSON object every non-raw command prints. Keys, all always present: `lspd: {version: str (semver), schema_version: int}` · `ok: bool` · `command: str` (the element's command path, e.g. `"comment set"`) · `result: object \| null` (per element below; `null` on error) · `findings: {pre: [OUT-FINDING], post: [OUT-FINDING]}` · `error: OUT-ERROR \| null`. Serialised with `ensure_ascii=false`, keys in the order listed, no trailing whitespace, one trailing newline; not pretty-printed by default (`--human` is the readable form) |
-| `OUT-ERROR` | `{code: ERR-* id, message: str, details: object}`. `details` keys per code: `ERR-NOT-FOUND` → `{id, anchor: OUT-ANCHOR \| null}` · `ERR-DUPLICATE` → `{id, anchor: OUT-ANCHOR}` · `ERR-INPUT-INVALID` → `{findings: [OUT-FINDING]}` · `ERR-FILE-MISSING`/`ERR-FILE-EXISTS`/`ERR-IO`/`ERR-PARSE` → `{path: str, reason: str}` · `ERR-USAGE` → `{usage: str}` · `ERR-INTERNAL` → `{exception: str}` |
+| `OUT-ERROR` | `{code: ERR-* id, message: str, details: object}`. `details` keys per code: `ERR-NOT-FOUND` → `{id, anchor: OUT-ANCHOR \| null}` · `ERR-DUPLICATE` → `{id, anchor: OUT-ANCHOR}` · `ERR-INPUT-INVALID` → `{findings: [OUT-FINDING]}` · `ERR-FILE-MISSING`/`ERR-FILE-EXISTS`/`ERR-FILE-TOO-LARGE`/`ERR-IO`/`ERR-PARSE` → `{path: str, reason: str}` · `ERR-USAGE` → `{usage: str}` · `ERR-INTERNAL` → `{exception: str}` |
 | `OUT-FINDING` | Projection of `ENTITY-FINDING`: `{code: INV-* id, severity: "error" \| "warning", anchor: OUT-ANCHOR, message: str}` |
 | `OUT-ANCHOR` | Fixed-key object: `{type: "file" \| "header" \| "binding" \| "locator" \| "field" \| "assertion" \| "coverage" \| "curated", id: str \| null, path: str \| null, symbol: str \| null, arm: str \| null, owed: str \| null, field: str \| null, kind: str \| null}`; only the keys meaningful for `type` are non-null |
 | `OUT-BINDING` | Projection of `ENTITY-BINDING` with its anchored comments: `{id, kind, comment: str \| null, locators: [OUT-LOCATOR], compare_via: str \| null, fields: {name: OUT-FIELD-LOCATOR} \| null, wire: {casing: str \| null, enums: str \| null, dates: str \| null} \| null, asserted_by: [OUT-ASSERTION] \| null}`. `locators` is `[]` for a stub. Used as the **input** projection of `CLI-SET` too: `id` and `kind` may be omitted; if present they must equal the positional ID and its derived kind (`ERR-INPUT-INVALID` otherwise) |
@@ -130,7 +130,7 @@ Register form: table row, ID in the first cell.
 
 ### CLI elements (`CLI-*`)
 
-Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every reading element: `ERR-FILE-MISSING`, `ERR-IO`, `ERR-PARSE`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
+Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every reading element: `ERR-FILE-MISSING`, `ERR-FILE-TOO-LARGE`, `ERR-IO`, `ERR-PARSE`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
 
 | ID | Signature | Inputs (required · optional) | Output (`result`) | Element-specific errors | Pre / post · side effects | Serves |
 |---|---|---|---|---|---|---|
@@ -163,6 +163,7 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 | `ERR-FILE-EXISTS` | `init` when the target exists | 1 | `init` twice |
 | `ERR-IO` | The target cannot be read or written: permission denied, is a directory, unwritable directory for the temporary file | 2 | a directory named `bindings.yaml`; a read-only directory for writes |
 | `ERR-PARSE` | The bytes are not a YAML document the Loader accepts: syntax error, duplicate key, not a mapping at top level, BOM or CRLF (`INV-BYTES` at the byte edge), a comment with no anchor | 2 | one fixture per condition |
+| `ERR-FILE-TOO-LARGE` | The target exceeds 10 MiB and `--no-size-limit` was not given (checked before parsing; `SEC-FAIL-CLOSED`) | 1 | a generated file of 10 MiB + 1 byte; the same with the flag passes |
 | `ERR-NOT-FOUND` | A named ID, entry, anchor, or coverage entry does not exist | 1 | `get` of an absent ID; `remove --locator` of an absent pair; `comment get` on a bare anchor |
 | `ERR-DUPLICATE` | An `add-*` or `coverage … add` would create an entry whose identity already exists | 1 | `add-locator` twice with the same pair |
 | `ERR-INPUT-INVALID` | Supplied input fails shape or rule validation; `details.findings` carries the `INV-*` findings. Nothing written | 1 | `add-locator` with a `:41` suffix; `set` with an unknown key; `add-assertion` with both `--run` and `--owed` |
