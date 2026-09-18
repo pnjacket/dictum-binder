@@ -70,6 +70,6 @@ concerns:
 # Enhancement lifecycle (Part 10d) — CURRENT state only; history rides on git.
 reference_granularity: entity
 tombstones:                       # retired IDs (never reused/renamed)
-  DEP-RUFF:    { retired_in: RETIRED_REF, superseded_by: [TOOL-RUFF] }      # tooling is Ops-owned (11.10/11.12), not a DEP
-  DEP-PYREFLY: { retired_in: RETIRED_REF, superseded_by: [TOOL-PYREFLY] }
+  DEP-RUFF:    { retired_in: f88618c, superseded_by: [TOOL-RUFF] }      # tooling is Ops-owned (11.10/11.12), not a DEP
+  DEP-PYREFLY: { retired_in: f88618c, superseded_by: [TOOL-PYREFLY] }
 staleness: {}
