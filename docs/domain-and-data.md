@@ -138,7 +138,7 @@ None open.
 
 - Consumes `CAP-INIT`, `CAP-VALIDATE`, `CAP-FORMAT`, `CAP-SET`, `CAP-ADD`, `CAP-REMOVE`, `CAP-COVERAGE`, `CAP-COMMENT` (Product) — each lifecycle transition above names the capability that performs it.
 - Referenced by Interfaces (the JSON projection of every entity; the command-level `ERR-*` catalog is distinct from finding codes, which are `INV-*` IDs), Quality (one assertion per `INV-*`; golden fixtures realise the canonical layout), Architecture (the Model and Validator components realise these entities).
-- The Dictum template (`dictum/templates/binding-map.template.md`) is the upstream shape; the `role`/`wire` and `owed`/`arm` forms are its, the narrowing is ours.
+- The Dictum template (`dictum/templates/binding-map.template.md`) is the upstream shape; the `role`/`wire` forms and the *concepts* of arm-labelled and owed assertions are its (it describes them in comment prose), the `arm:` and `owed:` key forms are ours, and the narrowing is ours.
 
 ## Examples / Worked scenarios
 
@@ -195,7 +195,7 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 | `INV-ID-UNIQUE` | Exactly one binding per contract ID | by-construction: a YAML mapping cannot hold a duplicate key; the loader rejects a duplicate as unparseable (exit 2) |
 | `INV-SCHEMA-VERSION` | `schema_version` is present, an integer, and equals the running binary's major version | write-gated (`init` writes it; every write re-checks); checked on every read |
 | `INV-CLOSED-KEYS` | Every mapping uses only its defined keys: document {`schema_version`, `bindings`, `coverage`}; binding {`locators`, `compare_via`, `fields`, `wire`, `asserted_by`}; locator {`path`, `symbol`, `role`}; field locator {`path`, `symbol`}; wire {`casing`, `enums`, `dates`}; assertion {`path`, `symbol`, `run`, `arm`, `owed`}; coverage {`fully_bound`, `curated`} | write-gated; checked on every read |
-| `INV-NO-LINE-NUMBERS` | No key named `lines` or `line` anywhere (already excluded by `INV-CLOSED-KEYS`, reported under this ID for a precise message), and no `path` or `symbol` ending in `:` followed by digits | write-gated; checked on every read |
+| `INV-NO-LINE-NUMBERS` | No key named `lines` or `line` anywhere (such a key also violates `INV-CLOSED-KEYS`; **both** findings are reported, this one carrying the precise message), and no `path` or `symbol` ending in `:` followed by digits | write-gated; checked on every read |
 | `INV-PATH-FORM` | Every `path` satisfies `ENTITY-PATH` | write-gated; checked on every read |
 | `INV-PATH-EXISTS` | *opt-in* — with `--check-paths`, every locator and field-locator `path`, and every candidate `path` in write input, exists on disk relative to the working directory (checked by `stat` only, after `INV-PATH-FORM` has passed). Severity **error**. Never evaluated without the flag | write-gated when the flag is on (a write with a missing path is refused); checked on every read with the flag on |
 | `INV-SYMBOL-NONEMPTY` | Every present `symbol` is a non-empty string; every `run`, `compare_via`, `owed`, `arm`, wire value, and curated reason likewise | write-gated; checked on every read |

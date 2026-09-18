@@ -91,4 +91,4 @@ Register form: table row, ID in the first cell.
 1. A fitness test asserts `pyproject.toml` pins `ruff` to `>=0.16,<0.17` and `pyrefly` to `>=1.3,<1.4` (dev extra) and `setuptools` to `>=84,<85` (build-system), and that `.github/workflows/ci.yml` uses `actions/checkout@v7`, `actions/setup-python@v7`, and `python-version: "3.11"` — the values in the `TOOL-*` rows.
 2. The workflow file names the seven gate steps and the E2E tier's fresh-venv wheel install (`ENV-CI` row).
 3. The manifest's `out_of_scope_subaspects` for this concern equals the six keys in Non-goals, each `absent` with its trait fact (Part 9 residual checklist).
-4. `DEP-RUFF` and `DEP-PYREFLY` are tombstoned in the manifest with `superseded_by` pointing here, and no live reference to either remains in `docs/`.
+4. `DEP-RUFF` and `DEP-PYREFLY` are tombstoned in the manifest with `superseded_by` pointing here, and no live reference to either remains in `docs/` — "live" meaning a mention not in the same sentence as *retired*, *tombstone*, or *superseded*.

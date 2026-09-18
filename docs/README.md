@@ -2,7 +2,7 @@
 
 Derived index. **`manifest.yaml` is authoritative**; regenerate or update this file in lockstep whenever the manifest changes (the `doc-maturity-auditor` flags drift between the two).
 
-Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Scaffolded 2026-09-17 by `doc-scaffold` from an interactive intake interview, levelled to contract-grade and published the same day. No product code and no `bindings.yaml` exist yet — the binding map is authored during the build (the release slice, by decision).
+Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Scaffolded 2026-09-17 by `doc-scaffold` from an interactive intake interview and levelled to contract-grade; publish state is tracked in the status line below. No product code and no `bindings.yaml` exist yet — the binding map is authored during the build (the release slice, by decision).
 
 | Concern | In scope | Location | Current rung | Target |
 |---|---|---|---|---|
@@ -22,6 +22,6 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 | Performance & Scalability | no — **deferred** (operator's call; re-entry note in Product Non-goals) | — | — | — |
 | Accessibility & i18n | no — absent (no UI, single locale) | — | — | — |
 
-**Traits:** CLI only · not interactive · not deployed (but a toolchain to pin, so Operations is in minimally) · persists one file · one runtime dependency (ruamel.yaml) plus ruff and pyrefly as pinned tooling, all MIT · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
+**Traits:** CLI only · not interactive · not deployed (but a toolchain to pin, so Operations is in minimally) · persists one file · one runtime dependency (ruamel.yaml) plus five pinned build/test tools registered in Operations, all MIT · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
 
-**Build-ready gate:** every in-scope concern at contract-grade and published. **Not build-ready (deliberately unpublished).** Eleven in-scope concerns at contract-grade. After the second `doc-maturity-auditor` pass (2026-09-17) its findings were applied through `doc-feature`, Operations & Infrastructure was pulled in, and `DEP-RUFF`/`DEP-PYREFLY` were retired in favour of `TOOL-RUFF`/`TOOL-PYREFLY`; the nine touched docs are back at `draft` (version unchanged at 1.1.0) and the new Operations doc is `draft` 0.1.0. Only Business & Legal remains `published`. A third audit (2026-09-18) found four small errors and seven warnings, all applied. Next: a fourth audit; if clean, the operator decides on publishing.
+**Build-ready gate:** every in-scope concern at contract-grade and published. **Not build-ready (deliberately unpublished).** Eleven in-scope concerns at contract-grade. After the second `doc-maturity-auditor` pass (2026-09-17) its findings were applied through `doc-feature`, Operations & Infrastructure was pulled in, and `DEP-RUFF`/`DEP-PYREFLY` were retired in favour of `TOOL-RUFF`/`TOOL-PYREFLY`; the nine touched docs are back at `draft` (version unchanged at 1.1.0) and the new Operations doc is `draft` 0.1.0. Only Business & Legal remains `published`. A third audit (2026-09-18) found four small errors and seven warnings, all applied; a fourth audit found no errors and four wording warnings, applied. Next: the operator decides on publishing.
