@@ -80,7 +80,7 @@ None open.
 | Whole surface as negative assertions with forced tests | The spec's minimal-risk inversion: a claim that is not tested is implicit, and implicit is what this concern exists to remove |
 | 10 MiB cap with a lift flag rather than no cap | Fail-closed by default; the rare legitimate giant map is one flag away instead of blocked |
 | Symlinks resolved to the final target | Replacing a link with a file would silently change the repository's structure; the operator chose "deal with the final target all the time" |
-| Version ranges, no hash lock | The operator's call (Integrations); the two runtime dependencies are MIT and widely audited |
+| Version ranges, no hash lock | The operator's call (Integrations); the single runtime dependency is MIT with zero transitive dependencies |
 
 ## Contracts
 
@@ -105,4 +105,4 @@ Register form: table row, ID in the first cell. Each assertion names its realisi
 4. The threat-model table has a non-empty *Assertion* cell in every row; a row without one would be an unbacked claim and fails review.
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

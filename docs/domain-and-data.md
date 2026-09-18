@@ -222,4 +222,4 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 8. The canonical example in *Persistence* is itself a golden fixture: it validates clean and is a `format` fixpoint.
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

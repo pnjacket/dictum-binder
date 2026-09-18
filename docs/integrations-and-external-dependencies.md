@@ -3,7 +3,7 @@ artifact: product-doc
 role: concern
 concern-id: integrations-and-external-dependencies
 behavior: module
-trigger: third_party_deps
+trigger: third-party-deps (manifest trait `third_party_deps`)
 in-scope-subaspects: [per-external-contract, failure-modes-fallback-degradation, criticality, version-pinning]
 current-rung: contract-grade
 status: draft
@@ -42,8 +42,8 @@ One runtime dependency (`DEP-RUAMEL-YAML`) and two development-only tools (`DEP-
 
 ### Criticality
 
-- `DEP-RUAMEL-YAML`: **app-fatal**. Absent or broken, no command except `schema`, `--help`, and `--version` can run, and those three do not import it.
-- `DEP-RUFF`, `DEP-PYREFLY`: **gate-fatal** (a CI-only analogue of app-fatal): a missing tool fails the gate; the product is unaffected.
+- The runtime dependency is **app-fatal**: absent or broken, no command except `schema`, `--help`, and `--version` can run, and those three do not import it (see `DEP-RUAMEL-YAML`).
+- The two development tools are **gate-fatal** (a CI-only analogue of app-fatal): a missing tool fails the gate; the product is unaffected (see `DEP-RUFF`, `DEP-PYREFLY`).
 
 ### Version pinning
 
@@ -93,4 +93,4 @@ Register form: table row, ID in the first cell.
 4. Every `DEP-*` row has a non-empty criticality and pinning cell (review check; the spec's under-specification finding).
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

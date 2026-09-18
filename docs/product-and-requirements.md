@@ -216,4 +216,4 @@ Each maps to an observable check; Quality owns the test definitions.
 7. Every `PERSONA-*` is referenced by at least one `CAP-*`, and every `CAP-*` by at least one `SUCCESS-*`.
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

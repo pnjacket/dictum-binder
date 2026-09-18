@@ -182,4 +182,4 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 9. Every `CLI-*` names a `CAP-*` it serves and every `CAP-*` is served by at least one `CLI-*`.
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

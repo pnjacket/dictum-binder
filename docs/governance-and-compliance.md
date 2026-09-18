@@ -43,8 +43,8 @@ Owns the licence and IP posture at the dependency boundary (`license-ip-complian
 ### Source provenance (first-party)
 
 - Code is **model-authored** (`code_authorship: model-authored`), so provenance is undeclared by default and the stronger bar applies.
-- **Attestation at the site** (`POLICY-SOURCE-MARKER`): every non-trivial first-party unit copied, ported, adapted, or transliterated from any external source carries `# SOURCE: <origin> — <license>` in a comment at the site, using the v1.3.0 separator form (the vendored v1.2.0 text shows the older space-separated form; the separator form is adopted now because it tokenises unambiguously and is what the tool will ship against). `<license>` is an SPDX identifier or `proprietary` / `non-redistributable` / `unknown`. A unit marked with any licence other than MIT is a **defect**, not a smell, and blocks the release gate until removed or rewritten.
-- **Detection pass** (`POLICY-PROVENANCE-PASS`): before the release tag, an LLM-driven review, module by module over `src/lspd/` and `tests/`, that (1) lists every non-trivial unit (a function, class, or fixture longer than a few lines); (2) states for each whether it was written fresh, adapted from documentation examples, or resembles known code; (3) searches distinctive fragments — unusual identifiers, error strings, regexes, algorithms — against public sources; (4) records each determination in the *Provenance register* below; and (5) records the **residual** honestly: which units could not be checked and why. The residual is never read as "cleared".
+- **Attestation at the site**: `POLICY-SOURCE-MARKER` requires every non-trivial first-party unit copied, ported, adapted, or transliterated from any external source to carry `# SOURCE: <origin> — <license>` in a comment at the site. `[REVISIT]` This is the ` — ` separator form of the pending Dictum v1.3.0; the vendored v1.2.0 text fixes the space-separated `SOURCE: <origin> <license>`. Adopted now because it tokenises unambiguously and the tool ships against v1.3.0; the upgrade walk tied to Product's v1.3.0 `[REVISIT]` confirms or reverts it. `<license>` is an SPDX identifier or `proprietary` / `non-redistributable` / `unknown`. A unit marked with any licence other than MIT is a **defect**, not a smell, and blocks the release gate until removed or rewritten.
+- **Detection pass**: `POLICY-PROVENANCE-PASS` requires, before the release tag, an LLM-driven review, module by module over `src/lspd/` and `tests/`, that (1) lists every non-trivial unit (a function, class, or fixture longer than a few lines); (2) states for each whether it was written fresh, adapted from documentation examples, or resembles known code; (3) searches distinctive fragments — unusual identifiers, error strings, regexes, algorithms — against public sources; (4) records each determination in the *Provenance register* below; and (5) records the **residual** honestly: which units could not be checked and why. The residual is never read as "cleared".
 - **Gate**: a fitness test asserts every `SOURCE:` marker in the tree parses to the token form and names `MIT`; the release-gate checklist (Delivery) requires the pass to be recorded in this doc.
 
 ## Open Questions
@@ -54,12 +54,12 @@ None open. The coverage-tool conflict found at this level-up was resolved on 202
 ## Dependencies & Cross-references
 
 - Consumes the `code_authorship` trait (manifest) and Architecture's dependency list; Integrations mints the `DEP-*` rows the inbound register refers to.
-- Referenced by Quality (the `pip-licenses` gate and the `SOURCE:` fitness test are gates), Delivery (release-gate checklist item: pass recorded), Business & Legal (a declared don't-derive-from constraint would mint a `LEGAL-*`; none exists).
+- Referenced by Quality (gate 7 is the licence gate; the `SOURCE:` marker check and the naming check run in the fitness tier), Delivery (release-gate checklist item: pass recorded), Business & Legal (owns `LEGAL-DICTUM-NAMING`, whose enforcement is `POLICY-NAMING-ENFORCEMENT` here; a declared don't-derive-from constraint would likewise mint a `LEGAL-*` there and its enforcing policy here).
 
 ## Examples / Worked scenarios
 
 1. **A dependency bump.** ruamel.yaml's new version pulls a transitive package under BSD-3-Clause. CI's licence-gate step fails; the implementer pins the previous version and records why in the commit. No hand allowlisting.
-2. **An adapted snippet.** The emitter's YAML-quoting decision is adapted from the YAML 1.2 specification's plain-scalar rules. The site carries `# SOURCE: YAML 1.2 spec §7.3.3 — unknown`? No: a specification's text is not code; the rule is re-implemented from the description and carries no marker. The provenance pass records the unit as "written from the spec, no copied code".
+2. **A rule written from a specification.** The emitter's YAML-quoting decision implements the YAML 1.2 specification's plain-scalar rules. A specification's prose is not code, so the unit carries no `SOURCE:` marker; the provenance pass records it as "written from the spec, no copied code". Only copied or adapted *code* is marked.
 3. **The pass finds a match.** A helper resembles a Stack Overflow answer (CC BY-SA 4.0). It is a defect: the unit is rewritten from scratch, the pass re-run on it, and the register row updated. The residual note records that the match was found by fragment search, not by recall.
 
 ## Design Decisions
@@ -84,6 +84,7 @@ Register form: table row, ID in the first cell.
 | `POLICY-CONTRIBUTIONS-MIT` | Contributions are accepted under MIT by submission; no CLA, no DCO; stated in the README |
 | `POLICY-SOURCE-MARKER` | Every non-trivial first-party unit copied, ported, adapted, or transliterated from an external source carries `SOURCE: <origin> — <license>` at its site; a non-MIT licence in a marker is a release-blocking defect |
 | `POLICY-PROVENANCE-PASS` | Before each release, the LLM-driven detection pass described in Requirements is run over `src/lspd/` and `tests/`, its determinations recorded in the provenance register and its residual stated; the release gate requires the record |
+| `POLICY-NAMING-ENFORCEMENT` | The enforcing policy for Business & Legal's `LEGAL-DICTUM-NAMING`: its four clauses are checked by a fitness test in Quality on every CI run (README sentence verbatim; versioned conformance phrasing and no certified/official/endorsed claims in README or `--help`; no duplication of Dictum's normative text outside `dictum/`; the MIT `LICENSE` with the contracted copyright line); a red check blocks the merge gate. Facts stay owned by Business & Legal; this row owns only the enforcement |
 
 ### Licence/IP register (dependencies)
 
@@ -105,6 +106,7 @@ Filled by the release slice's pass; the contract is its shape and its residual c
 2. A fitness test parses every `SOURCE:` comment in the tree against the token form `SOURCE: <origin> — <license>` and fails on a malformed marker or a licence other than `MIT` (`POLICY-SOURCE-MARKER`).
 3. The release-gate checklist in `docs/IMPLEMENTATION.md` links to the filled provenance register and its non-empty residual paragraph (`POLICY-PROVENANCE-PASS`).
 4. `LICENSE` at the root is the MIT text; the README names MIT, the contribution terms, and the Dictum attribution line (`POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT`).
+5. The naming fitness test in Quality exists and checks all four clauses of `LEGAL-DICTUM-NAMING` (`POLICY-NAMING-ENFORCEMENT`).
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->

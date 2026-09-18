@@ -53,7 +53,7 @@ None open.
 
 ## Dependencies & Cross-references
 
-- Governance enforces the licence posture (`POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT`) and would mint the enforcing `POLICY-*` for any future `LEGAL-*`; Quality checks `LEGAL-DICTUM-NAMING` through the README fitness test below; Product's constraints record the third-party stance.
+- Governance enforces the licence posture (`POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT`) and mints the policy that enforces `LEGAL-DICTUM-NAMING`, `POLICY-NAMING-ENFORCEMENT`; Quality realises that policy as the README, `--help`, and `LICENSE` fitness test named in the acceptance criteria below; Product's constraints record the third-party stance.
 
 ## Examples / Worked scenarios
 
@@ -85,4 +85,4 @@ The terms of use are the `LICENSE` file itself (EULA/ToS, prose-shaped; Contract
 3. The manifest's `out_of_scope_subaspects` for this concern equals exactly the six keys listed in Non-goals, each with its `absent` justification (the Part 9 residual checklist, verified by the `doc-maturity-auditor`).
 
 ---
-<!-- Status markers (subject, stay published): [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE]. Build markers: these BUILD comments, stripped on publish. -->
+<!-- BUILD: legend — subject markers [GAP] [ASSUMPTION] [REVISIT] [FUTURE-SCOPE] stay published; every BUILD comment, this one included, is stripped on publish. -->
