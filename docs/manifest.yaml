@@ -35,7 +35,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: domain-and-data.md,
       out_of_scope_subaspects: [data-classification-tags, reference-seed-data] }
   architecture:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: architecture.md,
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: architecture.md,
       out_of_scope_subaspects: [boundaries-isolation-model, logical-deployment-topology, scalability-resilience-patterns] }
   interfaces-and-contracts:
     { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: interfaces-and-contracts.md,
