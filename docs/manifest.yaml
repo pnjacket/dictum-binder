@@ -44,7 +44,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: quality-and-testing.md,
       out_of_scope_subaspects: [specialized-testing, test-stage-fidelity-mapping, manual-exploratory] }
   delivery-process:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: delivery-process.md,
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: delivery-process.md,
       out_of_scope_subaspects: [external-tracker-binding] }
   security-and-privacy:
     { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: security-and-privacy.md,
