@@ -13,7 +13,7 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 | Quality & Testing | yes | [quality-and-testing.md](quality-and-testing.md) | contract-grade | contract-grade |
 | Delivery Process | yes | [delivery-process.md](delivery-process.md) | contract-grade | contract-grade |
 | Security & Privacy | yes (baseline) | [security-and-privacy.md](security-and-privacy.md) | contract-grade | contract-grade |
-| Governance & Compliance | yes (baseline, raised) | [governance-and-compliance.md](governance-and-compliance.md) | sketch | contract-grade |
+| Governance & Compliance | yes (baseline, raised) | [governance-and-compliance.md](governance-and-compliance.md) | contract-grade | contract-grade |
 | Integrations & External Dependencies | yes (module) | [integrations-and-external-dependencies.md](integrations-and-external-dependencies.md) | sketch | contract-grade |
 | Business & Legal | yes (module, minimal) | [business-and-legal.md](business-and-legal.md) | sketch | contract-grade |
 | User Experience | no — absent (no UI) | — | — | — |
@@ -24,4 +24,4 @@ Documented to Dictum **v1.2.0** (`authored_against`), per-concern packaging. Sca
 
 **Traits:** CLI only · not interactive · not deployed · persists one file · one third-party dependency (ruamel.yaml) · no perf target · single locale · non-commercial (MIT) · unregulated · no security risk factors · model-authored code.
 
-**Build-ready gate:** every in-scope concern at contract-grade and published. Seven concerns are at contract-grade (2026-09-17, still draft); Governance, Integrations, and Business & Legal are at sketch. Next: `doc-levelup` Governance → Integrations → Business & Legal.
+**Build-ready gate:** every in-scope concern at contract-grade and published. Eight concerns are at contract-grade (2026-09-17, still draft); Integrations and Business & Legal are at sketch. Next: `doc-levelup` Integrations → Business & Legal.

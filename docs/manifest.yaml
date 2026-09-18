@@ -50,7 +50,7 @@ concerns:
     { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: security-and-privacy.md,
       out_of_scope_subaspects: [authentication-mechanism, authorization, encryption, session-management, data-protection-mechanisms-per-sensitive-field] }
   governance-and-compliance:
-    { in_scope: true, current_rung: sketch, target_rung: contract-grade, location: governance-and-compliance.md,
+    { in_scope: true, current_rung: contract-grade, target_rung: contract-grade, location: governance-and-compliance.md,
       out_of_scope_subaspects: [data-handling-policy, audit-requirements, compliance-framework-mapping, records-retention-data-residency, consent-management] }
   user-experience:                          { in_scope: false }   # interactive_ui: false (absent)
   operations-and-infrastructure:            { in_scope: false }   # deployed_service: false (absent)
