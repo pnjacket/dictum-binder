@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [cli-surface, error-model-catalog, versioning-compatibility]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Interfaces & Contracts — dictum-binder
@@ -34,7 +34,7 @@ Owns the CLI surface (`cli-surface`), the error model (`error-model-catalog`), a
 ### Global conventions
 
 - **Binary** `lspd`. Invocation: `lspd [global options] <command> [subcommand] [arguments]`.
-- **Global options**, valid before any command: `--file PATH` (target map; default `./bindings.yaml`; no upward search; symlinks resolved to the final target, `SEC-SYMLINK-FINAL-TARGET`); `--human` (readable rendering); `--check-paths` (enables `CAP-PATHCHECK` wherever validation runs); `--no-size-limit` (lifts the 10 MiB target-size cap, `SEC-FAIL-CLOSED`); `--debug` (traceback on stderr in addition to the envelope); `--help`; `--version` (plain text `lspd <semver>`).
+- **Global options**, valid before any command: `--file PATH` (target map; default `./bindings.yaml`; no upward search; symlinks resolved to the final target, `SEC-SYMLINK-FINAL-TARGET`); `--human` (readable rendering); `--check-paths` (enables `CAP-PATHCHECK` wherever validation runs, including on write input: `INV-PATH-EXISTS`); `--no-size-limit` (lifts the 10 MiB target-size cap, `SEC-FAIL-CLOSED`); `--debug` (traceback on stderr in addition to the envelope); `--help`; `--version` (plain text `lspd <semver>`).
 - **Output**: exactly one document on stdout per invocation. JSON envelope (`OUT-ENVELOPE`) by default; `--human` rendering otherwise. Exceptions: `--help` and `--version` print plain text; `schema` prints the raw schema document or the raw checksum line. stderr carries only `--debug` tracebacks.
 - **Exit codes** per `PATTERN-EXIT-CODES`: `0` clean or warnings only · `1` caller-fixable · `2` environment · `130` interrupted.
 - **Empty values.** An empty-string argument anywhere is `ERR-USAGE`. There is no "unset" meaning for an empty value; unsetting is always an explicit command. An omitted optional argument means "not present", never a default value.
@@ -50,11 +50,11 @@ Nineteen elements, minted in Contracts: `CLI-INIT`, `CLI-VALIDATE`, `CLI-FORMAT`
 
 ### Error model / catalog
 
-Total and content-negotiated in the CLI sense (`PATTERN-ERROR-ENVELOPE`): every failure from every source, including argparse's own usage errors, file I/O, ruamel parse errors, and unexpected exceptions, is one of the ten `ERR-*` codes in Contracts, rendered in the envelope (JSON) or the human form. A raw traceback or argparse's default stderr text reaching the caller is a contract violation.
+Total and content-negotiated in the CLI sense (`PATTERN-ERROR-ENVELOPE`): every failure from every source, including argparse's own usage errors, file I/O, ruamel parse errors, and unexpected exceptions, is one of the twelve `ERR-*` codes in Contracts, rendered in the envelope (JSON) or the human form. A raw traceback or argparse's default stderr text reaching the caller is a contract violation.
 
 ### Versioning & compatibility
 
-- `lspd` follows semantic versioning. The tool version appears in every envelope (`lspd.version`) and in `--version`.
+- `lspd` follows semantic versioning. The tool version appears in every envelope (`lspd.version`) and in `--version`; it is `1.0.0.dev0` until the release slice stamps `1.0.0`, and `lspd.schema_version` is `1` throughout.
 - **Within a major version**: no command, subcommand, argument, envelope field, projection field, error code, or finding code is removed or renamed; additions are allowed and are the only kind of change. A new required argument is a breaking change and therefore a major.
 - **A Dictum template change is a major** (`ADR-MAJOR-PER-TEMPLATE`); `schema_version` in the file and `lspd.schema_version` in the envelope both track it.
 - The raw output of `schema` is exactly the shipped `lspd.schema.json` (`SUCCESS-SCHEMA-MATCH`).
@@ -89,7 +89,8 @@ None open.
 3. **Missing file.** `lspd validate` in a directory with no map → `error.code:"ERR-FILE-MISSING"`, `error.message` names the path and says to run `init`, exit 2.
 4. **`format --check` in CI.** A canonical file → `result:{"changed":false}`, exit 0. A non-canonical file → `result:{"changed":true}`, exit 1, file untouched.
 5. **Comment round trip.** `lspd comment set locator ENTITY-USER --path src/models/user.py --symbol User --text "ORM model"`; then `lspd comment get locator ENTITY-USER --path src/models/user.py --symbol User` → `result:{"anchor":{…},"text":"ORM model"}`.
-6. **Raw schema.** `lspd schema > lspd.schema.json` writes the exact shipped file; `lspd schema --checksum` prints one line, the 64-hex SHA-256.
+6. **A refused write.** The file has a `lines:` key on some other binding. `lspd add-locator ENTITY-Y --path src/y.py --symbol g` → `ok:false`, `error.code:"ERR-FILE-INVALID"`, `error.details.findings` naming `INV-CLOSED-KEYS` and `INV-NO-LINE-NUMBERS` at their anchors, exit 1, file untouched.
+7. **Raw schema.** `lspd schema > lspd.schema.json` writes the exact shipped file; `lspd schema --checksum` prints one line, the 64-hex SHA-256.
 
 ## Design Decisions
 
@@ -101,6 +102,7 @@ None open.
 | `set` accepts the `get` projection, comments included | `get` → edit → `set` is the natural whole-binding edit; forcing comments through a second call would split one intent |
 | `schema` prints raw, everything else prints the envelope | The schema is a file for a converter author, not a result for an agent; wrapping it would make the shipped artifact and the printed one differ |
 | Empty string is always a usage error | The no-silent-defaults rule applied to arguments |
+| Writes refuse an invalid file; `format` too | Formatting or editing around error-level content would drop it silently; the agent runs `validate`, fixes, then writes. Warnings never block |
 | `list` summaries by default, `--full` on request | Summaries are the bounded default; the full set is an explicit choice |
 
 ## Contracts
@@ -112,7 +114,7 @@ Register form: table row, ID in the first cell.
 | ID | Shape |
 |---|---|
 | `OUT-ENVELOPE` | The one JSON object every non-raw command prints. Keys, all always present: `lspd: {version: str (semver), schema_version: int}` · `ok: bool` · `command: str` (the element's command path, e.g. `"comment set"`) · `result: object \| null` (per element below; `null` on error) · `findings: {pre: [OUT-FINDING], post: [OUT-FINDING]}` · `error: OUT-ERROR \| null`. Serialised with `ensure_ascii=false`, keys in the order listed, no trailing whitespace, one trailing newline; not pretty-printed by default (`--human` is the readable form) |
-| `OUT-ERROR` | `{code: ERR-* id, message: str, details: object}`. `details` keys per code: `ERR-NOT-FOUND` → `{id, anchor: OUT-ANCHOR \| null}` · `ERR-DUPLICATE` → `{id, anchor: OUT-ANCHOR}` · `ERR-INPUT-INVALID` → `{findings: [OUT-FINDING]}` · `ERR-FILE-MISSING`/`ERR-FILE-EXISTS`/`ERR-FILE-TOO-LARGE`/`ERR-IO`/`ERR-PARSE` → `{path: str, reason: str}` · `ERR-USAGE` → `{usage: str}` · `ERR-INTERNAL` → `{exception: str}` |
+| `OUT-ERROR` | `{code: ERR-* id, message: str, details: object}`. `details` keys per code: `ERR-NOT-FOUND` → `{id, anchor: OUT-ANCHOR \| null}` · `ERR-DUPLICATE` → `{id, anchor: OUT-ANCHOR}` · `ERR-INPUT-INVALID` → `{findings: [OUT-FINDING]}` · `ERR-FILE-MISSING`/`ERR-FILE-EXISTS`/`ERR-FILE-TOO-LARGE`/`ERR-IO`/`ERR-PARSE` → `{path: str, reason: str}` · `ERR-FILE-INVALID` → `{findings: [OUT-FINDING]}` (the pre-write errors) · `ERR-SCHEMA-VERSION` → `{found: int \| null, expected: int}` · `ERR-USAGE` → `{usage: str}` · `ERR-INTERNAL` → `{exception: str}` |
 | `OUT-FINDING` | Projection of `ENTITY-FINDING`: `{code: INV-* id, severity: "error" \| "warning", anchor: OUT-ANCHOR, message: str}` |
 | `OUT-ANCHOR` | Fixed-key object: `{type: "file" \| "header" \| "binding" \| "locator" \| "field" \| "assertion" \| "coverage" \| "curated", id: str \| null, path: str \| null, symbol: str \| null, arm: str \| null, owed: str \| null, field: str \| null, kind: str \| null}`; only the keys meaningful for `type` are non-null |
 | `OUT-BINDING` | Projection of `ENTITY-BINDING` with its anchored comments: `{id, kind, comment: str \| null, locators: [OUT-LOCATOR], compare_via: str \| null, fields: {name: OUT-FIELD-LOCATOR} \| null, wire: {casing: str \| null, enums: str \| null, dates: str \| null} \| null, asserted_by: [OUT-ASSERTION] \| null}`. `locators` is `[]` for a stub. Used as the **input** projection of `CLI-SET` too: `id` and `kind` may be omitted; if present they must equal the positional ID and its derived kind (`ERR-INPUT-INVALID` otherwise) |
@@ -124,18 +126,19 @@ Register form: table row, ID in the first cell.
 | `OUT-COMMENT` | `{anchor: OUT-ANCHOR, text: str}` |
 | `OUT-VALIDATE-RESULT` | `{errors: int, warnings: int, paths_checked: bool}` — the findings themselves are in `findings.pre` |
 | `OUT-FORMAT-RESULT` | `{changed: bool, checked_only: bool}` |
+| `OUT-INIT-RESULT` | `{path: str}` — the resolved path `init` created |
 | `OUT-WRITE-RESULT` | For every mutating element except `format` and `init`: `{binding: OUT-BINDING}` after the write (`remove` of a whole binding returns `{binding: null, removed: str}`); coverage elements return `{coverage: OUT-COVERAGE}`; comment elements return `OUT-COMMENT` (or `{anchor, text: null}` after unset) |
 | `OUT-SCHEMA` | Raw: the JSON Schema document (draft 2020-12) of `ENTITY-MAP`, serialised with sorted keys, two-space indent, `ensure_ascii=false`, one trailing newline — byte-identical to the shipped `lspd.schema.json`. With `--checksum`: one line, lowercase 64-hex SHA-256 of those bytes, newline |
 
 ### CLI elements (`CLI-*`)
 
-Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every reading element: `ERR-FILE-MISSING`, `ERR-FILE-TOO-LARGE`, `ERR-IO`, `ERR-PARSE`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
+Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`; global options apply. "Reads" = runs Loader + pre-validation; "writes" = the full pipeline with `PATTERN-VALIDATE-AROUND-WRITE` and `PATTERN-ATOMIC-REPLACE`. Common errors on every reading element: `ERR-FILE-MISSING`, `ERR-FILE-TOO-LARGE`, `ERR-IO`, `ERR-PARSE`, and — every element except `validate` — `ERR-SCHEMA-VERSION`; on every writing element additionally `ERR-FILE-INVALID`; on every element: `ERR-USAGE`, `ERR-INTERNAL`. Rows list only the element-specific errors.
 
 | ID | Signature | Inputs (required · optional) | Output (`result`) | Element-specific errors | Pre / post · side effects | Serves |
 |---|---|---|---|---|---|---|
-| `CLI-INIT` | `lspd init` | none | `{path: str}` | `ERR-FILE-EXISTS` (target exists, any content); `ERR-IO` (unwritable) | Pre: target absent. Post: target is the canonical empty map (`schema_version: <major>`, `bindings: {}`), `findings.post` empty. Writes | `CAP-INIT` |
-| `CLI-VALIDATE` | `lspd validate` | none | `OUT-VALIDATE-RESULT` | — | Reads. Exit 1 iff any error finding. `--check-paths` adds `CAP-PATHCHECK` findings under `INV-PATH-FORM` with severity error. No side effects | `CAP-VALIDATE`, `CAP-PATHCHECK` |
-| `CLI-FORMAT` | `lspd format [--check]` | · `--check` (flag) | `OUT-FORMAT-RESULT` | — | Reads; writes unless `--check`. Post: file is the canonical layout (`INV-CANONICAL-FIXPOINT`); with `--check` nothing is written and exit 1 iff it would change. Pre-error findings are reported and formatting still proceeds on the loadable model | `CAP-FORMAT` |
+| `CLI-INIT` | `lspd init` | none | `OUT-INIT-RESULT` | `ERR-FILE-EXISTS` (target exists, any content); `ERR-IO` (unwritable) | Pre: target absent. Post: target is the canonical empty map (`schema_version: 1` from `SCHEMA_VERSION`, `bindings: {}`), umask-default mode, `findings.post` empty. Writes | `CAP-INIT` |
+| `CLI-VALIDATE` | `lspd validate` | none | `OUT-VALIDATE-RESULT` | — (never `ERR-SCHEMA-VERSION`: a mismatch is reported as the `INV-SCHEMA-VERSION` finding) | Reads. Exit 1 iff any error finding. `--check-paths` adds `INV-PATH-EXISTS` findings (severity error). No side effects | `CAP-VALIDATE`, `CAP-PATHCHECK` |
+| `CLI-FORMAT` | `lspd format [--check]` | · `--check` (flag) | `OUT-FORMAT-RESULT` | `ERR-FILE-INVALID` (error-level pre-findings; nothing written, also under `--check`) | Reads; writes unless `--check`. Post: file is the canonical layout (`INV-CANONICAL-FIXPOINT`); with `--check` nothing is written and exit 1 iff it would change. Warnings are kept and reported | `CAP-FORMAT` |
 | `CLI-GET` | `lspd get ID [ID …]` | one or more IDs (each must satisfy `INV-ID-GRAMMAR`, else `ERR-USAGE`) | `{bindings: [OUT-BINDING]}` in argument order | `ERR-NOT-FOUND` (first unknown ID; nothing returned) | Reads. Output contains exactly the requested bindings (`SUCCESS-BOUNDED-OUTPUT`). No side effects | `CAP-QUERY` |
 | `CLI-LIST` | `lspd list [--kind KIND …] [--full]` | · `--kind` repeatable (each `[A-Z][A-Z0-9]+`); `--full` (flag) | `{bindings: [OUT-BINDING-SUMMARY]}` or, with `--full`, `[OUT-BINDING]`; file order; empty list allowed | — | Reads. No kinds = all bindings. An unknown kind matches nothing (empty result, exit 0) | `CAP-QUERY` |
 | `CLI-SET` | `lspd set ID --json DOC` | ID; `--json` (a document per `OUT-BINDING`, or `-` for stdin) | `OUT-WRITE-RESULT` | `ERR-INPUT-INVALID` (shape, `id`/`kind` mismatch, invalid JSON) | Reads; writes. Unknown ID → created, appended last; known ID → replaced in place. Comments in the document are set at their anchors; absent comments (`null`) clear. Warnings in the input are written and reported in `findings.post` | `CAP-SET`, `CAP-COMMENT` |
@@ -147,7 +150,7 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 | `CLI-COVERAGE-FULLY-BOUND` | `lspd coverage fully-bound (add \| remove) KIND` | subcommand, KIND (`[A-Z][A-Z0-9]+`) | `OUT-WRITE-RESULT` (coverage) | `ERR-DUPLICATE` (add: already listed); `ERR-NOT-FOUND` (remove: not listed); `ERR-INPUT-INVALID` (add: kind is curated → `INV-COVERAGE-WELLFORMED`) | Reads; writes. `add` appends last; `remove` of the last kind removes the key; an empty coverage block is removed | `CAP-COVERAGE` |
 | `CLI-COVERAGE-CURATED` | `lspd coverage curated (set KIND --reason TEXT [--comment TEXT] \| unset KIND)` | subcommand, KIND; `--reason` for set · `--comment` | `OUT-WRITE-RESULT` (coverage) | `ERR-NOT-FOUND` (unset: absent); `ERR-INPUT-INVALID` (set: kind is fully bound) | Reads; writes. `set` on an existing kind replaces the reason in place | `CAP-COVERAGE` |
 | `CLI-COMMENT-GET` | `lspd comment get <anchor>` | an anchor per *Global conventions* | `OUT-COMMENT` | `ERR-NOT-FOUND` (anchor's target absent, or no comment there) | Reads. No side effects | `CAP-COMMENT` |
-| `CLI-COMMENT-SET` | `lspd comment set <anchor> --text TEXT` | anchor, `--text` (non-empty; may contain newlines → multi-line block) | `OUT-COMMENT` | `ERR-NOT-FOUND` (anchor's target absent); `ERR-USAGE` (empty text) | Reads; writes. Replaces any existing comment at the anchor, including a two-carrier one | `CAP-COMMENT` |
+| `CLI-COMMENT-SET` | `lspd comment set <anchor> --text TEXT` | anchor, `--text` (non-empty; may contain newlines → multi-line block; no line may carry trailing whitespace) | `OUT-COMMENT` | `ERR-NOT-FOUND` (anchor's target absent); `ERR-USAGE` (empty text, or trailing whitespace on any line) | Reads; writes. Replaces any existing comment at the anchor, including a two-carrier one | `CAP-COMMENT` |
 | `CLI-COMMENT-UNSET` | `lspd comment unset <anchor>` | anchor | `{anchor: OUT-ANCHOR, text: null}` | `ERR-NOT-FOUND` (no comment there) | Reads; writes | `CAP-COMMENT` |
 | `CLI-SCHEMA` | `lspd schema [--checksum]` | · `--checksum` (flag) | raw `OUT-SCHEMA` (no envelope) | — (no file is read) | No side effects; never reads the target or the shipped file | `CAP-SCHEMA` |
 | `CLI-HELP` | `lspd --help`, `lspd <cmd> --help`, `lspd <cmd> <sub> --help` | none | plain text (no envelope), exit 0 | `ERR-USAGE` (unknown command) | No side effects; nothing is read | `CAP-HELP` |
@@ -163,9 +166,11 @@ Every element: owning component `COMPONENT-CLI`; served by `COMPONENT-COMMANDS`;
 | `ERR-IO` | The target cannot be read or written: permission denied, is a directory, unwritable directory for the temporary file | 2 | a directory named `bindings.yaml`; a read-only directory for writes |
 | `ERR-PARSE` | The bytes are not a YAML document the Loader accepts: syntax error, duplicate key, not a mapping at top level, BOM or CRLF (`INV-BYTES` at the byte edge), a comment with no anchor | 2 | one fixture per condition |
 | `ERR-FILE-TOO-LARGE` | The target exceeds 10 MiB and `--no-size-limit` was not given (checked before parsing; `SEC-FAIL-CLOSED`) | 1 | a generated file of 10 MiB + 1 byte; the same with the flag passes |
+| `ERR-SCHEMA-VERSION` | The file's `schema_version` is missing, not an integer, or differs from the binary's `SCHEMA_VERSION`; raised by every element except `validate` before any other work | 1 | a fixture with `schema_version: 2` under `get`, `set`, `format` |
+| `ERR-FILE-INVALID` | A write element found error-level findings in the pre-validation pass; `details.findings` carries them; nothing written | 1 | `add-locator` against a fixture with a `lines:` key elsewhere in the file; `format` against the same fixture |
 | `ERR-NOT-FOUND` | A named ID, entry, anchor, or coverage entry does not exist | 1 | `get` of an absent ID; `remove --locator` of an absent pair; `comment get` on a bare anchor |
 | `ERR-DUPLICATE` | An `add-*` or `coverage … add` would create an entry whose identity already exists | 1 | `add-locator` twice with the same pair |
-| `ERR-INPUT-INVALID` | Supplied input fails shape or rule validation; `details.findings` carries the `INV-*` findings. Nothing written | 1 | `add-locator` with a `:41` suffix; `set` with an unknown key; `add-assertion` with both `--run` and `--owed` |
+| `ERR-INPUT-INVALID` | Supplied input fails shape or rule validation; `details.findings` carries the `INV-*` findings (including `INV-PATH-EXISTS` when `--check-paths` is on). Nothing written | 1 | `add-locator` with a `:41` suffix; `set` with an unknown key; `add-assertion` with both `--run` and `--owed`; `add-locator` of a missing path with `--check-paths` |
 | `ERR-INTERNAL` | Any exception not mapped above, including a post-write validation error (a tool bug by construction) | 2 | monkeypatch a command to raise; inject a post-validation error |
 
 ## Acceptance criteria

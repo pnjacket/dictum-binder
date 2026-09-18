@@ -7,7 +7,7 @@ trigger: third-party-deps (manifest trait `third_party_deps`)
 in-scope-subaspects: [per-external-contract, failure-modes-fallback-degradation, criticality, version-pinning]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Integrations & External Dependencies — dictum-binder
@@ -80,7 +80,7 @@ Register form: table row, ID in the first cell.
 
 | ID | Package · role | Contract (how used) | Auth | Failure modes → outcome | Fallback | Criticality | Fidelity substitution | Version pinning | Licence |
 |---|---|---|---|---|---|---|---|---|---|
-| `DEP-RUAMEL-YAML` | ruamel.yaml · runtime | Round-trip loader (`YAML(typ="rt")`) used by `COMPONENT-LOADER` to parse the target file's bytes into a comment-bearing object that the Loader converts into the Model; never used to emit | none | parse error → `ERR-PARSE` (exit 2); duplicate key → `ERR-PARSE`; import failure → `ERR-INTERNAL` (exit 2); version drift in comment attachment → caught by the golden and anchor tests before a bump lands | none — no parser, no product | app-fatal (except `schema`, `--help`, `--version`, which do not import it) | n/a — real everywhere; nothing substituted | `>=0.19,<0.20`; series bumps deliberate, gated by golden tier + licence gate | MIT, zero required dependencies |
+| `DEP-RUAMEL-YAML` | ruamel.yaml · runtime | Round-trip loader (`YAML(typ="rt")`) used by `COMPONENT-LOADER` to parse the target file's bytes into a comment-bearing object that the Loader converts into the Model; imported lazily inside `load()` so `schema`, `--help`, and `--version` never touch it; never used to emit | none | parse error → `ERR-PARSE` (exit 2); duplicate key → `ERR-PARSE`; import failure → `ERR-INTERNAL` (exit 2); version drift in comment attachment → caught by the golden and anchor tests before a bump lands | none — no parser, no product | app-fatal (except `schema`, `--help`, `--version`, which do not import it) | n/a — real everywhere; nothing substituted | `>=0.19,<0.20`; series bumps deliberate, gated by golden tier + licence gate | MIT, zero required dependencies |
 | `DEP-RUFF` | ruff · development | Lint (`ruff check`) and format check (`ruff format --check`) as CI gates; never imported | none | tool missing or crashing → gate fails; product unaffected | none | gate-fatal | n/a | minor series current at slice 1, bumped deliberately | MIT, zero dependencies |
 | `DEP-PYREFLY` | pyrefly · development | Static type check in strict mode (`pyrefly check`) over `src/` and `tests/` as a CI gate; never imported | none | as `DEP-RUFF` | none | gate-fatal | n/a | minor series current at slice 1, bumped deliberately | MIT, zero dependencies |
 

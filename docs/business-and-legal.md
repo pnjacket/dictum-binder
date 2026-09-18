@@ -7,7 +7,7 @@ trigger: distributed (open source), plus an ip-trademark constraint (the Dictum 
 in-scope-subaspects: [eula-tos, ip-trademark-constraints]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Business & Legal — dictum-binder
@@ -73,13 +73,13 @@ Register form: table row, ID in the first cell.
 
 | ID | Constraint (checkable) |
 |---|---|
-| `LEGAL-DICTUM-NAMING` | (1) The README contains the sentence *"dictum-binder is an independent tool for Dictum binding maps. It is not part of the official Dictum project and is not endorsed or certified by it."*; (2) every conformance statement in the README and `--help` text uses the form "targets Dictum v<X.Y.Z> binding maps" and never the words "certified", "official", or "endorsed" in relation to Dictum except inside sentence (1); (3) no artifact in the repository outside `dictum/` reproduces Dictum's normative text; (4) `LICENSE` is the MIT text with `Copyright (c) 2026 David H. Jung` |
+| `LEGAL-DICTUM-NAMING` | (1) The README contains the sentence *"dictum-binder is an independent tool for Dictum binding maps. It is not part of the official Dictum project and is not endorsed or certified by it."*; (2) every conformance statement in the README and `--help` text uses the form "targets Dictum v<X.Y.Z> binding maps" and never the words "certified", "official", or "endorsed" in relation to Dictum except inside sentence (1); (3) no **product artifact** — `README.md`, `docs/`, `src/`, `tests/`, `tools/` — reproduces Dictum's normative text; `dictum/` (the vendored standard), `.claude/` (Dictum's own installed skills and agents), and `CLAUDE.md` (the installer's path-resolution note) are vendored Dictum material and exempt; (4) `LICENSE` is the MIT text with `Copyright (c) 2026 David H. Jung` |
 
 The terms of use are the `LICENSE` file itself (EULA/ToS, prose-shaped; Contracts points to Requirements per Part 4). No `LICENSE-TIER-*` exists.
 
 ## Acceptance criteria
 
 1. A fitness test asserts `LEGAL-DICTUM-NAMING` clauses (1), (2), and (4) textually over `README.md`, the `--help` output of `lspd`, and `LICENSE`.
-2. Clause (3) is checked by the same test: no file outside `dictum/` contains a paragraph longer than two sentences that also appears in `dictum/STANDARD.md` or `dictum/concerns/*.md`.
+2. Clause (3) is checked by the same test: no file under `README.md`, `docs/`, `src/`, `tests/`, or `tools/` contains a paragraph longer than two sentences that also appears in `dictum/STANDARD.md` or `dictum/concerns/*.md`; `dictum/`, `.claude/`, and `CLAUDE.md` are not scanned.
 3. The manifest's `out_of_scope_subaspects` for this concern equals exactly the six keys listed in Non-goals, each with its `absent` justification (the Part 9 residual checklist, verified by the `doc-maturity-auditor`).
 

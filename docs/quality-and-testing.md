@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [test-pyramid-test-types, coverage-map, real-flow-e2e-standard, quality-bars-gates, test-data-strategy]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Quality & Testing — dictum-binder
@@ -58,7 +58,8 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | contract | CI: SHA-256 of `lspd.schema.json` == `lspd schema --checksum` == README value | `SUCCESS-SCHEMA-MATCH` |
 | unit, golden | unit: construction and `to_plain`/`from_plain` round trip per entity; golden: every entity appears in the canonical fixture | `ENTITY-MAP`, `ENTITY-BINDING`, `ENTITY-LOCATOR`, `ENTITY-FIELD-LOCATOR`, `ENTITY-WIRE`, `ENTITY-ASSERTION`, `ENTITY-COVERAGE`, `ENTITY-COMMENT`, `ENTITY-FINDING` |
 | unit | unit: table-driven accept/reject sets (Domain acceptance 2 and the path rules) | `ENTITY-CONTRACT-ID`, `ENTITY-PATH` |
-| unit, contract | unit: one violating synthetic fixture each → exactly that finding code at the expected anchor; one contract test each that the write path refuses the violating input | the fifteen write-gated `INV-*` (`INV-ID-GRAMMAR`, `INV-SCHEMA-VERSION`, `INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-PATH-FORM`, `INV-SYMBOL-NONEMPTY`, `INV-ROLE-VALUES`, `INV-WIRE-SUBSET`, `INV-ASSERTION-SHAPE`, `INV-FIELD-NAME`, `INV-COVERAGE-WELLFORMED`, `INV-LOCATOR-UNIQUE`, `INV-ASSERTION-UNIQUE`, `INV-COMMENT-ANCHORED`, `INV-BYTES`) |
+| unit | unit: one violating synthetic fixture each → exactly that finding code at the expected anchor, exit 1 (the unit half **completes** each of these; the write-path refusal of the same violation is proven by the `CLI-SET`/`CLI-ADD-*` edge-input rows, `ERR-INPUT-INVALID`, and by `ERR-FILE-INVALID`'s forcing) | the fifteen write-gated `INV-*` (`INV-ID-GRAMMAR`, `INV-SCHEMA-VERSION`, `INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-PATH-FORM`, `INV-SYMBOL-NONEMPTY`, `INV-ROLE-VALUES`, `INV-WIRE-SUBSET`, `INV-ASSERTION-SHAPE`, `INV-FIELD-NAME`, `INV-COVERAGE-WELLFORMED`, `INV-LOCATOR-UNIQUE`, `INV-ASSERTION-UNIQUE`, `INV-COMMENT-ANCHORED`, `INV-BYTES`) |
+| unit, contract | unit: a fixture with one missing path passes without `--check-paths` and yields the error with it; contract: `add-locator` of a missing path is refused only with the flag (`ERR-INPUT-INVALID`) | `INV-PATH-EXISTS` |
 | unit | unit: duplicate-key fixture fails to load (`ERR-PARSE`, exit 2) | `INV-ID-UNIQUE` |
 | unit | unit: warning finding, exit 0 | `INV-ROLE-REQUIRES-WIRE`, `INV-OWNED-TWICE` (advisory) |
 | golden | golden (as `SUCCESS-ROUNDTRIP`) | `INV-CANONICAL-FIXPOINT` |
@@ -70,11 +71,11 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | unit | as `INV-ATOMIC-WRITE` | `PATTERN-ATOMIC-REPLACE` |
 | contract | contract: every `ERR-*` and finding-severity combination maps to its code; a meta-test enumerates the partition | `PATTERN-EXIT-CODES` |
 | contract | contract: stdout holds exactly one JSON document; `--human` holds no JSON; `--help` and `schema` are raw | `PATTERN-OUTPUT-MODE` |
-| unit, contract | covered by the `INV-*`/`CLI-*` tests that realise each decision (named in the test docstring) | `ADR-SINGLE-FILE`, `ADR-STRUCTURAL-ONLY`, `ADR-NO-SILENT-DEFAULTS`, `ADR-MAJOR-PER-TEMPLATE`, `ADR-NUMERIC-IDS-REJECTED`, `ADR-NO-LINE-NUMBERS`, `ADR-FORMAT-ONLY-REORDERS`, `ADR-INIT-REQUIRED` |
+| unit, contract | covered by the `INV-*`/`CLI-*` tests that realise each decision (named in the test docstring); `ADR-FORMAT-ONLY-REORDERS`'s proof lands with `CLI-FORMAT` in slice 5 and is recorded as *proof owed by slice 5* in slice 1's row | `ADR-SINGLE-FILE`, `ADR-STRUCTURAL-ONLY`, `ADR-NO-SILENT-DEFAULTS`, `ADR-MAJOR-PER-TEMPLATE`, `ADR-NUMERIC-IDS-REJECTED`, `ADR-NO-LINE-NUMBERS`, `ADR-FORMAT-ONLY-REORDERS`, `ADR-INIT-REQUIRED` |
 | fitness | fitness: import confinement; no `logging` import anywhere; `argparse` is the only CLI library; schema file regenerated and diffed in CI | `ADR-LOAD-RUAMEL-EMIT-OWN`, `ADR-OWN-SHAPE-VALIDATOR`, `ADR-ARGPARSE`, `ADR-SCHEMA-SINGLE-SOURCE`, `ADR-NO-LOGGING` |
 | contract | contract: happy path with exact `result`; **edge inputs per input-bearing element**: every optional flag *absent* (behaviour per its row), *empty string* (`ERR-USAGE`), and one *malformed* value (`ERR-USAGE` for enumerations and command-line grammar, `ERR-INPUT-INVALID` for domain values such as a `..` path) | `CLI-INIT` … `CLI-VERSION` (nineteen) |
-| contract | contract: a test-side shape assertion per projection (own helper, fixed key sets and types) checks every captured output; key order asserted textually for the envelope | all fifteen `OUT-*` (`OUT-ENVELOPE` … `OUT-SCHEMA`) |
-| contract | contract: forced per the catalog's *Forced by* column; `details` shape asserted | `ERR-USAGE` … `ERR-INTERNAL` (ten) |
+| contract | contract: a test-side shape assertion per projection (own helper, fixed key sets and types) checks every captured output; key order asserted textually for the envelope | all sixteen `OUT-*` (`OUT-ENVELOPE` … `OUT-SCHEMA`, incl. `OUT-INIT-RESULT`) |
+| contract | contract: forced per the catalog's *Forced by* column; `details` shape asserted | `ERR-USAGE` … `ERR-INTERNAL` (twelve, incl. `ERR-SCHEMA-VERSION` and `ERR-FILE-INVALID`) |
 | contract, fitness | contract and fitness: exactly the *Forced by* and *Realised by* checks in each Security row | `SEC-ZERO-NETWORK` … `SEC-TRUST-BOUNDARY` (eight) |
 | E2E | the E2E tier itself; a meta-test asserts every `CAP-*` has a journey | the real-flow standard defined below (referenced by Delivery as its proof of done) |
 | fitness, contract | fitness: `pyproject.toml` declares exactly ruamel.yaml `>=0.19,<0.20`, ruff, pyrefly (Integrations acceptance 1); contract: import of ruamel monkeypatched to fail → `ERR-INTERNAL` while `--help` succeeds (Integrations acceptance 3) | `DEP-RUAMEL-YAML`, `DEP-RUFF`, `DEP-PYREFLY` |
@@ -82,7 +83,7 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | fitness (gate 7) | the licence gate `tools/licence_gate.py` over the resolved environment on every CI run; a unit test feeds it a fake BSD distribution and a fake metadata-less one and asserts both fail | `POLICY-INBOUND-MIT-ONLY` |
 | fitness | fitness: every `SOURCE:` comment in the tree parses to the token form and names `MIT` | `POLICY-SOURCE-MARKER` |
 | — | n/a — automated: a release-slice review whose record (the filled provenance register with a non-empty residual) is the check; the release-gate checklist requires it (Delivery) | `POLICY-PROVENANCE-PASS` |
-| fitness | fitness: README contains the independence sentence verbatim; conformance phrases use the versioned form; `--help` and README never say certified/official/endorsed about Dictum outside that sentence; no paragraph outside `dictum/` duplicates the standard's normative text | `POLICY-NAMING-ENFORCEMENT`, `LEGAL-DICTUM-NAMING` |
+| fitness | fitness: README contains the independence sentence verbatim; conformance phrases use the versioned form; `--help` and README never say certified/official/endorsed about Dictum outside that sentence; no paragraph in the **product artifacts** (`README.md`, `docs/`, `src/`, `tests/`, `tools/`) duplicates the standard's normative text — `dictum/`, `.claude/`, and `CLAUDE.md` are vendored Dictum tooling and exempt | `POLICY-NAMING-ENFORCEMENT`, `LEGAL-DICTUM-NAMING` |
 | fitness | fitness: Delivery acceptance 2, 3, 6 (record ↔ tests ↔ minted IDs; docs never trail code) | Delivery's slice rule, DoD, playbook, build-status record |
 
 ### Real-flow E2E standard
@@ -98,7 +99,7 @@ Merge gate — **seven gates**, all required, run by CI on every push and pull r
 3. `ruff check` and `ruff format --check` clean.
 4. `pyrefly check` in strict mode clean over `src/` and `tests/`.
 5. `lspd.schema.json` regenerated from `COMPONENT-SCHEMA` equals the committed file; its SHA-256 equals the README value.
-6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule): `lspd validate` exit 0 and `lspd format --check` exit 0 on it.
+6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule, the release slice): `lspd validate` exit 0 and `lspd format --check` exit 0 on it. Until the file exists the CI step is skipped and says so; from the release slice on it is required.
 7. **Licence gate**: `tools/licence_gate.py` over the resolved environment passes — every declared distribution and its transitive tree is exactly MIT (`POLICY-INBOUND-MIT-ONLY`, Governance). The `SOURCE:` marker check (`POLICY-SOURCE-MARKER`) and the naming check (`POLICY-NAMING-ENFORCEMENT`) run inside gate 1's fitness tier.
 
 **Flake / re-run policy:** zero retries, no quarantine list. A red run obligates investigation before any re-run. A genuine transient (re-run green with zero code change) is recorded as an incident with both run identifiers in the build-status record's notes (Delivery); the test is never quarantined. There is no measurement tier (Performance deferred), so no co-defined re-run rule exists.

@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [license-ip-compliance, source-provenance]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Governance & Compliance — dictum-binder
@@ -43,7 +43,7 @@ Owns the licence and IP posture at the dependency boundary (`license-ip-complian
 
 - Code is **model-authored** (`code_authorship: model-authored`), so provenance is undeclared by default and the stronger bar applies.
 - **Attestation at the site**: `POLICY-SOURCE-MARKER` requires every non-trivial first-party unit copied, ported, adapted, or transliterated from any external source to carry `# SOURCE: <origin> — <license>` in a comment at the site. `[REVISIT]` This is the ` — ` separator form of the pending Dictum v1.3.0; the vendored v1.2.0 text fixes the space-separated `SOURCE: <origin> <license>`. Adopted now because it tokenises unambiguously and the tool ships against v1.3.0; the upgrade walk tied to Product's v1.3.0 `[REVISIT]` confirms or reverts it. `<license>` is an SPDX identifier or `proprietary` / `non-redistributable` / `unknown`. A unit marked with any licence other than MIT is a **defect**, not a smell, and blocks the release gate until removed or rewritten.
-- **Detection pass**: `POLICY-PROVENANCE-PASS` requires, before the release tag, an LLM-driven review, module by module over `src/lspd/` and `tests/`, that (1) lists every non-trivial unit (a function, class, or fixture longer than a few lines); (2) states for each whether it was written fresh, adapted from documentation examples, or resembles known code; (3) searches distinctive fragments — unusual identifiers, error strings, regexes, algorithms — against public sources; (4) records each determination in the *Provenance register* below; and (5) records the **residual** honestly: which units could not be checked and why. The residual is never read as "cleared".
+- **Detection pass**: `POLICY-PROVENANCE-PASS` requires, before the release tag, an LLM-driven review, module by module over `src/lspd/` and `tests/`, that (1) lists every non-trivial unit (a function, class, or fixture longer than a few lines); (2) states for each whether it was written fresh, adapted from documentation examples, or resembles known code; (3) searches distinctive fragments — unusual identifiers, error strings, regexes, algorithms — against public sources; (4) records each determination in the *Provenance register* — whose **shape** is contracted below and whose **rows** live in the Delivery-owned build-status record `docs/IMPLEMENTATION.md`, because filling them is an implementation-time act that must not edit a published doc; and (5) records the **residual** honestly: which units could not be checked and why. The residual is never read as "cleared".
 - **Gate**: a fitness test asserts every `SOURCE:` marker in the tree parses to the token form and names `MIT`; the release-gate checklist (Delivery) requires the pass to be recorded in this doc.
 
 ## Open Questions
@@ -82,8 +82,8 @@ Register form: table row, ID in the first cell.
 | `POLICY-INBOUND-MIT-ONLY` | Every declared runtime, development, and test dependency, and everything it resolves to transitively, is licensed MIT; the interpreter, pip, and the build backend are exempt infrastructure; enforced by the own `tools/licence_gate.py` CI gate (standard library only) that fails on any other, ambiguous, or missing licence; no manual allowlist exists |
 | `POLICY-CONTRIBUTIONS-MIT` | Contributions are accepted under MIT by submission; no CLA, no DCO; stated in the README |
 | `POLICY-SOURCE-MARKER` | Every non-trivial first-party unit copied, ported, adapted, or transliterated from an external source carries `SOURCE: <origin> — <license>` at its site; a non-MIT licence in a marker is a release-blocking defect |
-| `POLICY-PROVENANCE-PASS` | Before each release, the LLM-driven detection pass described in Requirements is run over `src/lspd/` and `tests/`, its determinations recorded in the provenance register and its residual stated; the release gate requires the record |
-| `POLICY-NAMING-ENFORCEMENT` | The enforcing policy for Business & Legal's `LEGAL-DICTUM-NAMING`: its four clauses are checked by a fitness test in Quality on every CI run (README sentence verbatim; versioned conformance phrasing and no certified/official/endorsed claims in README or `--help`; no duplication of Dictum's normative text outside `dictum/`; the MIT `LICENSE` with the contracted copyright line); a red check blocks the merge gate. Facts stay owned by Business & Legal; this row owns only the enforcement |
+| `POLICY-PROVENANCE-PASS` | Before each release, the LLM-driven detection pass described in Requirements is run over `src/lspd/`, `tests/`, and `tools/`, its determinations recorded as the provenance-register section of `docs/IMPLEMENTATION.md` in the shape contracted below, with its residual stated; the release gate requires the record |
+| `POLICY-NAMING-ENFORCEMENT` | The enforcing policy for Business & Legal's `LEGAL-DICTUM-NAMING`: its four clauses are checked by a fitness test in Quality on every CI run (README sentence verbatim; versioned conformance phrasing and no certified/official/endorsed claims in README or `--help`; no duplication of Dictum's normative text in the product artifacts — `README.md`, `docs/`, `src/`, `tests/`, `tools/` — with `dictum/`, `.claude/`, and `CLAUDE.md` exempt as vendored Dictum tooling; the MIT `LICENSE` with the contracted copyright line); a red check blocks the merge gate. Facts stay owned by Business & Legal; this row owns only the enforcement |
 
 ### Licence/IP register (dependencies)
 
@@ -91,19 +91,19 @@ Regenerated by the CI gate; the contract is its shape: one row per resolved pack
 
 ### First-party source-provenance register
 
-Filled by the release slice's pass; the contract is its shape and its residual clause. One row per non-trivial unit: `unit (path#symbol) · determination (fresh / adapted-from-docs / matched) · origin · licence · outbound-compatible (yes / defect)`, followed by a **Residual** paragraph naming what was not checkable and why. An empty residual paragraph is itself a finding: the pass must state its limits.
+Shape contracted here; **rows filled by the release slice's pass in `docs/IMPLEMENTATION.md`** (Delivery-owned), never in this published doc. The contract is the shape and the residual clause. One row per non-trivial unit: `unit (path#symbol) · determination (fresh / adapted-from-docs / matched) · origin · licence · outbound-compatible (yes / defect)`, followed by a **Residual** paragraph naming what was not checkable and why. An empty residual paragraph is itself a finding: the pass must state its limits.
 
 | unit | determination | origin | licence | outbound-compatible |
 |---|---|---|---|---|
-| *(filled by the release slice's pass)* | | | | |
+| *(rows live in `docs/IMPLEMENTATION.md`, section "Source-provenance register")* | | | | |
 
-**Residual:** *(stated by the pass; never "none" without a reason).*
+**Residual:** *(stated by the pass in the same section; never "none" without a reason).*
 
 ## Acceptance criteria
 
 1. A CI step runs `tools/licence_gate.py` over the resolved environment and fails on any distribution whose licence is not exactly MIT (`POLICY-INBOUND-MIT-ONLY`); a unit test feeds the script a fake distribution with a BSD licence and one with no licence metadata and asserts both fail.
 2. A fitness test parses every `SOURCE:` comment in the tree against the token form `SOURCE: <origin> — <license>` and fails on a malformed marker or a licence other than `MIT` (`POLICY-SOURCE-MARKER`).
-3. The release-gate checklist in `docs/IMPLEMENTATION.md` links to the filled provenance register and its non-empty residual paragraph (`POLICY-PROVENANCE-PASS`).
+3. `docs/IMPLEMENTATION.md` contains the filled provenance register in the contracted shape and a non-empty residual paragraph, and its release-gate checklist references that section (`POLICY-PROVENANCE-PASS`).
 4. `LICENSE` at the root is the MIT text; the README names MIT, the contribution terms, and the Dictum attribution line (`POLICY-OUTBOUND-MIT`, `POLICY-CONTRIBUTIONS-MIT`).
 5. The naming fitness test in Quality exists and checks all four clauses of `LEGAL-DICTUM-NAMING` (`POLICY-NAMING-ENFORCEMENT`).
 

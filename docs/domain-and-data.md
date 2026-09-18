@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [domain-entities-relationships, identifiers, business-invariants-rules, lifecycle-states, persistence-storage-schema, consistency-transactions, migrations-versioning]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Domain & Data — dictum-binder
@@ -68,23 +68,6 @@ schema_version: 1
 
 bindings:
 
-  # Optional comment block above a binding (anchor: binding ENTITY-USER).
-  ENTITY-USER:
-    locators:
-      - { path: src/models/user.py, symbol: User }            # trailing single-line comment (anchor: locator)
-      - { path: db/schema.sql, symbol: users }
-    compare_via: openapi
-    fields:
-      email: { path: src/models/user.py, symbol: User.email }
-      config: { path: config/user.toml }                       # path-only field locator is legal
-    wire:
-      casing: camelCase                                        # any subset of casing / enums / dates
-    asserted_by:
-      - { path: tests/test_user.py, symbol: test_email_unique, run: "python3 -m pytest tests/test_user.py::test_email_unique" }
-      - { path: tests/test_user.py, symbol: test_email_case, run: "python3 -m pytest -k test_email_case", arm: b }
-      - { owed: slice-9 }                                      # owed assertion: no path/symbol/run
-      - { owed: slice-9, arm: c }
-
   ENTITY-PROJECT:
     locators:
       - { path: src/models/project.py, symbol: Project, role: producer }
@@ -94,12 +77,30 @@ bindings:
       enums: string-names
       dates: iso-8601-utc
 
+  # Optional comment block above a binding (anchor: binding ENTITY-USER).
+  ENTITY-USER:
+    locators:
+      - { path: src/models/user.py, symbol: User } # trailing single-line comment (anchor: locator)
+      - { path: db/schema.sql, symbol: users }
+    compare_via: openapi
+    fields:
+      email: { path: src/models/user.py, symbol: User.email }
+      config: { path: config/user.toml } # path-only field locator is legal
+    wire:
+      casing: camelCase
+    asserted_by:
+      - { path: tests/test_user.py, symbol: test_email_unique, run: "python3 -m pytest tests/test_user.py::test_email_unique" }
+      - { path: tests/test_user.py, symbol: test_email_case, run: "python3 -m pytest -k test_email_case", arm: b }
+      - { owed: slice-9 } # owed assertion: no path/symbol/run
+      - { owed: slice-9, arm: c }
+
   ROUTE-HOME:
     locators:
-      - { path: web/src/app.routes.ts }                        # path-only locator is legal
+      - { path: web/src/app.routes.ts } # path-only locator is legal
 
+  # A stub binding (the planner's build-new signal).
   SCREEN-STUB:
-    locators: []                                               # stub form (planner's build-new signal)
+    locators: []
 
 # Optional comment block above coverage (anchor: coverage).
 coverage:
@@ -116,17 +117,18 @@ Layout rules (all part of the contract):
 - **Key order in a locator**: `path`, `symbol`, `role`. In an assertion: `path`, `symbol`, `run`, `arm`, `owed`. In `wire`: `casing`, `enums`, `dates`. In `coverage`: `fully_bound`, `curated`.
 - **Flow style** for every locator, field locator, and assertion: one line, `{ ` … ` }` with a space inside each brace, `, ` between pairs, no line-width wrapping. Block style for everything else.
 - **Indentation** two spaces; one blank line between bindings; no trailing whitespace.
-- **Quoting**: a scalar is written plain unless YAML flow-context rules require quoting (it contains `,` `{` `}` `[` `]` `:` followed by space, `#`, leading/trailing space, or starts with a YAML indicator); then double quotes. `run` selectors are therefore usually quoted.
+- **Quoting**: a scalar is written plain unless it contains whitespace or YAML flow-context rules require quoting (it contains `,` `{` `}` `[` `]` `:` followed by space, `#`, leading/trailing space, or starts with a YAML indicator); then double quotes. `run` selectors and multi-word test titles are therefore quoted; a bare symbol or path is not.
+- **Trailing-comment padding**: exactly one space between the entry's closing `}` (or the value) and the `#` of a trailing comment; no column alignment. A comment line is `#` followed by one space and the text, or a bare `#` for an empty line of a multi-line comment.
 - **Canonical order** (applied by `format` only): bindings sorted lexically by the full ID string in byte order; `fully_bound` sorted lexically; `curated` entries sorted lexically by kind. Locators, assertions, and `fields` keep the author's order under `format` (locator order can carry meaning, e.g. producer before consumer) — confirmed by the operator 2026-09-17.
-- **Comment carriers**: a header, binding, coverage, or curated comment is a block of `# ` lines directly above its anchor line. A locator, field, or assertion comment is either trailing on the flow line or a block directly above it — both accepted on read; on write a single-line comment is emitted trailing, a multi-line one above. A comment anywhere else, or two carriers on one anchor, is an error (`INV-COMMENT-ANCHORED`). Comment text is stored without the `# ` leader.
+- **Comment carriers**: a header, binding, coverage, or curated comment is a block of `# ` lines directly above its anchor line. A locator, field, or assertion comment is either trailing on the flow line or a block directly above it — both accepted on read; on write a single-line comment is emitted trailing, a multi-line one above. A comment anywhere else, or two carriers on one anchor, is an error (`INV-COMMENT-ANCHORED`). Comment text is stored without the `# ` leader; an empty line inside a multi-line comment is stored as an empty line and emitted as a bare `#`; text never carries trailing whitespace (`CLI-COMMENT-SET` rejects it). On read, a comment line written `#text` with no space after `#` is accepted as the text `text` and re-emitted as `# text` — the one **deliberate mild default** in the model (operator's call, 2026-09-17), because YAML itself treats both forms as the same comment.
 
 ### Consistency & transactions
 
-Single writer, single file. A write is: read → pre-validate → mutate in memory → post-validate → serialise → write to a temporary file in the same directory → `rename` over the target. The original is untouched until the rename; a failure anywhere leaves it byte-identical (`INV-ATOMIC-WRITE`). The temporary file takes the original's permission bits. Concurrent writers are not coordinated (Product non-goal).
+Single writer, single file. A write is: read → pre-validate → **refuse if any error-level finding exists** (`ERR-FILE-INVALID`; warnings are tolerated and reported) → mutate in memory → post-validate → serialise → write to a temporary file in the same directory → `rename` over the target. The original is untouched until the rename; a failure anywhere leaves it byte-identical (`INV-ATOMIC-WRITE`). The temporary file takes the original's permission bits; a file created by `init` takes the process umask default. Concurrent writers are not coordinated (Product non-goal). Because a write never starts from an invalid map, the Model never has to carry shape-violating content: on a read-only command the Loader drops what the Model cannot represent and the findings report it, and nothing lost that way can ever be persisted.
 
 ### Migrations & versioning
 
-`schema_version` is a required top-level integer equal to the `lspd` major version that owns the layout; v1 writes `1`. A file whose value differs from the running binary's major fails validation (`INV-SCHEMA-VERSION`, exit 1) and no command other than `validate` proceeds. No migration exists in v1; a future major bump owes one (deferred, Non-goals).
+`schema_version` is a required top-level integer equal to the `lspd` major version that owns the layout; v1 writes `1`. A file whose value differs from the running binary's major fails validation (`INV-SCHEMA-VERSION`, exit 1); every command other than `validate` refuses to proceed with `ERR-SCHEMA-VERSION` (Interfaces), so nothing is ever read from or written to a map of another major. The binary's major is the constant `SCHEMA_VERSION` in `COMPONENT-SCHEMA`, asserted equal to the package version's major by a fitness test; before the first release the package version is `1.0.0.dev0`, so the major is already 1. No migration exists in v1; a future major bump owes one (deferred, Non-goals).
 
 ## Open Questions
 
@@ -158,6 +160,8 @@ None open.
 | Both comment carriers accepted on read, one chosen on write | The template itself uses trailing comments; rejecting them would reject the template. Determinism is on the write side |
 | Canonical layout fully specified, including quoting and whitespace | The layout is the product; an unspecified byte is a style choice left to the library or the model |
 | CRLF or BOM is an error, not normalised | Normalising is a silent default; the operator wants the LLM to fix it explicitly |
+| Writes refuse a map with error-level findings | The alternative — carrying shape-violating content opaquely through the Model — would either lose it or make every post-validation re-report it; refusing keeps the Model honest and the write path simple. Warnings never block |
+| `#text` accepted as `text` on read | The one mild default: YAML treats `#text` and `# text` as the same comment, so rejecting it would be pedantry, and the rewrite is lossless |
 
 Cross-cutting decisions (single file, structural-only, no line numbers, `schema_version` per major) are ADRs in Architecture.
 
@@ -176,7 +180,7 @@ Register form: table row, ID in the first cell. Types: `str` = non-empty string 
 | `ENTITY-FIELD-LOCATOR` | Keyed by field name (`str`). Fields: `path: ENTITY-PATH` (required); `symbol: str?`; comment `ENTITY-COMMENT?`. No `role` |
 | `ENTITY-WIRE` | Fields: `casing: str?`, `enums: str?`, `dates: str?` — any subset, at least one present, values opaque |
 | `ENTITY-ASSERTION` | Exactly one of two shapes. **Bound**: `path: ENTITY-PATH`, `symbol: str` (verbatim test title), `run: str` (selector), `arm: str?`. **Owed**: `owed: str` (slice reference), `arm: str?`. Comment `ENTITY-COMMENT?`. Identity: (`path`, `symbol`, `arm`) or (`owed`, `arm`) |
-| `ENTITY-PATH` | Value type. A repository-relative path: non-empty, `/` separators only, no leading `/` or `./`, no `..` segment, no drive letter, no trailing `:digits` |
+| `ENTITY-PATH` | Value type. A repository-relative path: non-empty, `/` separators only, no leading `/` or `./`, no `..` segment, no drive letter, no trailing `:digits` (that last case is reported under `INV-NO-LINE-NUMBERS`, never under `INV-PATH-FORM`) |
 | `ENTITY-COVERAGE` | Fields: `fully_bound: list<kind>?` (unique members); `curated: map<kind, str>?` (reason, non-empty). `kind` = a string matching the first-segment grammar `[A-Z][A-Z0-9]+`. At least one field present when the block exists |
 | `ENTITY-COMMENT` | Fields: `text: str` (one or more lines, stored without the `# ` leader); `anchor: one of header · binding(ID) · locator(ID, path, symbol) · field(ID, name) · assertion(ID, identity) · coverage · curated(kind)`. Identity: the anchor |
 | `ENTITY-FINDING` | Output of validation. Fields: `code: INV-* ID`; `severity: enum{error, warning}`; `anchor` (as `ENTITY-COMMENT.anchor`, plus `file` for document-level findings); `message: str`. Not persisted |
@@ -193,6 +197,7 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 | `INV-CLOSED-KEYS` | Every mapping uses only its defined keys: document {`schema_version`, `bindings`, `coverage`}; binding {`locators`, `compare_via`, `fields`, `wire`, `asserted_by`}; locator {`path`, `symbol`, `role`}; field locator {`path`, `symbol`}; wire {`casing`, `enums`, `dates`}; assertion {`path`, `symbol`, `run`, `arm`, `owed`}; coverage {`fully_bound`, `curated`} | write-gated; checked on every read |
 | `INV-NO-LINE-NUMBERS` | No key named `lines` or `line` anywhere (already excluded by `INV-CLOSED-KEYS`, reported under this ID for a precise message), and no `path` or `symbol` ending in `:` followed by digits | write-gated; checked on every read |
 | `INV-PATH-FORM` | Every `path` satisfies `ENTITY-PATH` | write-gated; checked on every read |
+| `INV-PATH-EXISTS` | *opt-in* — with `--check-paths`, every locator and field-locator `path`, and every candidate `path` in write input, exists on disk relative to the working directory (checked by `stat` only, after `INV-PATH-FORM` has passed). Severity **error**. Never evaluated without the flag | write-gated when the flag is on (a write with a missing path is refused); checked on every read with the flag on |
 | `INV-SYMBOL-NONEMPTY` | Every present `symbol` is a non-empty string; every `run`, `compare_via`, `owed`, `arm`, wire value, and curated reason likewise | write-gated; checked on every read |
 | `INV-ROLE-VALUES` | Every present `role` is `producer` or `consumer` | write-gated; checked on every read |
 | `INV-WIRE-SUBSET` | A present `wire` has at least one of its three keys and nothing else | write-gated; checked on every read |
@@ -218,5 +223,6 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 5. `INV-ORDER-PRESERVED`: a contract test appends via each `add-*` and `set` on a multi-binding fixture and asserts the diff is limited to the appended lines.
 6. `INV-ATOMIC-WRITE`: a test that forces a failure after the temporary file is written (a post-validation error injected, or a rename made to fail) and asserts the target is byte-identical to its original.
 7. `INV-COMMENT-ANCHORED`: fixtures for each of the seven anchor kinds round-trip; a fixture with a stray comment and one with two carriers each produce the finding.
-8. The canonical example in *Persistence* is itself a golden fixture: it validates clean and is a `format` fixpoint.
+8. The canonical example in *Persistence* is itself a golden fixture: it validates clean and is a `format` fixpoint (bindings in byte order, comments only at anchors, quoting and padding per the rules above).
+9. `INV-PATH-EXISTS`: a fixture with one missing path passes without `--check-paths` and fails with it; `add-locator` of a missing path is refused only with the flag.
 
