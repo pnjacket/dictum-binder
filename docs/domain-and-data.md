@@ -118,7 +118,7 @@ Layout rules (all part of the contract):
 - **Flow style** for every locator, field locator, and assertion: one line, `{ ` … ` }` with a space inside each brace, `, ` between pairs, no line-width wrapping. Block style for everything else.
 - **Indentation** two spaces; one blank line between bindings; no trailing whitespace.
 - **Quoting**: a scalar is written plain unless YAML flow-context rules require quoting (it contains `,` `{` `}` `[` `]` `:` followed by space, `#`, leading/trailing space, or starts with a YAML indicator); then double quotes. `run` selectors are therefore usually quoted.
-- **Canonical order** (applied by `format` only): bindings sorted lexically by the full ID string in byte order; `fully_bound` sorted lexically; `curated` entries sorted lexically by kind. `[ASSUMPTION]` locators, assertions, and `fields` keep the author's order under `format` (locator order can carry meaning, e.g. producer before consumer) — read back for confirmation.
+- **Canonical order** (applied by `format` only): bindings sorted lexically by the full ID string in byte order; `fully_bound` sorted lexically; `curated` entries sorted lexically by kind. Locators, assertions, and `fields` keep the author's order under `format` (locator order can carry meaning, e.g. producer before consumer) — confirmed by the operator 2026-09-17.
 - **Comment carriers**: a header, binding, coverage, or curated comment is a block of `# ` lines directly above its anchor line. A locator, field, or assertion comment is either trailing on the flow line or a block directly above it — both accepted on read; on write a single-line comment is emitted trailing, a multi-line one above. A comment anywhere else, or two carriers on one anchor, is an error (`INV-COMMENT-ANCHORED`). Comment text is stored without the `# ` leader.
 
 ### Consistency & transactions
@@ -131,7 +131,7 @@ Single writer, single file. A write is: read → pre-validate → mutate in memo
 
 ## Open Questions
 
-None open. `[ASSUMPTION]` above (author order kept for locators, assertions, and fields under `format`) awaits the operator's yes/no.
+None open.
 
 ## Dependencies & Cross-references
 
