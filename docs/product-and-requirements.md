@@ -76,7 +76,7 @@ Twelve capabilities, all **in scope for v1** (the operator marked nothing out), 
 - JSON on stdout by default; `--human` selects the readable rendering. `--help` is plain text at every level.
 - Findings from the validation that runs before and after every write ride in the same envelope as the result.
 - **Exit codes partition by who can fix the failure.** `0` — clean, or warnings only. `1` — the **caller** can fix it — by changing the call, or by fixing the file (by hand when the file itself is invalid, since `lspd` refuses to write it): validation errors, an unknown ID or entry, a duplicate entry, rejected input, wrong arguments. `2` — the **environment** must change first: the file is missing (run `init`), unreadable, unparseable, or not writable. Every failure carries a distinct error code inside the envelope; the catalog is minted by Interfaces.
-- **Input that breaks the shape is rejected; input that only warns is written.** A binding supplied to `set` or `add-*` with an unknown key or a line number is refused (exit 1, nothing written). One that raises only a warning (a `role` without `wire`) is written and the warning reported.
+- **Input that breaks the shape is rejected; input that only warns is written.** A binding supplied to `set` or `add-*` with an unknown key or a line number is refused (exit 1, nothing written). One that raises only a warning (a `role` without `wire`) is written and the warning reported — with one carve-out: input the Emitter would have to **normalise** to write (trailing whitespace or empty edge lines in comment text) is rejected as `ERR-INPUT-INVALID`, never silently cleaned, even though the same defect found in a file is only a warning.
 
 ### Constraints & assumptions
 
