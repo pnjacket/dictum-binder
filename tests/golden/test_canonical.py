@@ -6,7 +6,7 @@ import os
 import unittest
 
 from lspd import emitter, loader, validator
-from tests._helpers import DOCS, FIXTURES, TempDir, fixture, read_bytes
+from tests._helpers import DOCS, FIXTURES, TempDir, fixture, read_bytes, run_cli
 
 
 def _emit_after_load(path: str) -> bytes:
@@ -46,6 +46,25 @@ class Canonical(unittest.TestCase):
                     with open(path, "wb") as handle:
                         handle.write(first)
                     self.assertEqual(_emit_after_load(path), first)
+
+    def test_format_applied_twice_equals_format_applied_once(self) -> None:
+        """DICT: SUCCESS-ROUNDTRIP / INV-CANONICAL-FIXPOINT — through the format command, for
+        every fixture, canonical or not (an error-level map is refused both times)."""
+        for name in sorted(os.listdir(FIXTURES)):
+            with self.subTest(fixture=name), TempDir() as tmp:
+                target = os.path.join(tmp, "bindings.yaml")
+                with open(target, "wb") as handle:
+                    handle.write(read_bytes(fixture(name)))
+                first = run_cli(["format"], cwd=tmp)
+                after_first = read_bytes(target)
+                second = run_cli(["format"], cwd=tmp)
+                self.assertEqual(read_bytes(target), after_first)
+                self.assertEqual(second.code, first.code)
+                if first.code == 0:
+                    self.assertEqual(second.envelope["result"]["changed"], False)
+                    self.assertEqual(run_cli(["format", "--check"], cwd=tmp).code, 0)
+                else:
+                    self.assertEqual(after_first, read_bytes(fixture(name)))
 
     def test_noncanonical_layout_is_repaired_but_order_kept(self) -> None:
         out = _emit_after_load(fixture("noncanonical.yaml")).decode("utf-8")

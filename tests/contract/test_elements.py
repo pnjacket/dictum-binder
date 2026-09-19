@@ -212,6 +212,7 @@ class HelpAndVersion(unittest.TestCase):
             ["comment", "get", "--help"],
             ["comment", "set", "--help"],
             ["comment", "unset", "--help"],
+            ["format", "--help"],
         ):
             with self.subTest(argv=argv):
                 run = run_cli(argv)

@@ -13,6 +13,9 @@ EL = "tests.unit.test_emitter_loader"
 Q = "tests.contract.test_query"
 W = "tests.contract.test_writes"
 C = "tests.contract.test_comments"
+F = "tests.contract.test_format"
+OPS = "tests.contract.test_complete_ops"
+HT = "tests.fitness.test_help_tree"
 VR = "tests.unit.test_validator_rules"
 ER = "tests.unit.test_errors_render"
 GOLD = "tests.golden.test_canonical.Canonical"
@@ -41,13 +44,34 @@ MAP: dict[str, list[str] | str] = {
     "CAP-REMOVE": [f"{E2E}.test_cap_remove"],
     "CAP-COVERAGE": [f"{E2E}.test_cap_coverage"],
     "CAP-COMMENT": [f"{E2E}.test_cap_comment"],
-    "CAP-FORMAT": [],
+    "CAP-FORMAT": [f"{E2E}.test_cap_format"],
     # success criteria
     "SUCCESS-ROUNDTRIP": [
         f"{GOLD}.test_canonical_validates_clean_and_round_trips",
         f"{GOLD}.test_emit_is_a_fixpoint_for_every_loadable_fixture",
+        f"{GOLD}.test_format_applied_twice_equals_format_applied_once",
+        f"{C}.SetRoundTrip.test_get_document_set_back_is_identity",
     ],
-    "SUCCESS-COMPLETE-OPS": [],
+    "SUCCESS-COMPLETE-OPS": [
+        f"{OPS}.CompleteOps.test_row_{n}_{name}"
+        for n, name in enumerate(
+            (
+                "mint_the_map_then_set_per_binding",
+                "stub_a_new_contract",
+                "record_or_update_a_binding_as_a_slice_lands",
+                "record_a_deferred_assertion_as_owed",
+                "label_a_multi_arm_assertion",
+                "declare_a_dual_realisation_with_its_wire_contract",
+                "fix_or_retire_a_dangling_locator",
+                "remove_a_binding_on_tombstone",
+                "declare_coverage",
+                "self_validate_the_map",
+                "read_locators_and_check_whether_an_id_is_bound",
+                "carry_prose_alongside_entries",
+            ),
+            start=1,
+        )
+    ],
     "SUCCESS-BOUNDED-OUTPUT": [
         f"{Q}.Get.test_bounded_output",
         f"{Q}.List.test_kind_filter_union_and_empty_result",
@@ -137,7 +161,10 @@ MAP: dict[str, list[str] | str] = {
         f"{INV}.test_owned_twice_names_the_other_binding",
     ],
     # invariants — tool properties
-    "INV-CANONICAL-FIXPOINT": [f"{GOLD}.test_emit_is_a_fixpoint_for_every_loadable_fixture"],
+    "INV-CANONICAL-FIXPOINT": [
+        f"{GOLD}.test_emit_is_a_fixpoint_for_every_loadable_fixture",
+        f"{GOLD}.test_format_applied_twice_equals_format_applied_once",
+    ],
     "INV-ORDER-PRESERVED": [
         f"{W}.OrderPreserved.test_noncanonical_file_is_repaired_with_order_kept",
         f"{W}.OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order",
@@ -147,7 +174,10 @@ MAP: dict[str, list[str] | str] = {
         f"{W}.ValidateAroundWrite.test_error_level_file_refuses_every_writer",
     ],
     # components
-    "COMPONENT-CLI": [f"{FS}.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates"],
+    "COMPONENT-CLI": [
+        f"{FS}.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates",
+        f"{HT}.HelpTree.test_walk_yields_exactly_the_cli_command_paths",
+    ],
     "COMPONENT-LOADER": [
         f"{FS}.Imports.test_ruamel_only_in_loader_and_no_other_third_party",
         f"{EL}.LoaderEdges.test_carriers_round_trip_and_transparent_markers",
@@ -155,7 +185,9 @@ MAP: dict[str, list[str] | str] = {
     "COMPONENT-MODEL": [f"{MS}.FromPlain.test_full_binding_converts_and_projects_back"],
     "COMPONENT-VALIDATOR": [f"{INV}.test_each_write_gated_invariant_fires_exactly_once"],
     "COMPONENT-COMMANDS": [
-        f"{FS}.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates"
+        f"{FS}.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates",
+        f"{HT}.HelpTree.test_walk_yields_exactly_the_cli_command_paths",
+        f"{OPS}.CompleteOps.test_row_3_record_or_update_a_binding_as_a_slice_lands",
     ],
     "COMPONENT-EMITTER": [
         f"{FS}.SoleWriter.test_only_emitter_writes",
@@ -199,7 +231,10 @@ MAP: dict[str, list[str] | str] = {
         f"{FS}.Imports.test_ruamel_only_in_loader_and_no_other_third_party",
         f"{MS}.JsonSchema.test_every_rule_table_entry_appears_in_the_schema",
     ],
-    "ADR-FORMAT-ONLY-REORDERS": [],
+    "ADR-FORMAT-ONLY-REORDERS": [
+        f"{F}.Format.test_only_format_reorders_and_only_the_top_level_lists",
+        f"{W}.OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order",
+    ],
     "ADR-INIT-REQUIRED": [
         f"{CERR}.ErrorCatalog.test_err_file_missing",
         f"{CEL}.Init.test_refuses_an_existing_target",
@@ -225,10 +260,16 @@ MAP: dict[str, list[str] | str] = {
     "CLI-HELP": [
         f"{CEL}.HelpAndVersion.test_help_at_every_level_is_plain_text",
         f"{CEL}.HelpAndVersion.test_help_on_unknown_command_is_usage_error",
+        f"{HT}.HelpTree.test_walk_yields_exactly_the_cli_command_paths",
     ],
     "CLI-VERSION": [f"{CEL}.HelpAndVersion.test_version"],
     # CLI elements — later slices
-    "CLI-FORMAT": [],
+    "CLI-FORMAT": [
+        f"{F}.Format.test_rewrites_sorted_canonical_and_is_idempotent",
+        f"{F}.Format.test_check_never_writes_and_exits_1_iff_it_would_change",
+        f"{F}.Format.test_layout_warnings_are_repaired_and_other_warnings_kept",
+        f"{F}.Format.test_error_level_findings_refuse_it_under_both_modes",
+    ],
     "CLI-GET": [
         f"{Q}.Get.test_full_projection_with_comments",
         f"{Q}.Get.test_argument_order_and_repeats",
@@ -311,7 +352,7 @@ MAP: dict[str, list[str] | str] = {
     ],
     "OUT-COVERAGE": [f"{W}.Coverage.test_get"],
     "OUT-COMMENT": [f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes"],
-    "OUT-FORMAT-RESULT": [],
+    "OUT-FORMAT-RESULT": [f"{F}.Format.test_rewrites_sorted_canonical_and_is_idempotent"],
     "OUT-WRITE-RESULT": [
         f"{W}.Set.test_create_appends_last_and_replace_keeps_place",
         f"{W}.Remove.test_whole_binding_goes_with_its_comments",

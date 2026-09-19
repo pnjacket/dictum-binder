@@ -24,6 +24,7 @@ from lspd import emitter, loader, model, render, schema, validator
 from lspd.commands import add as cmd_add
 from lspd.commands import comment as cmd_comment
 from lspd.commands import coverage as cmd_coverage
+from lspd.commands import format as cmd_format
 from lspd.commands import init as cmd_init
 from lspd.commands import query as cmd_query
 from lspd.commands import remove as cmd_remove
@@ -446,6 +447,23 @@ def build_parser() -> _Parser:
     p_cur.add_argument("--comment", metavar="TEXT", help="comment at the entry (set)")
     _add_global_options(p_cur, mirrored=True)
 
+    p_format = command(
+        sub,
+        "format",
+        "format",
+        "rewrite the map in canonical layout and order (--check: report only)",
+        "Rewrite the target in the canonical layout: bindings sorted by ID, fully_bound and\n"
+        "curated sorted, template key order, flow-style entries; comments stay at their\n"
+        "anchors; locators, fields and assertions keep their order. With --check nothing is\n"
+        "written and the exit is 1 iff the file would change.",
+        "ERR-FILE-INVALID (1) · ERR-SCHEMA-VERSION (1) · ERR-FILE-MISSING (2) · ERR-IO (2)\n"
+        "  · ERR-PARSE (2) · ERR-FILE-TOO-LARGE (1) · ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    p_format.add_argument(
+        "--check", action="store_true", help="report only; exit 1 if it would change"
+    )
+    _add_global_options(p_format, mirrored=True)
+
     p_comment = command(
         sub,
         "comment",
@@ -677,6 +695,7 @@ class _Run:
         self.ns = ns
         self.pre: list[Finding] = []
         self.post: list[Finding] = []
+        self.exit_hint = 0
 
     # -- elements -----------------------------------------------------------------
 
@@ -808,6 +827,28 @@ class _Run:
             return self._write(lambda m: cmd_set.result(cmd_remove.assertion(m, ns.id, identity)))
         return self._write(lambda m: cmd_remove.binding(m, ns.id))
 
+    def format(self) -> dict[str, Any]:
+        """Reads; writes unless --check. Error-level pre-findings refuse it either way."""
+        target = loader.resolve_target(self.ns.file)
+        original = loader.read_bytes(target, size_limit=not self.ns.no_size_limit)
+        m = self._load(gate_schema_version=True)
+        if _exit_for(self.pre):
+            raise FileInvalidError([f for f in self.pre if f.severity == "error"])
+        cmd_format.canonicalise(m)
+        self.post = validator.finalize(
+            validator.validate(m, check_paths=self.ns.check_paths, root=os.getcwd())
+        )
+        if _exit_for(self.post):  # pragma: no cover — reordering a valid model keeps it valid
+            raise InternalError(
+                "post-validation failed",
+                "; ".join(f.code for f in self.post if f.severity == "error"),
+            )
+        changed = emitter.emit(m) != original
+        if changed and not self.ns.check:
+            emitter.write(m, target)
+        self.exit_hint = 1 if changed and self.ns.check else 0
+        return cmd_format.result(changed=changed, checked_only=self.ns.check)
+
     def comment(self) -> dict[str, Any]:
         ns = self.ns
 
@@ -891,7 +932,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 human=human,
             )
         )
-        return max(_exit_for(run.pre), _exit_for(run.post))
+        return max(_exit_for(run.pre), _exit_for(run.post), run.exit_hint)
     except _HelpRequested as help_request:
         _write_stdout(help_request.text)
         return 0

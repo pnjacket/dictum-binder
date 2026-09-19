@@ -315,6 +315,31 @@ class Journeys(unittest.TestCase):
         self.assertEqual(lspd(["comment"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
         self.assertEqual(lspd(["validate"], self.tmp).code, 0)
 
+    def test_cap_format(self) -> None:
+        """DICT: CAP-FORMAT"""
+        target = os.path.join(self.tmp, "bindings.yaml")
+        shutil.copyfile(os.path.join(FIXTURES, "noncanonical.yaml"), target)
+        before = open(target, "rb").read()
+        check = lspd(["format", "--check"], self.tmp)
+        self.assertEqual(
+            (check.code, check.envelope["result"]), (1, {"changed": True, "checked_only": True})
+        )
+        self.assertEqual(open(target, "rb").read(), before)
+        run = lspd(["format"], self.tmp)
+        self.assertEqual(
+            (run.code, run.envelope["result"]), (0, {"changed": True, "checked_only": False})
+        )
+        self.assertEqual(
+            open(target, "rb").read(),
+            b"schema_version: 1\n\nbindings:\n\n  ENTITY-A:\n    locators:\n"
+            b"      - { path: src/a.py, symbol: A }\n\n  ROUTE-B:\n    locators:\n"
+            b"      - { path: web/b.ts, symbol: B }\n\ncoverage:\n  fully_bound: [ENTITY, ROUTE]\n",
+        )
+        self.assertEqual(lspd(["format", "--check"], self.tmp).code, 0)
+        self.assertEqual(lspd(["format"], self.tmp).envelope["result"]["changed"], False)
+        shutil.copyfile(os.path.join(FIXTURES, "inv-path-form.yaml"), target)
+        self.assertEqual(lspd(["format"], self.tmp).envelope["error"]["code"], "ERR-FILE-INVALID")
+
     def test_cap_schema(self) -> None:
         """DICT: CAP-SCHEMA"""
         raw = lspd(["schema"], self.tmp)
@@ -345,6 +370,7 @@ class Journeys(unittest.TestCase):
             ["coverage", "curated", "--help"],
             ["comment", "--help"],
             ["comment", "set", "--help"],
+            ["format", "--help"],
         ):
             run = lspd(argv, self.tmp)
             self.assertEqual(run.code, 0)
@@ -370,9 +396,17 @@ class MetaInvocations(unittest.TestCase):
             )
             for argv in argvs
         }
-        for element in (("init",), ("validate",), ("schema",), ("get", "ENTITY-A"), ("list",)):
+        for element in (
+            ("init",),
+            ("validate",),
+            ("schema",),
+            ("get", "ENTITY-A"),
+            ("list",),
+            ("format",),
+        ):
             self.assertIn(element, positional, element)
         self.assertTrue(any(argv == ["schema", "--checksum"] for argv in argvs))
+        self.assertTrue(any(argv == ["format", "--check"] for argv in argvs))
         self.assertTrue(any(argv[:2] == ["list", "--kind"] for argv in argvs))
         self.assertTrue(any(argv == ["list", "--full"] for argv in argvs))
         heads = {tuple(argv[:1]) for argv in argvs} | {tuple(argv[:2]) for argv in argvs}
