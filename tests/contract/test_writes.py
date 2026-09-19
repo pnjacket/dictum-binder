@@ -9,7 +9,7 @@ import unittest
 from typing import Any
 from unittest import mock
 
-from lspd import emitter, loader
+from dbind import emitter, loader
 from tests._helpers import TempDir, copy_fixture, read_bytes, run_cli
 
 CANON = "canonical.yaml"
@@ -569,7 +569,7 @@ class Coverage(unittest.TestCase):
                     argv,
                 )
                 self.assertTrue(
-                    run.envelope["error"]["details"]["usage"].startswith(f"usage: lspd {command}"),
+                    run.envelope["error"]["details"]["usage"].startswith(f"usage: dbind {command}"),
                     argv,
                 )
 

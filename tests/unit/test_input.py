@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from lspd import model, validator
+from dbind import model, validator
 
 
 def _codes(findings: list[model.Finding]) -> list[str]:

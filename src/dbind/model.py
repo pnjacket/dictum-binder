@@ -646,7 +646,7 @@ def _grammar_message(binding_id: str) -> str:
     digits = [s for s in segments if s.isdigit()]
     if len(segments) >= 2 and digits and re.match(r"^[A-Z][A-Z0-9]+(-[A-Z0-9]+)+$", binding_id):
         return (
-            f"`{binding_id}` has an all-digit segment ({', '.join(digits)}); lspd accepts "
+            f"`{binding_id}` has an all-digit segment ({', '.join(digits)}); dictum-binder accepts "
             "semantic IDs only "
             "(digits inside a segment such as V2 are fine)"
         )

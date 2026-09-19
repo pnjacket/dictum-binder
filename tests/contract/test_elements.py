@@ -11,10 +11,10 @@ import re
 import stat
 import unittest
 
-from lspd import schema
+from dbind import schema
 from tests._helpers import TempDir, copy_fixture, read_bytes, run_cli
 
-ENVELOPE_KEYS = ["lspd", "ok", "command", "result", "findings", "error"]
+ENVELOPE_KEYS = ["dbind", "ok", "command", "result", "findings", "error"]
 
 
 class Init(unittest.TestCase):
@@ -178,7 +178,7 @@ class Schema(unittest.TestCase):
         self.assertEqual(raw.code, 0)
         self.assertEqual(raw.stdout.encode("utf-8"), schema.schema_json())
         self.assertEqual(
-            json.loads(raw.stdout)["title"], "Dictum binding map (lspd canonical shape)"
+            json.loads(raw.stdout)["title"], "Dictum binding map (dictum-binder canonical shape)"
         )
         checksum = run_cli(["schema", "--checksum"])
         self.assertEqual(checksum.code, 0)
@@ -217,7 +217,7 @@ class HelpAndVersion(unittest.TestCase):
             with self.subTest(argv=argv):
                 run = run_cli(argv)
                 self.assertEqual(run.code, 0)
-                self.assertTrue(run.stdout.startswith("usage: lspd"))
+                self.assertTrue(run.stdout.startswith("usage: dbind"))
                 self.assertIn("exit codes:", run.stdout)
                 with self.assertRaises(json.JSONDecodeError):
                     json.loads(run.stdout)
@@ -237,7 +237,7 @@ class HelpAndVersion(unittest.TestCase):
     def test_version(self) -> None:
         run = run_cli(["--version"])
         self.assertEqual(run.code, 0)
-        self.assertRegex(run.stdout, r"^lspd \d+\.\d+\.\d+(\.dev\d+)?\n$")
+        self.assertRegex(run.stdout, r"^dbind \d+\.\d+\.\d+(\.dev\d+)?\n$")
 
     def test_help_on_unknown_command_is_usage_error(self) -> None:
         run = run_cli(["bogus", "--help"])
@@ -252,13 +252,13 @@ class Envelope(unittest.TestCase):
         with TempDir() as tmp:
             copy_fixture("canonical.yaml", tmp)
             run = run_cli(["validate"], cwd=tmp)
-            self.assertTrue(run.stdout.startswith('{"lspd":{"version":"'))
+            self.assertTrue(run.stdout.startswith('{"dbind":{"version":"'))
             self.assertEqual(run.stdout.count("\n"), 1)
             self.assertTrue(run.stdout.endswith("}\n"))
             self.assertNotIn(": ", run.stdout.split('"message"')[0])
-            self.assertEqual(run.envelope["lspd"]["schema_version"], 1)
+            self.assertEqual(run.envelope["dbind"]["schema_version"], 1)
             self.assertEqual(
-                run.envelope["lspd"]["version"], run_cli(["--version"]).stdout.split()[1]
+                run.envelope["dbind"]["version"], run_cli(["--version"]).stdout.split()[1]
             )
 
     def test_utf8_bytes_survive_non_ascii_comments(self) -> None:
@@ -286,7 +286,7 @@ class Envelope(unittest.TestCase):
                 self.assertIn(finding["message"], human.stdout)
             error = run_cli(["--human", "validate", "--file", "nope.yaml"], cwd=tmp)
             self.assertIn("ERR-FILE-MISSING", error.stdout)
-            self.assertIn("run `lspd init`", error.stdout)
+            self.assertIn("run `dbind init`", error.stdout)
             usage = run_cli(["--human"], cwd=tmp)
             self.assertIn("usage:", usage.stdout)
             self.assertIn("ERR-USAGE", usage.stdout)
@@ -313,14 +313,14 @@ class Envelope(unittest.TestCase):
             try:
                 os.environ.clear()
                 os.environ["COLUMNS"] = "20"
-                with open(os.path.join(tmp, ".lspdrc"), "w", encoding="utf-8") as handle:
+                with open(os.path.join(tmp, ".dbindrc"), "w", encoding="utf-8") as handle:
                     handle.write("hostile\n")
                 again = run_cli(["--help"], cwd=tmp)
             finally:
                 os.environ.clear()
                 os.environ.update(saved)
             self.assertEqual(again.stdout, baseline.stdout)
-            self.assertEqual(re.sub(r"\s+", " ", again.stdout).count("usage: lspd"), 1)
+            self.assertEqual(re.sub(r"\s+", " ", again.stdout).count("usage: dbind"), 1)
 
 
 if __name__ == "__main__":  # pragma: no cover — direct invocation convenience

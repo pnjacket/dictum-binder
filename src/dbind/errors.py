@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class LspdError(Exception):
+class DbindError(Exception):
     """Base of every contracted failure. DICT: PATTERN-ERROR-ENVELOPE"""
 
     code: str = "ERR-INTERNAL"
@@ -23,7 +23,7 @@ class LspdError(Exception):
         self.details: dict[str, Any] = details if details is not None else {}
 
 
-class UsageError(LspdError):
+class UsageError(DbindError):
     """DICT: ERR-USAGE"""
 
     code = "ERR-USAGE"
@@ -34,7 +34,7 @@ class UsageError(LspdError):
         self.command = command
 
 
-class FileMissingError(LspdError):
+class FileMissingError(DbindError):
     """DICT: ERR-FILE-MISSING"""
 
     code = "ERR-FILE-MISSING"
@@ -42,12 +42,12 @@ class FileMissingError(LspdError):
 
     def __init__(self, path: str, reason: str) -> None:
         super().__init__(
-            f"target file not found: {path} — run `lspd init` first",
+            f"target file not found: {path} — run `dbind init` first",
             {"path": path, "reason": reason},
         )
 
 
-class FileExistsAlreadyError(LspdError):
+class FileExistsAlreadyError(DbindError):
     """DICT: ERR-FILE-EXISTS"""
 
     code = "ERR-FILE-EXISTS"
@@ -57,7 +57,7 @@ class FileExistsAlreadyError(LspdError):
         super().__init__(f"target already exists: {path}", {"path": path, "reason": reason})
 
 
-class FileIOError(LspdError):
+class FileIOError(DbindError):
     """DICT: ERR-IO"""
 
     code = "ERR-IO"
@@ -69,7 +69,7 @@ class FileIOError(LspdError):
         )
 
 
-class ParseError(LspdError):
+class ParseError(DbindError):
     """DICT: ERR-PARSE"""
 
     code = "ERR-PARSE"
@@ -81,7 +81,7 @@ class ParseError(LspdError):
         )
 
 
-class FileTooLargeError(LspdError):
+class FileTooLargeError(DbindError):
     """DICT: ERR-FILE-TOO-LARGE"""
 
     code = "ERR-FILE-TOO-LARGE"
@@ -94,7 +94,7 @@ class FileTooLargeError(LspdError):
         )
 
 
-class SchemaVersionError(LspdError):
+class SchemaVersionError(DbindError):
     """DICT: ERR-SCHEMA-VERSION"""
 
     code = "ERR-SCHEMA-VERSION"
@@ -102,12 +102,13 @@ class SchemaVersionError(LspdError):
 
     def __init__(self, found: int | None, expected: int) -> None:
         super().__init__(
-            f"schema_version {found!r} does not match this lspd's schema version {expected}",
+            f"schema_version {found!r} does not match this dictum-binder build's schema version "
+            f"{expected}",
             {"found": found, "expected": expected},
         )
 
 
-class FileInvalidError(LspdError):
+class FileInvalidError(DbindError):
     """DICT: ERR-FILE-INVALID"""
 
     code = "ERR-FILE-INVALID"
@@ -120,7 +121,7 @@ class FileInvalidError(LspdError):
         )
 
 
-class NotFoundError(LspdError):
+class NotFoundError(DbindError):
     """DICT: ERR-NOT-FOUND"""
 
     code = "ERR-NOT-FOUND"
@@ -130,7 +131,7 @@ class NotFoundError(LspdError):
         super().__init__(message, {"id": id, "anchor": anchor})
 
 
-class DuplicateError(LspdError):
+class DuplicateError(DbindError):
     """DICT: ERR-DUPLICATE"""
 
     code = "ERR-DUPLICATE"
@@ -140,7 +141,7 @@ class DuplicateError(LspdError):
         super().__init__(message, {"id": id, "anchor": anchor})
 
 
-class InputInvalidError(LspdError):
+class InputInvalidError(DbindError):
     """DICT: ERR-INPUT-INVALID"""
 
     code = "ERR-INPUT-INVALID"
@@ -153,7 +154,7 @@ class InputInvalidError(LspdError):
         )
 
 
-class InternalError(LspdError):
+class InternalError(DbindError):
     """DICT: ERR-INTERNAL"""
 
     code = "ERR-INTERNAL"

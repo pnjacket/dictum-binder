@@ -14,8 +14,8 @@ import re
 import stat
 import tempfile
 
-from lspd.errors import FileIOError
-from lspd.model import Assertion, Binding, Coverage, FieldLocator, Locator, Map
+from dbind.errors import FileIOError
+from dbind.model import Assertion, Binding, Coverage, FieldLocator, Locator, Map
 
 _INDICATORS = set("-?:,[]{}#&*!|>'\"%@`")
 _FLOW_CHARS = set(",[]{}#:")

@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import unittest
 
-from lspd import loader
+from dbind import loader
 from tests._helpers import TempDir, copy_fixture, read_bytes, run_cli
 
 

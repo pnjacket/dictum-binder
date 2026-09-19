@@ -9,7 +9,7 @@ import sys
 import unittest
 from unittest import mock
 
-from lspd import cli
+from dbind import cli
 from tests._helpers import TempDir, copy_fixture, read_bytes, run_cli
 
 SLICE1_ELEMENTS: list[list[str]] = [
@@ -26,7 +26,7 @@ class ErrorCatalog(unittest.TestCase):
     def test_err_usage_conditions(self) -> None:
         with TempDir() as tmp:
             cases = {
-                "bare lspd": [],
+                "bare dbind": [],
                 "unknown command": ["bogus"],
                 "unknown option": ["validate", "--bogus"],
                 "empty-string argument": ["--file", "", "validate"],
@@ -38,7 +38,7 @@ class ErrorCatalog(unittest.TestCase):
                     self.assertEqual(run.code, 1)
                     env = run.envelope
                     self.assertEqual(env["error"]["code"], "ERR-USAGE")
-                    self.assertIn("usage: lspd", env["error"]["details"]["usage"])
+                    self.assertIn("usage: dbind", env["error"]["details"]["usage"])
                     self.assertIsNone(env["result"])
             self.assertEqual(run_cli([], cwd=tmp).envelope["command"], "")
             self.assertEqual(
@@ -98,17 +98,17 @@ class ErrorCatalog(unittest.TestCase):
 
     def test_err_internal_from_an_unexpected_exception(self) -> None:
         with TempDir() as tmp:
-            with mock.patch("lspd.cli.schema.schema_json", side_effect=RuntimeError("boom")):
+            with mock.patch("dbind.cli.schema.schema_json", side_effect=RuntimeError("boom")):
                 run = run_cli(["schema"], cwd=tmp)
             self.assertEqual((run.code, run.envelope["error"]["code"]), (2, "ERR-INTERNAL"))
             self.assertIn("boom", run.envelope["error"]["details"]["exception"])
             self.assertEqual(run.stderr, "")
-            with mock.patch("lspd.cli.schema.schema_json", side_effect=RuntimeError("boom")):
+            with mock.patch("dbind.cli.schema.schema_json", side_effect=RuntimeError("boom")):
                 loud = run_cli(["--debug", "schema"], cwd=tmp)
             self.assertIn("RuntimeError: boom", loud.stderr)
 
     def test_keyboard_interrupt_exits_130_without_a_document(self) -> None:
-        with mock.patch("lspd.cli.build_parser", side_effect=KeyboardInterrupt):
+        with mock.patch("dbind.cli.build_parser", side_effect=KeyboardInterrupt):
             run = run_cli(["validate"])
         self.assertEqual((run.code, run.stdout), (130, ""))
 
@@ -128,12 +128,14 @@ class ErrorCatalog(unittest.TestCase):
             "ERR-INPUT-INVALID": 1,
             "ERR-INTERNAL": 2,
         }
-        from lspd import errors
+        from dbind import errors
 
         classes = {
             c.code: c
             for c in vars(errors).values()
-            if isinstance(c, type) and issubclass(c, errors.LspdError) and c is not errors.LspdError
+            if isinstance(c, type)
+            and issubclass(c, errors.DbindError)
+            and c is not errors.DbindError
         }
         self.assertEqual(set(classes), set(expected))
         for code, exit_code in expected.items():
@@ -179,8 +181,8 @@ class SecurityForcings(unittest.TestCase):
             saved = dict(os.environ)
             try:
                 os.environ.clear()
-                os.environ["LSPD_FILE"] = "hostile.yaml"
-                for name in (".lspdrc", "lspd.toml", ".env"):
+                os.environ["DBIND_FILE"] = "hostile.yaml"
+                for name in (".dbindrc", "dbind.toml", ".env"):
                     with open(os.path.join(tmp, name), "w", encoding="utf-8") as handle:
                         handle.write("file = hostile\n")
                 again = run_cli(["validate"], cwd=tmp).stdout
@@ -220,7 +222,7 @@ class SecurityForcings(unittest.TestCase):
 
             sys.addaudithook(hook)
             with mock.patch(
-                "lspd.validator.os.path.exists",
+                "dbind.validator.os.path.exists",
                 side_effect=lambda p: (
                     os.path.lexists(p) if stat_spy(p) is None else os.path.lexists(p)
                 ),

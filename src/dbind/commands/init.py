@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from lspd.model import Map
-from lspd.schema import SCHEMA_VERSION
+from dbind.model import Map
+from dbind.schema import SCHEMA_VERSION
 
 
 def empty_map() -> Map:

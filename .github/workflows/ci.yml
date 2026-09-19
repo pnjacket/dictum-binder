@@ -24,7 +24,7 @@ jobs:
       - name: "gate 1: unittest — all five tiers"
         run: .venv/bin/python -m unittest discover -s tests -t .
         env:
-          LSPD_CI_RANGE: ${{ github.event.before }}..${{ github.sha }}
+          DBIND_CI_RANGE: ${{ github.event.before }}..${{ github.sha }}
       - name: "gate 2: 100% line coverage (trace)"
         run: .venv/bin/python tools/coverage_report.py
       - name: "gate 3: ruff"
@@ -35,12 +35,12 @@ jobs:
         run: .venv/bin/pyrefly check
       - name: "gate 5: schema file and README checksum"
         run: |
-          .venv/bin/lspd schema | diff - lspd.schema.json
-          test "$(.venv/bin/lspd schema --checksum)" = "$(grep -oE '[0-9a-f]{64}' README.md | head -1)"
+          .venv/bin/dbind schema | diff - dbind.schema.json
+          test "$(.venv/bin/dbind schema --checksum)" = "$(grep -oE '[0-9a-f]{64}' README.md | head -1)"
       - name: "gate 6: dogfood bindings.yaml (skipped until it exists)"
         run: |
           if [ -f bindings.yaml ]; then
-            .venv/bin/lspd validate && .venv/bin/lspd format --check
+            .venv/bin/dbind validate && .venv/bin/dbind format --check
           else
             echo "gate 6 skipped: bindings.yaml does not exist yet (written at the release slice)"
           fi

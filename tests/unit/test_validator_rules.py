@@ -6,9 +6,9 @@ import os
 import unittest
 from typing import Any
 
-from lspd import loader, model, validator
-from lspd.errors import ParseError
-from lspd.model import Anchor, Coverage, CuratedEntry, Map
+from dbind import loader, model, validator
+from dbind.errors import ParseError
+from dbind.model import Anchor, Coverage, CuratedEntry, Map
 from tests._helpers import TempDir
 
 

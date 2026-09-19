@@ -13,7 +13,7 @@ import unittest
 from importlib import metadata
 from typing import cast
 
-from lspd import schema
+from dbind import schema
 from tests._helpers import ROOT, run_cli
 
 INDEPENDENCE = (
@@ -111,7 +111,7 @@ class PinsAndWorkflow(unittest.TestCase):
         self.assertIn('dependencies = ["ruamel.yaml>=0.19,<0.20"]', text)
         self.assertIn('dev = ["ruff>=0.16,<0.17", "pyrefly>=1.3,<1.4"]', text)
         self.assertIn('requires = ["setuptools>=84,<85"]', text)
-        self.assertIn('lspd = "lspd.cli:main"', text)
+        self.assertIn('dbind = "dbind.cli:main"', text)
         self.assertIn('requires-python = ">=3.11"', text)
         version = re.search(r'^version = "(\d+)\.', text, re.M)
         assert version is not None
@@ -133,7 +133,7 @@ class SchemaFile(unittest.TestCase):
     """Architecture acceptance 6 / Quality gate 5 / SUCCESS-SCHEMA-MATCH (partial: README value)."""
 
     def test_shipped_file_equals_embedded_schema_and_readme_checksum(self) -> None:
-        with open(os.path.join(ROOT, "lspd.schema.json"), "rb") as handle:
+        with open(os.path.join(ROOT, "dbind.schema.json"), "rb") as handle:
             shipped = handle.read()
         self.assertEqual(shipped, schema.schema_json())
         self.assertEqual(hashlib.sha256(shipped).hexdigest(), schema.checksum())

@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import unittest
 
-from lspd import errors, render
-from lspd.model import Anchor, Finding
+from dbind import errors, render
+from dbind.model import Anchor, Finding
 
 FINDING = Finding("INV-PATH-FORM", "error", Anchor("locator", id="ENTITY-A", path="../x"), "msg", 7)
 
@@ -20,7 +20,7 @@ class ErrorCatalogConstructors(unittest.TestCase):
 
     def test_each_error_carries_code_exit_and_details(self) -> None:
         anchor = Anchor("binding", id="ENTITY-A")
-        cases: list[tuple[errors.LspdError, str, int, dict[str, object]]] = [
+        cases: list[tuple[errors.DbindError, str, int, dict[str, object]]] = [
             (
                 errors.SchemaVersionError(2, 1),
                 "ERR-SCHEMA-VERSION",

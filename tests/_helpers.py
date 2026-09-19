@@ -14,7 +14,7 @@ from typing import Any
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIXTURES = os.path.join(ROOT, "tests", "fixtures")
 DOCS = os.path.join(ROOT, "docs")
-SRC = os.path.join(ROOT, "src", "lspd")
+SRC = os.path.join(ROOT, "src", "dbind")
 
 
 def fixture(name: str) -> str:
@@ -38,8 +38,8 @@ class Run:
 
 
 def run_cli(argv: list[str], cwd: str | None = None) -> Run:
-    """Run ``lspd.cli.main`` in-process with a binary-capable stdout, like a real process."""
-    from lspd import cli
+    """Run ``dbind.cli.main`` in-process with a binary-capable stdout, like a real process."""
+    from dbind import cli
 
     out = io.TextIOWrapper(io.BytesIO(), encoding="utf-8")
     err = io.StringIO()
@@ -60,7 +60,7 @@ class TempDir:
     """A fresh temporary working directory, removed afterwards."""
 
     def __enter__(self) -> str:
-        self.path = tempfile.mkdtemp(prefix="lspd-test-")
+        self.path = tempfile.mkdtemp(prefix="dbind-test-")
         return self.path
 
     def __exit__(self, *exc: object) -> None:

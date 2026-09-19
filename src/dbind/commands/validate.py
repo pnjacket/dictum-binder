@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from lspd.model import Finding
+from dbind.model import Finding
 
 
 def result(findings: list[Finding], *, paths_checked: bool) -> dict[str, object]:

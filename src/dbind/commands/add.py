@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from lspd.errors import DuplicateError, NotFoundError
-from lspd.model import Anchor, Assertion, Binding, FieldLocator, Locator, Map
+from dbind.errors import DuplicateError, NotFoundError
+from dbind.model import Anchor, Assertion, Binding, FieldLocator, Locator, Map
 
 
 def require(m: Map, binding_id: str) -> Binding:

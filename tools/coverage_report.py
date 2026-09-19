@@ -1,7 +1,7 @@
-"""Gate 2 — 100 % line coverage of src/lspd via the standard library's ``trace``.
+"""Gate 2 — 100 % line coverage of src/dbind via the standard library's ``trace``.
 
 Runs the unit, golden, contract and fitness tiers in-process under
-``trace.Trace``, then lists every executable line of ``src/lspd`` that never
+``trace.Trace``, then lists every executable line of ``src/dbind`` that never
 ran. A line ending in ``# pragma: no cover — <reason>`` is excluded; a pragma
 without a reason is left in (and the fitness tier rejects it). Exit 1 when
 any line is uncovered.
@@ -21,7 +21,7 @@ import unittest
 from types import CodeType
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "src", "lspd")
+SRC = os.path.join(ROOT, "src", "dbind")
 PRAGMA = re.compile(r"#\s*pragma:\s*no cover\s+—\s*\S")
 TIERS = ("unit", "golden", "contract", "fitness")
 
@@ -40,7 +40,7 @@ def _run_tiers() -> bool:
 
 class _IgnoreByFilename:
     """trace's own ``_Ignore`` caches decisions by module *basename*, so once the standard
-    library's ``unittest/loader.py`` is ignored, ``lspd/loader.py`` is ignored too. This
+    library's ``unittest/loader.py`` is ignored, ``dbind/loader.py`` is ignored too. This
     replacement decides by filename prefix and caches by filename."""
 
     def __init__(self, dirs: list[str]) -> None:
@@ -89,7 +89,7 @@ def _excluded_lines(lines: list[str]) -> set[int]:
 
 
 def report(counts: dict[tuple[str, int], int]) -> tuple[int, list[str]]:
-    """Return (uncovered line count, report lines) over every module under src/lspd."""
+    """Return (uncovered line count, report lines) over every module under src/dbind."""
     executed: dict[str, set[int]] = {}
     for (filename, lineno), _ in counts.items():
         if filename.startswith(SRC):
@@ -136,9 +136,9 @@ def main() -> int:
         print("coverage report: the test run itself failed")
         return 1
     if missed_total:
-        print(f"coverage report: {missed_total} uncovered line(s) in src/lspd")
+        print(f"coverage report: {missed_total} uncovered line(s) in src/dbind")
         return 1
-    print("coverage report: 100% line coverage of src/lspd")
+    print("coverage report: 100% line coverage of src/dbind")
     return 0
 
 

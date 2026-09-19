@@ -9,75 +9,75 @@ import tempfile
 import unittest
 
 from tests.e2e import _runner
-from tests.e2e._runner import lspd
+from tests.e2e._runner import dbind
 
 FIXTURES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures")
 
 
 class Journeys(unittest.TestCase):
     def setUp(self) -> None:
-        self.tmp = tempfile.mkdtemp(prefix="lspd-e2e-")
-        self.assertTrue(os.path.exists(_runner.LSPD), _runner.LSPD)
+        self.tmp = tempfile.mkdtemp(prefix="dbind-e2e-")
+        self.assertTrue(os.path.exists(_runner.DBIND), _runner.DBIND)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_cap_init(self) -> None:
         """DICT: CAP-INIT"""
-        run = lspd(["init"], self.tmp)
+        run = dbind(["init"], self.tmp)
         self.assertEqual(run.code, 0, run.stdout)
         with open(os.path.join(self.tmp, "bindings.yaml"), "rb") as handle:
             self.assertEqual(handle.read(), b"schema_version: 1\n\nbindings: {}\n")
-        self.assertEqual(lspd(["init"], self.tmp).envelope["error"]["code"], "ERR-FILE-EXISTS")
-        self.assertEqual(lspd(["init", "--file", "other.yaml"], self.tmp).code, 0)
-        self.assertEqual(lspd(["--human", "init", "--file", "third.yaml"], self.tmp).code, 0)
-        self.assertEqual(lspd(["--debug", "init", "--file", "fourth.yaml"], self.tmp).stderr, "")
+        self.assertEqual(dbind(["init"], self.tmp).envelope["error"]["code"], "ERR-FILE-EXISTS")
+        self.assertEqual(dbind(["init", "--file", "other.yaml"], self.tmp).code, 0)
+        self.assertEqual(dbind(["--human", "init", "--file", "third.yaml"], self.tmp).code, 0)
+        self.assertEqual(dbind(["--debug", "init", "--file", "fourth.yaml"], self.tmp).stderr, "")
 
     def test_cap_validate_and_pathcheck(self) -> None:
         """DICT: CAP-VALIDATE / CAP-PATHCHECK"""
         shutil.copyfile(
             os.path.join(FIXTURES, "canonical.yaml"), os.path.join(self.tmp, "bindings.yaml")
         )
-        run = lspd(["validate"], self.tmp)
+        run = dbind(["validate"], self.tmp)
         self.assertEqual(
             (run.code, run.envelope["result"]),
             (0, {"errors": 0, "warnings": 0, "paths_checked": False}),
         )
-        self.assertEqual(lspd(["validate", "--no-size-limit"], self.tmp).code, 0)
+        self.assertEqual(dbind(["validate", "--no-size-limit"], self.tmp).code, 0)
         shutil.copyfile(
             os.path.join(FIXTURES, "inv-path-exists.yaml"), os.path.join(self.tmp, "bindings.yaml")
         )
-        missing = lspd(["--check-paths", "validate"], self.tmp)
+        missing = dbind(["--check-paths", "validate"], self.tmp)
         self.assertEqual(
             (missing.code, missing.envelope["findings"]["pre"][0]["code"]), (1, "INV-PATH-EXISTS")
         )
         os.makedirs(os.path.join(self.tmp, "no", "such"))
         with open(os.path.join(self.tmp, "no", "such", "file.py"), "w", encoding="utf-8") as handle:
             handle.write("")
-        self.assertEqual(lspd(["validate", "--check-paths"], self.tmp).code, 0)
-        human = lspd(["validate", "--human"], self.tmp)
+        self.assertEqual(dbind(["validate", "--check-paths"], self.tmp).code, 0)
+        human = dbind(["validate", "--human"], self.tmp)
         self.assertEqual(human.code, 0)
         with self.assertRaises(json.JSONDecodeError):
             json.loads(human.stdout)
-        self.assertEqual(lspd(["validate", "--file", "nope.yaml"], self.tmp).code, 2)
+        self.assertEqual(dbind(["validate", "--file", "nope.yaml"], self.tmp).code, 2)
 
     def test_cap_query(self) -> None:
         """DICT: CAP-QUERY"""
         shutil.copyfile(
             os.path.join(FIXTURES, "carriers.yaml"), os.path.join(self.tmp, "bindings.yaml")
         )
-        got = lspd(["get", "ENTITY-A"], self.tmp)
+        got = dbind(["get", "ENTITY-A"], self.tmp)
         self.assertEqual(got.code, 0, got.stdout)
         (b,) = got.envelope["result"]["bindings"]
         self.assertEqual((b["id"], b["comment"]), ("ENTITY-A", "binding block\nsecond line"))
-        listed = lspd(["list"], self.tmp)
+        listed = dbind(["list"], self.tmp)
         self.assertEqual(
             [r["id"] for r in listed.envelope["result"]["bindings"]], ["ENTITY-A", "ENTITY-B"]
         )
-        self.assertEqual(lspd(["list", "--kind", "ENTITY"], self.tmp).code, 0)
-        full = lspd(["list", "--full"], self.tmp)
+        self.assertEqual(dbind(["list", "--kind", "ENTITY"], self.tmp).code, 0)
+        full = dbind(["list", "--full"], self.tmp)
         self.assertIn("locators", full.envelope["result"]["bindings"][0])
-        missing = lspd(["get", "ENTITY-NOPE"], self.tmp)
+        missing = dbind(["get", "ENTITY-NOPE"], self.tmp)
         self.assertEqual((missing.code, missing.envelope["error"]["code"]), (1, "ERR-NOT-FOUND"))
         with open(os.path.join(self.tmp, "bindings.yaml"), "rb") as handle:
             self.assertEqual(
@@ -93,21 +93,21 @@ class Journeys(unittest.TestCase):
         """DICT: CAP-SET"""
         target = self._seed()
         doc = '{"locators": [{"path": "src/x.py", "symbol": "X", "comment": "c"}], "comment": "b"}'
-        run = lspd(["set", "INV-X", "--json", doc], self.tmp)
+        run = dbind(["set", "INV-X", "--json", doc], self.tmp)
         self.assertEqual(run.code, 0, run.stdout)
         self.assertEqual(run.envelope["result"]["binding"]["comment"], "b")
         text = open(target, encoding="utf-8").read()
         self.assertIn(
             "  # b\n  INV-X:\n    locators:\n      - { path: src/x.py, symbol: X } # c\n", text
         )
-        self.assertEqual(lspd(["set", "INV-X", "--json", '{"locators": []}'], self.tmp).code, 0)
-        self.assertEqual(lspd(["set", "INV-X", "--json", "nope"], self.tmp).code, 1)
-        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+        self.assertEqual(dbind(["set", "INV-X", "--json", '{"locators": []}'], self.tmp).code, 0)
+        self.assertEqual(dbind(["set", "INV-X", "--json", "nope"], self.tmp).code, 1)
+        self.assertEqual(dbind(["validate"], self.tmp).code, 0)
 
     def test_cap_add(self) -> None:
         """DICT: CAP-ADD"""
         self._seed()
-        loc = lspd(
+        loc = dbind(
             [
                 "add-locator",
                 "ROUTE-HOME",
@@ -124,12 +124,12 @@ class Journeys(unittest.TestCase):
         )
         self.assertEqual(loc.code, 0, loc.stdout)
         self.assertEqual(
-            lspd(
+            dbind(
                 ["add-locator", "ROUTE-HOME", "--path", "web/h.ts", "--symbol", "H"], self.tmp
             ).envelope["error"]["code"],
             "ERR-DUPLICATE",
         )
-        fld = lspd(
+        fld = dbind(
             [
                 "add-field",
                 "ROUTE-HOME",
@@ -145,9 +145,9 @@ class Journeys(unittest.TestCase):
         )
         self.assertEqual(fld.code, 0, fld.stdout)
         self.assertEqual(
-            lspd(["add-field", "ROUTE-HOME", "title", "--path", "web/h2.ts"], self.tmp).code, 0
+            dbind(["add-field", "ROUTE-HOME", "title", "--path", "web/h2.ts"], self.tmp).code, 0
         )
-        bound = lspd(
+        bound = dbind(
             [
                 "add-assertion",
                 "ROUTE-HOME",
@@ -166,30 +166,30 @@ class Journeys(unittest.TestCase):
         )
         self.assertEqual(bound.code, 0, bound.stdout)
         self.assertEqual(
-            lspd(["add-assertion", "ROUTE-HOME", "--owed", "slice-4"], self.tmp).code, 0
+            dbind(["add-assertion", "ROUTE-HOME", "--owed", "slice-4"], self.tmp).code, 0
         )
         self.assertEqual(
-            lspd(["add-assertion", "ROUTE-HOME", "--path", "t.py"], self.tmp).envelope["error"][
+            dbind(["add-assertion", "ROUTE-HOME", "--path", "t.py"], self.tmp).envelope["error"][
                 "code"
             ],
             "ERR-USAGE",
         )
-        self.assertEqual(lspd(["add-locator", "ENTITY-NOPE", "--path", "x.py"], self.tmp).code, 1)
-        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+        self.assertEqual(dbind(["add-locator", "ENTITY-NOPE", "--path", "x.py"], self.tmp).code, 1)
+        self.assertEqual(dbind(["validate"], self.tmp).code, 0)
 
     def test_cap_remove(self) -> None:
         """DICT: CAP-REMOVE"""
         self._seed()
-        self.assertEqual(lspd(["remove", "ENTITY-USER", "--field", "config"], self.tmp).code, 0)
+        self.assertEqual(dbind(["remove", "ENTITY-USER", "--field", "config"], self.tmp).code, 0)
         self.assertEqual(
-            lspd(
+            dbind(
                 ["remove", "ENTITY-USER", "--assertion", "--owed", "slice-9", "--arm", "c"],
                 self.tmp,
             ).code,
             0,
         )
         self.assertEqual(
-            lspd(
+            dbind(
                 [
                     "remove",
                     "ENTITY-USER",
@@ -205,62 +205,62 @@ class Journeys(unittest.TestCase):
             ).code,
             0,
         )
-        stub = lspd(
+        stub = dbind(
             ["remove", "ROUTE-HOME", "--locator", "--path", "web/src/app.routes.ts"], self.tmp
         )
         self.assertEqual(stub.envelope["result"]["binding"]["locators"], [])
-        whole = lspd(["remove", "SCREEN-STUB"], self.tmp)
+        whole = dbind(["remove", "SCREEN-STUB"], self.tmp)
         self.assertEqual(whole.envelope["result"], {"binding": None, "removed": "SCREEN-STUB"})
         self.assertEqual(
-            lspd(["remove", "SCREEN-STUB"], self.tmp).envelope["error"]["code"], "ERR-NOT-FOUND"
+            dbind(["remove", "SCREEN-STUB"], self.tmp).envelope["error"]["code"], "ERR-NOT-FOUND"
         )
-        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+        self.assertEqual(dbind(["validate"], self.tmp).code, 0)
 
     def test_cap_coverage(self) -> None:
         """DICT: CAP-COVERAGE"""
         self._seed()
         self.assertEqual(
-            lspd(["coverage", "get"], self.tmp).envelope["result"]["coverage"]["fully_bound"],
+            dbind(["coverage", "get"], self.tmp).envelope["result"]["coverage"]["fully_bound"],
             ["ENTITY", "INV", "ROUTE"],
         )
-        self.assertEqual(lspd(["coverage", "fully-bound", "add", "SCREEN"], self.tmp).code, 0)
-        self.assertEqual(lspd(["coverage", "fully-bound", "add", "API"], self.tmp).code, 1)
-        self.assertEqual(lspd(["coverage", "fully-bound", "remove", "SCREEN"], self.tmp).code, 0)
+        self.assertEqual(dbind(["coverage", "fully-bound", "add", "SCREEN"], self.tmp).code, 0)
+        self.assertEqual(dbind(["coverage", "fully-bound", "add", "API"], self.tmp).code, 1)
+        self.assertEqual(dbind(["coverage", "fully-bound", "remove", "SCREEN"], self.tmp).code, 0)
         self.assertEqual(
-            lspd(
+            dbind(
                 ["coverage", "curated", "set", "CAP", "--reason", "r", "--comment", "c"], self.tmp
             ).code,
             0,
         )
         self.assertEqual(
-            lspd(["coverage", "curated", "set", "CAP", "--reason", "r2"], self.tmp).code, 0
+            dbind(["coverage", "curated", "set", "CAP", "--reason", "r2"], self.tmp).code, 0
         )
-        self.assertEqual(lspd(["coverage", "curated", "unset", "CAP"], self.tmp).code, 0)
-        self.assertEqual(lspd(["coverage", "curated", "unset", "CAP"], self.tmp).code, 1)
-        self.assertEqual(lspd(["coverage"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
-        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+        self.assertEqual(dbind(["coverage", "curated", "unset", "CAP"], self.tmp).code, 0)
+        self.assertEqual(dbind(["coverage", "curated", "unset", "CAP"], self.tmp).code, 1)
+        self.assertEqual(dbind(["coverage"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
+        self.assertEqual(dbind(["validate"], self.tmp).code, 0)
 
     def test_cap_comment(self) -> None:
         """DICT: CAP-COMMENT — Quality's E2E example 3, bytes asserted at each step."""
         target = os.path.join(self.tmp, "bindings.yaml")
-        self.assertEqual(lspd(["init"], self.tmp).code, 0)
+        self.assertEqual(dbind(["init"], self.tmp).code, 0)
         doc = '{"locators": [{"path": "src/x.py", "symbol": "X"}]}'
-        self.assertEqual(lspd(["set", "ENTITY-X", "--json", doc], self.tmp).code, 0)
+        self.assertEqual(dbind(["set", "ENTITY-X", "--json", doc], self.tmp).code, 0)
         base = (
             "schema_version: 1\n\nbindings:\n\n  ENTITY-X:\n    locators:\n"
             "      - { path: src/x.py, symbol: X }\n"
         )
         self.assertEqual(open(target, "rb").read(), base.encode("utf-8"))
-        run = lspd(["comment", "set", "binding", "ENTITY-X", "--text", "why"], self.tmp)
+        run = dbind(["comment", "set", "binding", "ENTITY-X", "--text", "why"], self.tmp)
         self.assertEqual(run.code, 0, run.stdout)
         self.assertEqual(
             open(target, "rb").read(),
             base.replace("  ENTITY-X:", "  # why\n  ENTITY-X:").encode("utf-8"),
         )
-        got = lspd(["comment", "get", "binding", "ENTITY-X"], self.tmp)
+        got = dbind(["comment", "get", "binding", "ENTITY-X"], self.tmp)
         self.assertEqual((got.code, got.envelope["result"]["text"]), (0, "why"))
         self.assertEqual(
-            lspd(
+            dbind(
                 [
                     "comment",
                     "set",
@@ -278,22 +278,22 @@ class Journeys(unittest.TestCase):
             0,
         )
         self.assertEqual(
-            lspd(
+            dbind(
                 ["comment", "unset", "locator", "ENTITY-X", "--path", "src/x.py", "--symbol", "X"],
                 self.tmp,
             ).code,
             0,
         )
-        self.assertEqual(lspd(["comment", "unset", "binding", "ENTITY-X"], self.tmp).code, 0)
+        self.assertEqual(dbind(["comment", "unset", "binding", "ENTITY-X"], self.tmp).code, 0)
         self.assertEqual(open(target, "rb").read(), base.encode("utf-8"))
-        missing = lspd(["comment", "get", "binding", "ENTITY-X"], self.tmp)
+        missing = dbind(["comment", "get", "binding", "ENTITY-X"], self.tmp)
         self.assertEqual((missing.code, missing.envelope["error"]["code"]), (1, "ERR-NOT-FOUND"))
-        self.assertEqual(lspd(["comment", "set", "header", "--text", "h"], self.tmp).code, 0)
+        self.assertEqual(dbind(["comment", "set", "header", "--text", "h"], self.tmp).code, 0)
         self.assertEqual(
-            lspd(["comment", "set", "field", "ENTITY-X", "f", "--text", "t"], self.tmp).code, 1
+            dbind(["comment", "set", "field", "ENTITY-X", "f", "--text", "t"], self.tmp).code, 1
         )
         self.assertEqual(
-            lspd(
+            dbind(
                 [
                     "comment",
                     "set",
@@ -310,22 +310,22 @@ class Journeys(unittest.TestCase):
             ).code,
             1,
         )
-        self.assertEqual(lspd(["comment", "get", "coverage"], self.tmp).code, 1)
-        self.assertEqual(lspd(["comment", "get", "curated", "API"], self.tmp).code, 1)
-        self.assertEqual(lspd(["comment"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
-        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+        self.assertEqual(dbind(["comment", "get", "coverage"], self.tmp).code, 1)
+        self.assertEqual(dbind(["comment", "get", "curated", "API"], self.tmp).code, 1)
+        self.assertEqual(dbind(["comment"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
+        self.assertEqual(dbind(["validate"], self.tmp).code, 0)
 
     def test_cap_format(self) -> None:
         """DICT: CAP-FORMAT"""
         target = os.path.join(self.tmp, "bindings.yaml")
         shutil.copyfile(os.path.join(FIXTURES, "noncanonical.yaml"), target)
         before = open(target, "rb").read()
-        check = lspd(["format", "--check"], self.tmp)
+        check = dbind(["format", "--check"], self.tmp)
         self.assertEqual(
             (check.code, check.envelope["result"]), (1, {"changed": True, "checked_only": True})
         )
         self.assertEqual(open(target, "rb").read(), before)
-        run = lspd(["format"], self.tmp)
+        run = dbind(["format"], self.tmp)
         self.assertEqual(
             (run.code, run.envelope["result"]), (0, {"changed": True, "checked_only": False})
         )
@@ -335,19 +335,19 @@ class Journeys(unittest.TestCase):
             b"      - { path: src/a.py, symbol: A }\n\n  ROUTE-B:\n    locators:\n"
             b"      - { path: web/b.ts, symbol: B }\n\ncoverage:\n  fully_bound: [ENTITY, ROUTE]\n",
         )
-        self.assertEqual(lspd(["format", "--check"], self.tmp).code, 0)
-        self.assertEqual(lspd(["format"], self.tmp).envelope["result"]["changed"], False)
+        self.assertEqual(dbind(["format", "--check"], self.tmp).code, 0)
+        self.assertEqual(dbind(["format"], self.tmp).envelope["result"]["changed"], False)
         shutil.copyfile(os.path.join(FIXTURES, "inv-path-form.yaml"), target)
-        self.assertEqual(lspd(["format"], self.tmp).envelope["error"]["code"], "ERR-FILE-INVALID")
+        self.assertEqual(dbind(["format"], self.tmp).envelope["error"]["code"], "ERR-FILE-INVALID")
 
     def test_cap_schema(self) -> None:
         """DICT: CAP-SCHEMA"""
-        raw = lspd(["schema"], self.tmp)
+        raw = dbind(["schema"], self.tmp)
         self.assertEqual(raw.code, 0)
         self.assertEqual(
             json.loads(raw.stdout)["$schema"], "https://json-schema.org/draft/2020-12/schema"
         )
-        checksum = lspd(["schema", "--checksum"], self.tmp)
+        checksum = dbind(["schema", "--checksum"], self.tmp)
         self.assertRegex(checksum.stdout, r"^[0-9a-f]{64}\n$")
 
     def test_cap_help(self) -> None:
@@ -372,11 +372,11 @@ class Journeys(unittest.TestCase):
             ["comment", "set", "--help"],
             ["format", "--help"],
         ):
-            run = lspd(argv, self.tmp)
+            run = dbind(argv, self.tmp)
             self.assertEqual(run.code, 0)
-            self.assertTrue(run.stdout.startswith("usage: lspd"))
-        self.assertRegex(lspd(["--version"], self.tmp).stdout, r"^lspd \S+\n$")
-        bare = lspd([], self.tmp)
+            self.assertTrue(run.stdout.startswith("usage: dbind"))
+        self.assertRegex(dbind(["--version"], self.tmp).stdout, r"^dbind \S+\n$")
+        bare = dbind([], self.tmp)
         self.assertEqual((bare.code, bare.envelope["error"]["code"]), (1, "ERR-USAGE"))
 
 

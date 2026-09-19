@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from lspd.commands import query
-from lspd.model import Binding, Map
+from dbind.commands import query
+from dbind.model import Binding, Map
 
 
 def apply(m: Map, b: Binding) -> Binding:

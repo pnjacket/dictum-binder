@@ -8,8 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from lspd.errors import NotFoundError
-from lspd.model import Anchor, Map
+from dbind.errors import NotFoundError
+from dbind.model import Anchor, Map
 
 
 @dataclass

@@ -163,7 +163,7 @@ class Get(unittest.TestCase):
                 self.assertEqual(
                     (run.code, env["error"]["code"], env["command"]), (1, "ERR-USAGE", "get")
                 )
-                self.assertIn("usage: lspd get", env["error"]["details"]["usage"])
+                self.assertIn("usage: dbind get", env["error"]["details"]["usage"])
 
 
 class List(unittest.TestCase):

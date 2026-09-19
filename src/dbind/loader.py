@@ -16,8 +16,8 @@ import stat
 from collections.abc import Mapping
 from typing import Any
 
-from lspd.errors import FileIOError, FileMissingError, FileTooLargeError, ParseError
-from lspd.model import Anchor, Finding, Map, from_plain
+from dbind.errors import FileIOError, FileMissingError, FileTooLargeError, ParseError
+from dbind.model import Anchor, Finding, Map, from_plain
 
 SIZE_CAP = 10 * 1024 * 1024
 _BOM = b"\xef\xbb\xbf"

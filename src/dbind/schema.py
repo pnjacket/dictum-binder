@@ -3,7 +3,7 @@
 Both are derived from the Model's ``SHAPE`` rule table (ADR-SCHEMA-SINGLE-
 SOURCE, ADR-OWN-SHAPE-VALIDATOR): ``schema()`` builds the JSON Schema
 document, ``check_shape`` runs the same table over a plain value, and the
-repository file ``lspd.schema.json`` is generated from ``schema_json()``.
+repository file ``dbind.schema.json`` is generated from ``schema_json()``.
 
 DICT: COMPONENT-SCHEMA
 """
@@ -14,7 +14,7 @@ import hashlib
 import json
 from typing import Any
 
-from lspd.model import ID_PATTERN, KIND_PATTERN, SHAPE, Finding, check_node
+from dbind.model import ID_PATTERN, KIND_PATTERN, SHAPE, Finding, check_node
 
 # The schema major this binary writes and accepts. DICT: INV-SCHEMA-VERSION
 SCHEMA_VERSION = 1
@@ -105,17 +105,19 @@ def schema() -> dict[str, Any]:
     doc.update(
         {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "title": "Dictum binding map (lspd canonical shape)",
+            "title": "Dictum binding map (dictum-binder canonical shape)",
             "description": (
-                "Shape of bindings.yaml as written and read by lspd. Rules the schema cannot "
+                "Shape of bindings.yaml as written and read by dictum-binder. Rules the schema "
+                "cannot "
                 "express (cross-field invariants, comment carriers, canonical layout) are listed "
-                "in the README beside this file's checksum and enforced by `lspd validate`."
+                "in the README beside this file's checksum and enforced by `dbind validate`."
             ),
             "$defs": {node: _node_schema(node) for node in SHAPE if node != "document"},
         }
     )
     doc["properties"]["schema_version"]["description"] = (
-        f"Equal to the lspd major version that owns the layout; this build writes {SCHEMA_VERSION}."
+        "Equal to the dictum-binder major version that owns the layout; this build writes "
+        f"{SCHEMA_VERSION}."
     )
     doc["properties"]["bindings"]["description"] = (
         f"Contract ID → binding. IDs follow `{ID_PATTERN}`: Dictum's grammar with no all-digit "

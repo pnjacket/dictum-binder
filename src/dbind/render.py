@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from lspd.errors import LspdError
-from lspd.model import Anchor, Finding
+from dbind.errors import DbindError
+from dbind.model import Anchor, Finding
 
 
 def anchor(a: Anchor) -> dict[str, Any]:
@@ -29,7 +29,7 @@ def finding(f: Finding) -> dict[str, Any]:
     }
 
 
-def error(err: LspdError) -> dict[str, Any]:
+def error(err: DbindError) -> dict[str, Any]:
     """DICT: OUT-ERROR"""
     details: dict[str, Any] = {}
     for key, value in err.details.items():
@@ -47,12 +47,12 @@ def _envelope_object(
     result: dict[str, Any] | None,
     pre: list[Finding],
     post: list[Finding],
-    err: LspdError | None,
+    err: DbindError | None,
     version: str,
     schema_version: int,
 ) -> dict[str, Any]:
     return {
-        "lspd": {"version": version, "schema_version": schema_version},
+        "dbind": {"version": version, "schema_version": schema_version},
         "ok": err is None,
         "command": command,
         "result": result,
@@ -66,7 +66,7 @@ def render(
     result: dict[str, Any] | None,
     pre: list[Finding],
     post: list[Finding],
-    err: LspdError | None,
+    err: DbindError | None,
     *,
     version: str,
     schema_version: int,
@@ -81,7 +81,7 @@ def render(
 
 def _human(obj: dict[str, Any]) -> str:
     lines = [
-        f"lspd {obj['lspd']['version']} · schema {obj['lspd']['schema_version']} · "
+        f"dbind {obj['dbind']['version']} · schema {obj['dbind']['schema_version']} · "
         f"{obj['command'] or '(no command)'} · {'ok' if obj['ok'] else obj['error']['code']}"
     ]
     if obj["error"] is not None:

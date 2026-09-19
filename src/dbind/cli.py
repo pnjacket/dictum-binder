@@ -1,6 +1,6 @@
-"""COMPONENT-CLI — the `lspd` entry point and the only orchestrator of the pipeline.
+"""COMPONENT-CLI — the `dbind` entry point and the only orchestrator of the pipeline.
 
-Parses argv with argparse (prog fixed to ``lspd``, 100-column help), runs
+Parses argv with argparse (prog fixed to ``dbind``, 100-column help), runs
 load → pre-validate → command → post-validate → emit → render for each
 element, holds the single catch-all (PATTERN-ERROR-ENVELOPE) and decides
 the exit code (PATTERN-EXIT-CODES).
@@ -20,26 +20,26 @@ from collections.abc import Callable, Sequence
 from importlib import metadata
 from typing import Any
 
-from lspd import emitter, loader, model, render, schema, validator
-from lspd.commands import add as cmd_add
-from lspd.commands import comment as cmd_comment
-from lspd.commands import coverage as cmd_coverage
-from lspd.commands import format as cmd_format
-from lspd.commands import init as cmd_init
-from lspd.commands import query as cmd_query
-from lspd.commands import remove as cmd_remove
-from lspd.commands import set as cmd_set
-from lspd.commands import validate as cmd_validate
-from lspd.errors import (
+from dbind import emitter, loader, model, render, schema, validator
+from dbind.commands import add as cmd_add
+from dbind.commands import comment as cmd_comment
+from dbind.commands import coverage as cmd_coverage
+from dbind.commands import format as cmd_format
+from dbind.commands import init as cmd_init
+from dbind.commands import query as cmd_query
+from dbind.commands import remove as cmd_remove
+from dbind.commands import set as cmd_set
+from dbind.commands import validate as cmd_validate
+from dbind.errors import (
+    DbindError,
     FileExistsAlreadyError,
     FileInvalidError,
     InputInvalidError,
     InternalError,
-    LspdError,
     SchemaVersionError,
     UsageError,
 )
-from lspd.model import KIND_PATTERN, Anchor, Finding, Map, is_contract_id, kind_of
+from dbind.model import KIND_PATTERN, Anchor, Finding, Map, is_contract_id, kind_of
 
 DISTRIBUTION = "dictum-binder"
 HELP_WIDTH = 100
@@ -157,10 +157,10 @@ _EXIT_TEXT = (
 
 def build_parser() -> _Parser:
     parser = _new_parser(
-        "lspd",
+        "dbind",
         "",
-        "lspd — the deterministic reader, writer and validator of a Dictum project's "
-        "bindings.yaml.\n"
+        "dictum-binder (dbind) — the deterministic reader, writer and validator of a Dictum\n"
+        "project's bindings.yaml.\n"
         "Targets Dictum v1.2.0 binding maps. Output is one JSON envelope on stdout unless --human.",
         f"{_EXIT_TEXT}\n"
         "error codes: ERR-USAGE, ERR-FILE-MISSING, ERR-FILE-EXISTS, ERR-FILE-TOO-LARGE, ERR-IO,\n"
@@ -168,7 +168,7 @@ def build_parser() -> _Parser:
         "ERR-INPUT-INVALID,\n"
         "  ERR-INTERNAL",
     )
-    parser.add_argument("--version", action=_VersionAction, help="print `lspd <version>` and exit")
+    parser.add_argument("--version", action=_VersionAction, help="print `dbind <version>` and exit")
     _add_global_options(parser, mirrored=False)
     sub = parser.add_subparsers(dest="command", metavar="<command>", parser_class=_Parser)
     sub.required = True
@@ -218,7 +218,7 @@ def build_parser() -> _Parser:
         help="print the embedded JSON Schema (raw), or its SHA-256 with --checksum",
         description=(
             "Print the embedded JSON Schema of the canonical map, byte-identical to the shipped\n"
-            "lspd.schema.json. Reads no file."
+            "dbind.schema.json. Reads no file."
         ),
         epilog=f"{_EXIT_TEXT}\nerrors: ERR-USAGE (1) · ERR-INTERNAL (2)",
         formatter_class=_Formatter,
@@ -902,7 +902,7 @@ class _Run:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """The `lspd` console script. Returns the exit code; prints exactly one document."""
+    """The `dbind` console script. Returns the exit code; prints exactly one document."""
     args = list(sys.argv[1:] if argv is None else argv)
     human = "--human" in args
     debug = "--debug" in args
@@ -937,11 +937,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         _write_stdout(help_request.text)
         return 0
     except _VersionRequested:
-        _write_stdout(f"lspd {_version()}\n")
+        _write_stdout(f"dbind {_version()}\n")
         return 0
     except KeyboardInterrupt:
         return 130
-    except LspdError as err:
+    except DbindError as err:
         if isinstance(err, UsageError):
             command = err.command
         return _fail(err, command, run, human, debug)
@@ -955,7 +955,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
 
 
-def _fail(err: LspdError, command: str, run: _Run | None, human: bool, debug: bool) -> int:
+def _fail(err: DbindError, command: str, run: _Run | None, human: bool, debug: bool) -> int:
     if debug:
         traceback.print_exc(file=sys.stderr)
     pre = run.pre if run is not None else []

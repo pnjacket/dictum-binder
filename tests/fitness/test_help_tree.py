@@ -9,7 +9,7 @@ import unittest
 
 from tests._helpers import DOCS, run_cli
 
-ROW = re.compile(r"^\| `(CLI-[A-Z-]+)` \| `lspd ([^`]*)` \|(.*)\|\s*$")
+ROW = re.compile(r"^\| `(CLI-[A-Z-]+)` \| `dbind ([^`]*)` \|(.*)\|\s*$")
 LISTING_HEAD = re.compile(r"^  <(command|subcommand)>$")
 LISTING_ITEM = re.compile(r"^    (\S+)\s{2,}\S")
 
@@ -34,7 +34,7 @@ def documented_paths() -> dict[str, str]:
 
 
 def walk(path: list[str]) -> set[str]:
-    """Paths reachable from `lspd <path> --help`: the leaves of the listing tree."""
+    """Paths reachable from `dbind <path> --help`: the leaves of the listing tree."""
     run = run_cli([*path, "--help"])
     assert run.code == 0, run.stdout
     lines = run.stdout.split("\n")

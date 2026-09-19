@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from lspd.model import (
+from dbind.model import (
     KIND_RE,
     LINE_SUFFIX_RE,
     Anchor,
@@ -26,7 +26,7 @@ from lspd.model import (
     is_contract_id,
     path_form_problem,
 )
-from lspd.schema import SCHEMA_VERSION
+from dbind.schema import SCHEMA_VERSION
 
 
 def finalize(findings: list[Finding]) -> list[Finding]:
@@ -353,7 +353,7 @@ class _Rules:
             self.add(
                 "INV-SCHEMA-VERSION",
                 file_anchor,
-                f"schema_version is {found}; this lspd expects {SCHEMA_VERSION}",
+                f"schema_version is {found}; this dictum-binder build expects {SCHEMA_VERSION}",
                 None,
             )
         for binding_id, b in m.bindings.items():

@@ -7,9 +7,9 @@ import stat
 import unittest
 from unittest import mock
 
-from lspd import emitter, loader
-from lspd.errors import FileIOError, FileMissingError, FileTooLargeError, ParseError
-from lspd.model import Assertion, Binding, Coverage, CuratedEntry, FieldLocator, Locator, Map, Wire
+from dbind import emitter, loader
+from dbind.errors import FileIOError, FileMissingError, FileTooLargeError, ParseError
+from dbind.model import Assertion, Binding, Coverage, CuratedEntry, FieldLocator, Locator, Map, Wire
 from tests._helpers import TempDir, fixture, read_bytes
 
 
@@ -161,7 +161,7 @@ class AtomicWrite(unittest.TestCase):
             emitter.write(Map(schema_version=1), target, create=True)
             before = read_bytes(target)
             with mock.patch(
-                "lspd.emitter.os.replace", side_effect=OSError(13, "Permission denied")
+                "dbind.emitter.os.replace", side_effect=OSError(13, "Permission denied")
             ):
                 with self.assertRaises(FileIOError):
                     emitter.write(
@@ -189,14 +189,14 @@ class LoaderEdges(unittest.TestCase):
             with self.assertRaises(FileIOError):
                 loader.load(os.path.join(tmp, "bindings.yaml"))
             with mock.patch(
-                "lspd.loader.os.stat", side_effect=PermissionError(13, "Permission denied")
+                "dbind.loader.os.stat", side_effect=PermissionError(13, "Permission denied")
             ):
                 with self.assertRaises(FileIOError):
                     loader.load(os.path.join(tmp, "other.yaml"))
             big = os.path.join(tmp, "big.yaml")
             with open(big, "wb") as handle:
                 handle.write(b"x" * 65)
-            with mock.patch("lspd.loader.SIZE_CAP", 64):
+            with mock.patch("dbind.loader.SIZE_CAP", 64):
                 with self.assertRaises(FileTooLargeError):
                     loader.load(big)
                 with self.assertRaises(ParseError):

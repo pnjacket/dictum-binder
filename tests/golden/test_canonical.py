@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import unittest
 
-from lspd import emitter, loader, validator
+from dbind import emitter, loader, validator
 from tests._helpers import DOCS, FIXTURES, TempDir, fixture, read_bytes, run_cli
 
 

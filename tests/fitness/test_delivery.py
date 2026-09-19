@@ -152,7 +152,7 @@ class DocsNeverTrailCode(unittest.TestCase):
     """
 
     def test_commit_range(self) -> None:
-        rng = os.environ.get("LSPD_CI_RANGE", "")
+        rng = os.environ.get("DBIND_CI_RANGE", "")
         if not rng or rng.startswith("0000000"):
             rng = "HEAD~1..HEAD"
         try:

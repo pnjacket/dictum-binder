@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 import unittest
 
-from lspd import loader, validator
-from lspd.model import Finding
+from dbind import loader, validator
+from dbind.model import Finding
 from tests._helpers import TempDir, fixture
 
 WRITE_GATED = {

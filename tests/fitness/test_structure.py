@@ -1,4 +1,4 @@
-"""Fitness tier: structural rules over src/lspd — imports, sole writer, orchestration, pragmas,
+"""Fitness tier: structural rules over src/dbind — imports, sole writer, orchestration, pragmas,
 markers.
 """
 
@@ -11,7 +11,7 @@ import unittest
 
 from tests._helpers import ROOT, SRC
 
-STDLIB_OK_PREFIXES = ("lspd",)
+STDLIB_OK_PREFIXES = ("dbind",)
 FORBIDDEN_MODULES = {
     "socket",
     "http",
@@ -153,11 +153,11 @@ class Orchestration(unittest.TestCase):
             comp = mod.split(".")[0]
             deps = set()
             for name in _imports(tree):
-                if name.startswith("lspd."):
+                if name.startswith("dbind."):
                     deps.add(name.split(".")[1])
-                elif name == "lspd":
+                elif name == "dbind":
                     for node in ast.walk(tree):
-                        if isinstance(node, ast.ImportFrom) and node.module == "lspd":
+                        if isinstance(node, ast.ImportFrom) and node.module == "dbind":
                             deps.update(alias.name for alias in node.names)
             graph.setdefault(comp, set()).update(d for d in deps if d != comp)
         return graph
@@ -172,7 +172,7 @@ class Orchestration(unittest.TestCase):
         self.assertTrue(self.FLOW <= graph["cli"], graph["cli"])
         for leaf in self.LEAVES:
             self.assertFalse(graph.get(leaf, set()) & self.FLOW, leaf)
-        self.assertFalse(graph.get("model", set()), "model imports nothing from lspd")
+        self.assertFalse(graph.get("model", set()), "model imports nothing from dbind")
 
     def test_import_graph_is_acyclic(self) -> None:
         graph = self._graph()

@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import unittest
 
-from lspd import model, schema
-from lspd.model import (
+from dbind import model, schema
+from dbind.model import (
     SHAPE,
     Anchor,
     Binding,

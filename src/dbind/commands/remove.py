@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from lspd.errors import NotFoundError
-from lspd.model import Anchor, Binding, Map
+from dbind.errors import NotFoundError
+from dbind.model import Anchor, Binding, Map
 
 
 def _require(m: Map, binding_id: str) -> Binding:

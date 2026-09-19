@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from lspd.model import Map
+from dbind.model import Map
 
 
 def canonicalise(m: Map) -> Map:

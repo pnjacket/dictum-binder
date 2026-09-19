@@ -8,7 +8,7 @@ import json
 import unittest
 from typing import Any
 
-from lspd import emitter, loader
+from dbind import emitter, loader
 from tests._helpers import TempDir, copy_fixture, read_bytes, run_cli
 
 CANON = "canonical.yaml"

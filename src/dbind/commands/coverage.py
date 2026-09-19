@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from lspd import validator
-from lspd.errors import DuplicateError, InputInvalidError, NotFoundError
-from lspd.model import Anchor, Coverage, CuratedEntry, Map
+from dbind import validator
+from dbind.errors import DuplicateError, InputInvalidError, NotFoundError
+from dbind.model import Anchor, Coverage, CuratedEntry, Map
 
 
 def projection(cov: Coverage | None) -> dict[str, Any]:

@@ -9,7 +9,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any
 
-LSPD = os.path.join(sys.prefix, "Scripts" if os.name == "nt" else "bin", "lspd")
+DBIND = os.path.join(sys.prefix, "Scripts" if os.name == "nt" else "bin", "dbind")
 INVOCATIONS: list[list[str]] = []
 
 
@@ -24,7 +24,7 @@ class Result:
         return json.loads(self.stdout)
 
 
-def lspd(argv: list[str], cwd: str) -> Result:
+def dbind(argv: list[str], cwd: str) -> Result:
     INVOCATIONS.append(list(argv))
-    proc = subprocess.run([LSPD, *argv], cwd=cwd, capture_output=True, check=False)
+    proc = subprocess.run([DBIND, *argv], cwd=cwd, capture_output=True, check=False)
     return Result(proc.returncode, proc.stdout.decode("utf-8"), proc.stderr.decode("utf-8"))

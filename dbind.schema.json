@@ -176,7 +176,7 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Shape of bindings.yaml as written and read by lspd. Rules the schema cannot express (cross-field invariants, comment carriers, canonical layout) are listed in the README beside this file's checksum and enforced by `lspd validate`.",
+  "description": "Shape of bindings.yaml as written and read by dictum-binder. Rules the schema cannot express (cross-field invariants, comment carriers, canonical layout) are listed in the README beside this file's checksum and enforced by `dbind validate`.",
   "properties": {
     "bindings": {
       "additionalProperties": {
@@ -192,7 +192,7 @@
       "$ref": "#/$defs/coverage"
     },
     "schema_version": {
-      "description": "Equal to the lspd major version that owns the layout; this build writes 1.",
+      "description": "Equal to the dictum-binder major version that owns the layout; this build writes 1.",
       "type": "integer"
     }
   },
@@ -200,6 +200,6 @@
     "schema_version",
     "bindings"
   ],
-  "title": "Dictum binding map (lspd canonical shape)",
+  "title": "Dictum binding map (dictum-binder canonical shape)",
   "type": "object"
 }
