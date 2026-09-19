@@ -7,7 +7,7 @@ trigger: a product whose staged DoD needs an ENV fidelity map — activated by t
 in-scope-subaspects: [environments-fidelity-map, provisioning-iac]
 current-rung: contract-grade
 status: published
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Operations & Infrastructure — dictum-binder
@@ -74,7 +74,7 @@ Register form: table row, ID in the first cell.
 | ID | Environment | Per-external fidelity | `auth:` | Platform / host | Test tiers | Provisioning |
 |---|---|---|---|---|---|---|
 | `ENV-LOCAL` | The developer's machine | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11 (floor), Linux (Debian 12 in practice); other platforms supported wherever Python 3.11 runs but untested (Quality's deferred CI matrix) | all five tiers, E2E against the editable install's console script | clean checkout → venv on 3.11 → `pip install -e .[dev]` |
-| `ENV-CI` | GitHub Actions runner | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11, `ubuntu-latest` | gates 1–5 and 7 against `pip install .[dev]`; E2E tier against a fresh venv with the built wheel; gate 6 skipped until `bindings.yaml` exists. **This is the binding fidelity for the staged DoD** | `.github/workflows/ci.yml` |
+| `ENV-CI` | GitHub Actions runner | no externals; nothing substituted; own code real | `n/a — no auth surface exists` | CPython 3.11, `ubuntu-latest` | gates 1–7 against `pip install .[dev]`; E2E tier against a fresh venv with the built wheel; gate 6 skipped until `bindings.yaml` exists. **This is the binding fidelity for the staged DoD** | `.github/workflows/ci.yml` |
 
 ### Dev-toolchain register
 

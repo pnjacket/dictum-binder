@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [domain-entities-relationships, identifiers, business-invariants-rules, lifecycle-states, persistence-storage-schema, consistency-transactions, migrations-versioning]
 current-rung: contract-grade
 status: published
-version: 1.2.1
+version: 1.3.0
 ---
 
 # Domain & Data — dictum-binder
@@ -198,7 +198,7 @@ Each row: the checkable condition · enforcement class · mechanism. Severity is
 | `INV-CLOSED-KEYS` | **Closed shape**: every mapping uses only its defined keys — document {`schema_version`, `bindings`, `coverage`}; binding {`locators`, `compare_via`, `fields`, `wire`, `asserted_by`}; locator {`path`, `symbol`, `role`}; field locator {`path`, `symbol`}; wire {`casing`, `enums`, `dates`}; assertion {`path`, `symbol`, `run`, `arm`, `owed`}; coverage {`fully_bound`, `curated`} — **and** every required key is present (`schema_version`, `bindings`; `locators` in a binding; `path` in a locator or field locator) **and** every value has its contracted type (mappings, lists, strings, the integer `schema_version` — a boolean is not an integer). A missing required key or a wrong type is reported under this code with a message naming the key and the expected type | write-gated; checked on every read |
 | `INV-NO-LINE-NUMBERS` | No key named `lines` or `line` anywhere (such a key also violates `INV-CLOSED-KEYS`; **both** findings are reported, this one carrying the precise message), and no `path` or `symbol` ending in `:` followed by digits | write-gated; checked on every read |
 | `INV-PATH-FORM` | Every `path` satisfies `ENTITY-PATH` | write-gated; checked on every read |
-| `INV-PATH-EXISTS` | *opt-in* — with `--check-paths`, every locator and field-locator `path`, and every candidate `path` in write input, exists on disk relative to the working directory (checked by `stat` only, after `INV-PATH-FORM` has passed). Severity **error**. Never evaluated without the flag | write-gated when the flag is on (a write with a missing path is refused); checked on every read with the flag on |
+| `INV-PATH-EXISTS` | *opt-in* — with `--check-paths`, every locator, field-locator and bound-assertion `path`, and every candidate `path` in write input, exists on disk relative to the working directory (checked by `stat` only, after `INV-PATH-FORM` has passed). Severity **error**. Never evaluated without the flag | write-gated when the flag is on (a write with a missing path is refused); checked on every read with the flag on |
 | `INV-SYMBOL-NONEMPTY` | Every present `symbol` is a non-empty string; every `path`, `fields` key, `run`, `compare_via`, `owed`, `arm`, wire value, and curated reason likewise — and every such scalar is **single-line with no control characters** — C0 (U+0000–U+001F incl. `\n`, `\r`, `\t`), DEL (U+007F), and C1 (U+0080–U+009F; the pinned YAML reader rejects DEL and C1 and folds NEL to a space), so a value carrying a newline from the shell is rejected (`ERR-INPUT-INVALID` carrying this code, from a flag value or from JSON alike — an *empty* flag value is the argument rule `ERR-USAGE`) rather than escaped into the file. **Multiplicity**: an *empty* `path`, `fields` key, or curated reason is reported under `INV-PATH-FORM`, `INV-FIELD-NAME`, or `INV-COVERAGE-WELLFORMED` only, never additionally here; this code owns the control-character arm for those three and the whole rule for every other scalar listed | write-gated; checked on every read |
 | `INV-ROLE-VALUES` | Every present `role` is `producer` or `consumer` | write-gated; checked on every read |
 | `INV-WIRE-SUBSET` | A present `wire` has at least one of its three keys and nothing else | write-gated; checked on every read |
@@ -226,7 +226,7 @@ Each invariant's finding is anchored as follows (`OUT-ANCHOR` in Interfaces is t
 | n/a — `ERR-PARSE` | `INV-ID-UNIQUE` |
 | `file` | `INV-SCHEMA-VERSION` |
 | the innermost anchor that exists: `locator`/`field`/`assertion` for a key or value inside an entry, `binding` for a key or value directly under the binding (incl. anything under `wire`), `coverage`/`curated(K)` inside the coverage block, `file` at the top level | `INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-SYMBOL-NONEMPTY` |
-| the `locator` or `field` carrying the path | `INV-PATH-FORM`, `INV-PATH-EXISTS` |
+| the `locator`, `field` or `assertion` carrying the path | `INV-PATH-FORM`, `INV-PATH-EXISTS` |
 | the `locator` | `INV-ROLE-VALUES` |
 | `binding` | `INV-WIRE-SUBSET` |
 | the `assertion`, with whichever of `path`/`symbol`/`arm`/`owed` are present and `null` for the rest | `INV-ASSERTION-SHAPE` |

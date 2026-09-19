@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [problem-motivation, target-users-personas, goals-success-criteria, capability-register, constraints-assumptions, risks]
 current-rung: contract-grade
 status: published
-version: 2.0.1
+version: 2.1.0
 ---
 
 # Product & Requirements — dictum-binder
@@ -171,7 +171,7 @@ Each row: description · persona(s) · scope · success-criterion reference · l
 | `CAP-REMOVE` | Remove | Remove a whole binding, or one locator, field, or assertion inside it | agent | in (v1) | `SUCCESS-COMPLETE-OPS` | Unknown ID or entry: exit 1. Removing the last locator leaves the stub form, not an error. This is the retirement path (tombstoned contract) and the dangling-locator fix path |
 | `CAP-COVERAGE` | Declare coverage | Add or remove a kind under `fully_bound`; set or unset a `curated` entry with its reason | agent | in (v1) | `SUCCESS-COMPLETE-OPS` | A kind in both lists: exit 1. Empty reason on `curated`: exit 1. Unset of an absent entry: exit 1 |
 | `CAP-COMMENT` | Comments | Get, set, and unset the comment at a defined anchor (file header, a binding, one locator or assertion, a coverage entry); round-tripped byte-for-byte and exposed in JSON | agent, human | in (v1) | `SUCCESS-ROUNDTRIP` | Unknown anchor: exit 1. Setting an empty string: exit 1 (use unset). Unset of an absent comment: exit 1. Anchor syntax is minted by Interfaces |
-| `CAP-PATHCHECK` | Path check (opt-in) | With a flag, additionally verify each locator `path` — in the file and in any write input — exists relative to the working directory | agent, human | in (v1) | `SUCCESS-COMPLETE-OPS` | Off by default. A missing path is an **error** (`INV-PATH-EXISTS`), so with the flag on a write naming a missing path is refused. The only filesystem read outside the target file; paths are stat-ed, never read |
+| `CAP-PATHCHECK` | Path check (opt-in) | With a flag, additionally verify each locator, field and bound-assertion `path` — in the file and in any write input — exists relative to the working directory | agent, human | in (v1) | `SUCCESS-COMPLETE-OPS` | Off by default. A missing path is an **error** (`INV-PATH-EXISTS`), so with the flag on a write naming a missing path is refused. The only filesystem read outside the target file; paths are stat-ed, never read |
 | `CAP-SCHEMA` | Schema artifact | `dbind schema` prints the embedded JSON Schema; `dbind schema --checksum` prints its SHA-256. The same schema ships as a plain file in the repository with its SHA-256 in the README. The executable never reads the external file. The schema covers shape only; rules it cannot express are listed in the README beside the checksum and enforced by `CAP-VALIDATE` | converter, agent | in (v1) | `SUCCESS-SCHEMA-MATCH` | No failure path beyond I/O on stdout (exit 2) |
 | `CAP-HELP` | Self-description | Comprehensive plain-text `--help` at every level: `dbind --help`, `dbind <command> --help`, `dbind <command> <subcommand> --help` | agent, human | in (v1) | `SUCCESS-CROSS-MODEL` | `--help` on an unknown command: exit 1 with the usage error |
 

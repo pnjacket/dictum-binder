@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [test-pyramid-test-types, coverage-map, real-flow-e2e-standard, quality-bars-gates, test-data-strategy]
 current-rung: contract-grade
 status: published
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Quality & Testing — dictum-binder
@@ -96,11 +96,11 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 Merge gate — **seven gates**, all required, run by CI on every push and pull request, Python 3.11 on Ubuntu:
 
 1. `python -m unittest discover` — all five tiers green. **Mid-build scoping**: every full-set meta-test (coverage-map completeness, E2E journey per capability, operations-table rows, `--help` tree walk, record ↔ minted IDs) is scoped to the IDs whose completing slice the build-status record marks **Built**; an ID whose slice is not yet Built is skipped and listed, never failed. From the release slice on the scope is the full set.
-2. **Line coverage 100 %** across the union of all tiers, measured by the standard library's `trace` module (`python -m trace --count --missing`) and reduced by an own report script (`tools/coverage_report.py`, standard library only) that lists every unexecuted line of `src/dbind/`. Any excluded line carries `# pragma: no cover — <reason>` on the same line; a fitness test fails on a pragma without a reason. Branch coverage is not measured (Non-goals). The target is total line coverage; a reason is the only way to fall short.
+2. **Line coverage 100 %** across the union of all tiers, measured by the standard library's `trace` module (its `trace.Trace` counting API, run in-process over the unit, golden, contract and fitness tiers; the E2E tier runs as a subprocess and is not traced) and reduced by an own report script (`tools/coverage_report.py`, standard library only) that lists every unexecuted line of `src/dbind/`. Any excluded line carries `# pragma: no cover — <reason>` on the same line; a fitness test fails on a pragma without a reason. Branch coverage is not measured (Non-goals). The target is total line coverage; a reason is the only way to fall short.
 3. `ruff check` and `ruff format --check` clean.
 4. `pyrefly check` in strict mode clean over `src/` and `tests/`.
 5. `dbind.schema.json` regenerated from `COMPONENT-SCHEMA` equals the committed file; its SHA-256 equals the README value.
-6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule, the release slice): `dbind validate` exit 0 and `dbind format --check` exit 0 on it. Until the file exists the CI step is skipped and says so; from the release slice on it is required.
+6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule, the release slice): `dbind validate` exit 0 and `dbind format --check` exit 0 on it. Until the file exists the CI step is skipped and says so; from the release slice on the step is unconditional — the release slice on it is required.
 7. **Licence gate**: `tools/licence_gate.py` over the resolved environment passes — every declared distribution and its transitive tree is exactly MIT (`POLICY-INBOUND-MIT-ONLY`, Governance). The `SOURCE:` marker check (`POLICY-SOURCE-MARKER`) and the naming check (`POLICY-NAMING-ENFORCEMENT`) run inside gate 1's fitness tier.
 
 **Flake / re-run policy:** zero retries, no quarantine list. A red run obligates investigation before any re-run. A genuine transient (re-run green with zero code change) is recorded as an incident with both run identifiers in the build-status record's notes (Delivery); the test is never quarantined. There is no measurement tier (Performance deferred), so no co-defined re-run rule exists.
