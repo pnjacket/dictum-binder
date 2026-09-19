@@ -1,0 +1,9 @@
+# exercises INV-LOCATOR-UNIQUE: the same (path, symbol) twice in one binding
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: f }
+      - { path: src/x.py, symbol: f }

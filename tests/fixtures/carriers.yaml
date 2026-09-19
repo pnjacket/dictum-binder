@@ -1,0 +1,28 @@
+# header line one
+# header line two
+schema_version: 1
+
+bindings:
+
+  # binding block
+  # second line
+  ENTITY-A:
+    locators:
+      - { path: src/a.py, symbol: A } # trailing locator
+      # block above locator
+      # two lines
+      - { path: src/b.py }
+    fields:
+      name: { path: src/a.py, symbol: A.name } # trailing field
+    asserted_by:
+      - { owed: slice-2 } # trailing assertion
+
+  ENTITY-B: # trailing on the anchor line, read as a block
+    locators: []
+
+# coverage block
+coverage:
+  fully_bound: [ENTITY]
+  curated:
+    # curated block
+    API: reason

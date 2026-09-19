@@ -1,0 +1,8 @@
+# exercises INV-ROLE-REQUIRES-WIRE (advisory): a role without a wire block
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: f, role: producer }

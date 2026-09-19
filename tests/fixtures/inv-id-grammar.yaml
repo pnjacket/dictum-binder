@@ -1,0 +1,7 @@
+# exercises INV-ID-GRAMMAR: an all-digit segment
+schema_version: 1
+
+bindings:
+
+  CAP-003:
+    locators: []

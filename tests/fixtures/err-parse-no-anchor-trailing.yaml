@@ -1,0 +1,7 @@
+# exercises ERR-PARSE: a trailing comment on a non-anchor line
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators: [] # nothing anchors here

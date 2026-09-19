@@ -1,0 +1,3 @@
+# exercises ERR-PARSE: a YAML syntax error
+schema_version: 1
+bindings: {

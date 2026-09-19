@@ -1,0 +1,45 @@
+# Optional header comment block (anchor: header). Any number of lines, each "# ".
+schema_version: 1
+
+bindings:
+
+  ENTITY-PROJECT:
+    locators:
+      - { path: src/models/project.py, symbol: Project, role: producer }
+      - { path: web/src/types/project.ts, symbol: Project, role: consumer }
+    wire:
+      casing: camelCase
+      enums: string-names
+      dates: iso-8601-utc
+
+  # Optional comment block above a binding (anchor: binding ENTITY-USER).
+  ENTITY-USER:
+    locators:
+      - { path: src/models/user.py, symbol: User } # trailing single-line comment (anchor: locator)
+      - { path: db/schema.sql, symbol: users }
+    compare_via: openapi
+    fields:
+      email: { path: src/models/user.py, symbol: User.email }
+      config: { path: config/user.toml } # path-only field locator is legal
+    wire:
+      casing: camelCase
+    asserted_by:
+      - { path: tests/test_user.py, symbol: test_email_unique, run: "python3 -m pytest tests/test_user.py::test_email_unique" }
+      - { path: tests/test_user.py, symbol: test_email_case, run: "python3 -m pytest -k test_email_case", arm: b }
+      - { owed: slice-9 } # owed assertion: no path/symbol/run
+      - { arm: c, owed: slice-9 }
+
+  ROUTE-HOME:
+    locators:
+      - { path: web/src/app.routes.ts } # path-only locator is legal
+
+  # A stub binding (the planner's build-new signal).
+  SCREEN-STUB:
+    locators: []
+
+# Optional comment block above coverage (anchor: coverage).
+coverage:
+  fully_bound: [ENTITY, INV, ROUTE]
+  curated:
+    # Optional comment above a curated entry (anchor: curated API).
+    API: "state-changing endpoints bound; simple reads realised but not indexed (locus: src/routes/)"

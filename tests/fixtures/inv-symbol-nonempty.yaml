@@ -1,0 +1,8 @@
+# exercises INV-SYMBOL-NONEMPTY: an empty symbol
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: "" }

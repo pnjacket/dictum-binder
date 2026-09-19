@@ -1,0 +1,7 @@
+# exercises INV-BYTES (advisory): trailing whitespace and no final newline
+schema_version: 1
+
+bindings:
+
+  ENTITY-A: 
+    locators: []

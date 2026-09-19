@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "assertion": {
+      "additionalProperties": false,
+      "properties": {
+        "arm": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "owed": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "run": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        }
+      },
+      "title": "Assertion — a bound test (path, symbol, run) or an owed one (owed), optionally arm-labelled (ENTITY-ASSERTION)",
+      "type": "object"
+    },
+    "binding": {
+      "additionalProperties": false,
+      "properties": {
+        "asserted_by": {
+          "items": {
+            "$ref": "#/$defs/assertion"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "compare_via": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "fields": {
+          "additionalProperties": {
+            "$ref": "#/$defs/field_locator"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          },
+          "type": "object"
+        },
+        "locators": {
+          "items": {
+            "$ref": "#/$defs/locator"
+          },
+          "type": "array"
+        },
+        "wire": {
+          "$ref": "#/$defs/wire"
+        }
+      },
+      "required": [
+        "locators"
+      ],
+      "title": "Binding — one contract's realisation in code (ENTITY-BINDING)",
+      "type": "object"
+    },
+    "coverage": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "curated": {
+          "additionalProperties": {
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+            "type": "string"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[A-Z][A-Z0-9]+$"
+          },
+          "type": "object"
+        },
+        "fully_bound": {
+          "items": {
+            "pattern": "^[A-Z][A-Z0-9]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "Coverage declaration — fully_bound kinds and curated kinds with reasons (ENTITY-COVERAGE)",
+      "type": "object"
+    },
+    "field_locator": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Field locator — where one field of an entity is realised (ENTITY-FIELD-LOCATOR)",
+      "type": "object"
+    },
+    "locator": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "producer",
+            "consumer"
+          ],
+          "type": "string"
+        },
+        "symbol": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Locator — a code site: repository-relative path plus optional symbol (ENTITY-LOCATOR)",
+      "type": "object"
+    },
+    "wire": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "casing": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "dates": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        },
+        "enums": {
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$",
+          "type": "string"
+        }
+      },
+      "title": "Wire sub-contract of a dual realisation: any non-empty subset (ENTITY-WIRE)",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Shape of bindings.yaml as written and read by lspd. Rules the schema cannot express (cross-field invariants, comment carriers, canonical layout) are listed in the README beside this file's checksum and enforced by `lspd validate`.",
+  "properties": {
+    "bindings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/binding"
+      },
+      "description": "Contract ID → binding. IDs follow `^[A-Z][A-Z0-9]+(-(?![0-9]+(-|$))[A-Z0-9]+)+$`: Dictum's grammar with no all-digit segment.",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9]+(-(?![0-9]+(-|$))[A-Z0-9]+)+$"
+      },
+      "type": "object"
+    },
+    "coverage": {
+      "$ref": "#/$defs/coverage"
+    },
+    "schema_version": {
+      "description": "Equal to the lspd major version that owns the layout; this build writes 1.",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "bindings"
+  ],
+  "title": "Dictum binding map (lspd canonical shape)",
+  "type": "object"
+}

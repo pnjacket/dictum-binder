@@ -1,0 +1,54 @@
+# ENV-CI — the binding fidelity for the staged DoD (Operations & Infrastructure).
+# Seven named gate steps (Quality & Testing), gate 6 skipped until bindings.yaml exists,
+# then the E2E tier against a fresh venv holding the built wheel.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: provision ENV-CI
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --quiet ".[dev]"
+      - name: "gate 1: unittest — all five tiers"
+        run: .venv/bin/python -m unittest discover -s tests -t .
+        env:
+          LSPD_CI_RANGE: ${{ github.event.before }}..${{ github.sha }}
+      - name: "gate 2: 100% line coverage (trace)"
+        run: .venv/bin/python tools/coverage_report.py
+      - name: "gate 3: ruff"
+        run: |
+          .venv/bin/ruff check .
+          .venv/bin/ruff format --check .
+      - name: "gate 4: pyrefly strict"
+        run: .venv/bin/pyrefly check
+      - name: "gate 5: schema file and README checksum"
+        run: |
+          .venv/bin/lspd schema | diff - lspd.schema.json
+          test "$(.venv/bin/lspd schema --checksum)" = "$(grep -oE '[0-9a-f]{64}' README.md | head -1)"
+      - name: "gate 6: dogfood bindings.yaml (skipped until it exists)"
+        run: |
+          if [ -f bindings.yaml ]; then
+            .venv/bin/lspd validate && .venv/bin/lspd format --check
+          else
+            echo "gate 6 skipped: bindings.yaml does not exist yet (written at the release slice)"
+          fi
+      - name: "gate 7: licence gate (MIT only)"
+        run: .venv/bin/python tools/licence_gate.py
+      - name: "E2E tier against a fresh venv with the built wheel"
+        run: |
+          .venv/bin/pip wheel . --no-deps -w dist/
+          python -m venv e2e
+          e2e/bin/pip install --quiet dist/*.whl
+          e2e/bin/python -m unittest discover -s tests/e2e -t .

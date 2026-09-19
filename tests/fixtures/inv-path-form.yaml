@@ -1,0 +1,8 @@
+# exercises INV-PATH-FORM: a .. segment
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: ../x.py, symbol: f }

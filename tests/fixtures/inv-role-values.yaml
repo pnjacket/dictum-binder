@@ -1,0 +1,10 @@
+# exercises INV-ROLE-VALUES: a role outside the enumeration
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: f, role: owner }
+    wire:
+      casing: camelCase

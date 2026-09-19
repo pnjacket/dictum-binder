@@ -1,0 +1,10 @@
+# exercises INV-ASSERTION-UNIQUE: the same owed identity twice
+schema_version: 1
+
+bindings:
+
+  INV-A:
+    locators: []
+    asserted_by:
+      - { owed: slice-9 }
+      - { owed: slice-9 }

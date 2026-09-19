@@ -1,0 +1,12 @@
+# exercises INV-OWNED-TWICE (advisory): one locator under two IDs
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: f }
+
+  ENTITY-B:
+    locators:
+      - { path: src/x.py, symbol: f }

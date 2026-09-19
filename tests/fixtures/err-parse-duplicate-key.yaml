@@ -1,0 +1,10 @@
+# exercises ERR-PARSE: a duplicated binding key
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators: []
+
+  ENTITY-A:
+    locators: []

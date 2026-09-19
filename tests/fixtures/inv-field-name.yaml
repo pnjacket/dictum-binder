@@ -1,0 +1,9 @@
+# exercises INV-FIELD-NAME: a present but empty fields mapping
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: src/x.py, symbol: f }
+    fields: {}

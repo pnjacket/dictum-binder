@@ -1,0 +1,11 @@
+schema_version: 1
+bindings:
+  ROUTE-B:
+    locators:
+      - path: web/b.ts
+        symbol: B
+  ENTITY-A:
+    locators:
+    - {path: 'src/a.py', symbol: "A"}
+coverage:
+  fully_bound: [ROUTE, ENTITY]

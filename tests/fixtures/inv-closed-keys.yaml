@@ -1,0 +1,8 @@
+# exercises INV-CLOSED-KEYS: an unknown key in a binding
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators: []
+    extra: 1

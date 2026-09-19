@@ -1,0 +1,9 @@
+# exercises INV-COMMENT-ANCHORED: two carriers on one locator
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      # block above
+      - { path: src/x.py, symbol: f } # and trailing

@@ -1,0 +1,8 @@
+# exercises INV-COMMENT-TEXT: a bare # as a whole comment (empty text)
+schema_version: 1
+
+bindings:
+
+  #
+  ENTITY-A:
+    locators: []

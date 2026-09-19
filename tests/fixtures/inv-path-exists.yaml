@@ -1,0 +1,8 @@
+# exercises INV-PATH-EXISTS (only with --check-paths): a well-formed path that does not exist
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators:
+      - { path: no/such/file.py, symbol: f }

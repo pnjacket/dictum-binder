@@ -1,0 +1,9 @@
+# exercises ERR-PARSE: a comment block followed by a blank line
+schema_version: 1
+
+bindings:
+
+  # detached
+
+  ENTITY-A:
+    locators: []

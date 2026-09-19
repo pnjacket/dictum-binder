@@ -1,0 +1,12 @@
+# exercises INV-COVERAGE-WELLFORMED: a kind in both lists
+schema_version: 1
+
+bindings:
+
+  ENTITY-A:
+    locators: []
+
+coverage:
+  fully_bound: [ENTITY]
+  curated:
+    ENTITY: "partial by intent"

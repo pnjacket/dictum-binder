@@ -1,0 +1,9 @@
+# exercises INV-ASSERTION-SHAPE: owed mixed with the bound triple
+schema_version: 1
+
+bindings:
+
+  INV-A:
+    locators: []
+    asserted_by:
+      - { path: tests/t.py, symbol: t, run: "python3 -m unittest t", owed: slice-9 }
