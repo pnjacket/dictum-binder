@@ -393,6 +393,11 @@ bindings:
       - { path: tests/contract/test_writes.py, symbol: AddLocator.test_duplicate_not_found_and_input_rules, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_duplicate_not_found_and_input_rules" }
       - { path: tests/contract/test_writes.py, symbol: Set.test_shape_breaking_input_writes_nothing, run: "python3 -m unittest tests.contract.test_writes.Set.test_shape_breaking_input_writes_nothing" }
       - { path: tests/contract/test_writes.py, symbol: Set.test_comment_value_rules_apply_to_json_input, run: "python3 -m unittest tests.contract.test_writes.Set.test_comment_value_rules_apply_to_json_input" }
+      - { path: tests/contract/test_writes.py, symbol: ErrorPrecedence.test_file_access_wins_over_input, run: "python3 -m unittest tests.contract.test_writes.ErrorPrecedence.test_file_access_wins_over_input" }
+      - { path: tests/contract/test_writes.py, symbol: ErrorPrecedence.test_schema_version_wins_over_input, run: "python3 -m unittest tests.contract.test_writes.ErrorPrecedence.test_schema_version_wins_over_input" }
+      - { path: tests/contract/test_writes.py, symbol: ErrorPrecedence.test_pre_validation_wins_over_input, run: "python3 -m unittest tests.contract.test_writes.ErrorPrecedence.test_pre_validation_wins_over_input" }
+      - { path: tests/contract/test_writes.py, symbol: ErrorPrecedence.test_target_lookup_wins_over_input, run: "python3 -m unittest tests.contract.test_writes.ErrorPrecedence.test_target_lookup_wins_over_input" }
+      - { path: tests/contract/test_writes.py, symbol: ErrorPrecedence.test_input_invalid_carries_the_pre_findings, run: "python3 -m unittest tests.contract.test_writes.ErrorPrecedence.test_input_invalid_carries_the_pre_findings" }
 
   ERR-INTERNAL:
     locators:
@@ -553,6 +558,7 @@ bindings:
       - { path: src/dbind/validator.py, symbol: "_Rules" }
     asserted_by:
       - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_path_exists_only_with_the_flag, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_path_exists_only_with_the_flag" }
+      - { path: tests/unit/test_validator_rules.py, symbol: PathCheck.test_bound_assertion_path_under_the_flag, run: "python3 -m unittest tests.unit.test_validator_rules.PathCheck.test_bound_assertion_path_under_the_flag" }
 
   INV-PATH-FORM:
     locators:

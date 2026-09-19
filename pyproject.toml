@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dictum-binder"
 version = "1.0.0"
-description = "dbind — deterministic reader, writer and validator of a Dictum project's bindings.yaml"
+description = "dictum-binder (dbind) — deterministic reader, writer and validator of a Dictum project's bindings.yaml"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

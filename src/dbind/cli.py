@@ -773,42 +773,59 @@ class _Run:
         obj, _ = model.from_input(value, node, binding_id=binding_id, name=name, kind=kind)
         return obj
 
+    # Interfaces' error precedence: file access → schema version → pre-validation → target
+    # lookup → input validation → identity. Input is therefore validated inside the write
+    # pipeline, after the map is loaded and the target found (drift event 5931b91#2).
+
     def set(self) -> dict[str, Any]:
-        b = self._input(self.ns.document, "binding", binding_id=self.ns.id)
-        return self._write(lambda m: cmd_set.result(cmd_set.apply(m, b)))
+        ns = self.ns
+
+        def mutate(m: Map) -> dict[str, Any]:
+            b = self._input(ns.document, "binding", binding_id=ns.id)
+            return cmd_set.result(cmd_set.apply(m, b))
+
+        return self._write(mutate)
 
     def add_locator(self) -> dict[str, Any]:
-        value = {
-            "path": self.ns.path,
-            "symbol": self.ns.symbol,
-            "role": self.ns.role,
-            "comment": self.ns.comment,
-        }
-        loc = self._input(value, "locator", binding_id=self.ns.id)
-        return self._write(lambda m: cmd_set.result(cmd_add.locator(m, self.ns.id, loc)))
+        ns = self.ns
+        value = {"path": ns.path, "symbol": ns.symbol, "role": ns.role, "comment": ns.comment}
+
+        def mutate(m: Map) -> dict[str, Any]:
+            cmd_add.require(m, ns.id)
+            loc = self._input(value, "locator", binding_id=ns.id)
+            return cmd_set.result(cmd_add.locator(m, ns.id, loc))
+
+        return self._write(mutate)
 
     def add_field(self) -> dict[str, Any]:
-        value = {"path": self.ns.path, "symbol": self.ns.symbol, "comment": self.ns.comment}
-        fl = self._input(value, "field_locator", binding_id=self.ns.id, name=self.ns.name)
-        return self._write(
-            lambda m: cmd_set.result(
-                cmd_add.field(
-                    m, self.ns.id, self.ns.name, fl, comment_given=self.ns.comment is not None
-                )
-            )
-        )
+        ns = self.ns
+        value = {"path": ns.path, "symbol": ns.symbol, "comment": ns.comment}
+
+        def mutate(m: Map) -> dict[str, Any]:
+            cmd_add.require(m, ns.id)
+            fl = self._input(value, "field_locator", binding_id=ns.id, name=ns.name)
+            given = ns.comment is not None
+            return cmd_set.result(cmd_add.field(m, ns.id, ns.name, fl, comment_given=given))
+
+        return self._write(mutate)
 
     def add_assertion(self) -> dict[str, Any]:
+        ns = self.ns
         value = {
-            "path": self.ns.path,
-            "symbol": self.ns.symbol,
-            "run": self.ns.run,
-            "arm": self.ns.arm,
-            "owed": self.ns.owed,
-            "comment": self.ns.comment,
+            "path": ns.path,
+            "symbol": ns.symbol,
+            "run": ns.run,
+            "arm": ns.arm,
+            "owed": ns.owed,
+            "comment": ns.comment,
         }
-        a = self._input(value, "assertion", binding_id=self.ns.id)
-        return self._write(lambda m: cmd_set.result(cmd_add.assertion(m, self.ns.id, a)))
+
+        def mutate(m: Map) -> dict[str, Any]:
+            cmd_add.require(m, ns.id)
+            a = self._input(value, "assertion", binding_id=ns.id)
+            return cmd_set.result(cmd_add.assertion(m, ns.id, a))
+
+        return self._write(mutate)
 
     def remove(self) -> dict[str, Any]:
         ns = self.ns
@@ -868,12 +885,17 @@ class _Run:
             return cmd_comment.get(target(self._load(gate_schema_version=True)))
         if ns.group_command == "unset":
             return self._write(lambda m: cmd_comment.unset(target(m)))
-        findings = validator.finalize(
-            validator.validate_input(ns.text, "comment", anchor=_anchor_of(ns))
-        )
-        if _exit_for(findings):
-            raise InputInvalidError(findings)
-        return self._write(lambda m: cmd_comment.set_text(target(m), ns.text))
+
+        def set_text(m: Map) -> dict[str, Any]:
+            found = target(m)
+            findings = validator.finalize(
+                validator.validate_input(ns.text, "comment", anchor=_anchor_of(ns))
+            )
+            if _exit_for(findings):
+                raise InputInvalidError(findings)
+            return cmd_comment.set_text(found, ns.text)
+
+        return self._write(set_text)
 
     def coverage(self) -> dict[str, Any]:
         ns = self.ns
@@ -888,16 +910,17 @@ class _Run:
                 lambda m: cmd_coverage.result(cmd_coverage.fully_bound_remove(m, ns.kind))
             )
         if ns.action == "set":
-            entry = self._input(
-                {"reason": ns.reason, "comment": ns.comment}, "curated", kind=ns.kind
-            )
-            return self._write(
-                lambda m: cmd_coverage.result(
-                    cmd_coverage.curated_set(
-                        m, ns.kind, entry, comment_given=ns.comment is not None
-                    )
+
+            def curated_set(m: Map) -> dict[str, Any]:
+                entry = self._input(
+                    {"reason": ns.reason, "comment": ns.comment}, "curated", kind=ns.kind
                 )
-            )
+                given = ns.comment is not None
+                return cmd_coverage.result(
+                    cmd_coverage.curated_set(m, ns.kind, entry, comment_given=given)
+                )
+
+            return self._write(curated_set)
         return self._write(lambda m: cmd_coverage.result(cmd_coverage.curated_unset(m, ns.kind)))
 
 

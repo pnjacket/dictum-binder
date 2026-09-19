@@ -1,5 +1,5 @@
 # ENV-CI — the binding fidelity for the staged DoD (Operations & Infrastructure).
-# Seven named gate steps (Quality & Testing), gate 6 skipped until bindings.yaml exists,
+# Seven named gate steps (Quality & Testing), all unconditional since the release slice,
 # then the E2E tier against a fresh venv holding the built wheel.
 name: ci
 
@@ -37,13 +37,8 @@ jobs:
         run: |
           .venv/bin/dbind schema | diff - dbind.schema.json
           test "$(.venv/bin/dbind schema --checksum)" = "$(grep -oE '[0-9a-f]{64}' README.md | head -1)"
-      - name: "gate 6: dogfood bindings.yaml (skipped until it exists)"
-        run: |
-          if [ -f bindings.yaml ]; then
-            .venv/bin/dbind validate && .venv/bin/dbind format --check
-          else
-            echo "gate 6 skipped: bindings.yaml does not exist yet (written at the release slice)"
-          fi
+      - name: "gate 6: dogfood the repository's own bindings.yaml"
+        run: .venv/bin/dbind validate && .venv/bin/dbind format --check
       - name: "gate 7: licence gate (MIT only)"
         run: .venv/bin/python tools/licence_gate.py
       - name: "E2E tier against a fresh venv with the built wheel"

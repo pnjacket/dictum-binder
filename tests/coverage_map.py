@@ -115,7 +115,10 @@ MAP: dict[str, list[str] | str] = {
         f"{INV}.test_lines_key_fires_both_closed_keys_and_no_line_numbers",
     ],
     "INV-PATH-FORM": [f"{INV}.test_each_write_gated_invariant_fires_exactly_once"],
-    "INV-PATH-EXISTS": [f"{INV}.test_path_exists_only_with_the_flag"],
+    "INV-PATH-EXISTS": [
+        f"{INV}.test_path_exists_only_with_the_flag",
+        f"{VR}.PathCheck.test_bound_assertion_path_under_the_flag",
+    ],
     "INV-SYMBOL-NONEMPTY": [
         f"{INV}.test_each_write_gated_invariant_fires_exactly_once",
         f"{VR}.ScalarAndSymbolRules.test_control_character_in_symbol",
@@ -389,6 +392,11 @@ MAP: dict[str, list[str] | str] = {
         f"{W}.AddLocator.test_duplicate_not_found_and_input_rules",
         f"{W}.Set.test_shape_breaking_input_writes_nothing",
         f"{W}.Set.test_comment_value_rules_apply_to_json_input",
+        f"{W}.ErrorPrecedence.test_file_access_wins_over_input",
+        f"{W}.ErrorPrecedence.test_schema_version_wins_over_input",
+        f"{W}.ErrorPrecedence.test_pre_validation_wins_over_input",
+        f"{W}.ErrorPrecedence.test_target_lookup_wins_over_input",
+        f"{W}.ErrorPrecedence.test_input_invalid_carries_the_pre_findings",
     ],
     # security assertions
     "SEC-ZERO-NETWORK": [

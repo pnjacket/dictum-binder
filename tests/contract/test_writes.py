@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import unittest
 from typing import Any
 from unittest import mock
@@ -229,10 +230,6 @@ class AddLocator(unittest.TestCase):
                     ["add-locator", "ROUTE-HOME", "--path", "src/x.py", "--comment", "abc "],
                     "INV-COMMENT-TEXT",
                 ),
-                (
-                    ["--check-paths", "add-locator", "ROUTE-HOME", "--path", "no/such.py"],
-                    "INV-PATH-EXISTS",
-                ),
             ]
             for argv, code in cases:
                 run = run_cli(argv, cwd=tmp)
@@ -245,6 +242,19 @@ class AddLocator(unittest.TestCase):
                 ["add-locator", "ROUTE-HOME", "--path", "src/x.py", "--comment", ""], cwd=tmp
             )
             self.assertEqual(empty.envelope["error"]["code"], "ERR-USAGE")
+        with TempDir() as tmp:
+            # the path check on write input needs a map whose own paths exist, otherwise
+            # pre-validation refuses the write first (Interfaces' error precedence)
+            run_cli(["init"], cwd=tmp)
+            run_cli(["set", "ROUTE-HOME", "--json", '{"locators": []}'], cwd=tmp)
+            run = run_cli(
+                ["--check-paths", "add-locator", "ROUTE-HOME", "--path", "no/such.py"], cwd=tmp
+            )
+            self.assertEqual(run.envelope["error"]["code"], "ERR-INPUT-INVALID")
+            self.assertEqual(
+                [f["code"] for f in run.envelope["error"]["details"]["findings"]],
+                ["INV-PATH-EXISTS"],
+            )
 
 
 class AddField(unittest.TestCase):
@@ -624,6 +634,64 @@ class ValidateAroundWrite(unittest.TestCase):
             run = run_cli(["set", "ENTITY-A", "--json", '{"locators": []}'], cwd=tmp)
             self.assertEqual(run.envelope["error"]["code"], "ERR-SCHEMA-VERSION")
             self.assertEqual(read_bytes(target), before)
+
+
+class ErrorPrecedence(unittest.TestCase):
+    """DICT: ERR-INPUT-INVALID — Interfaces' error precedence for write elements: file access →
+    schema version → pre-validation → target lookup → input validation. Regression for drift
+    event 5931b91#2 (input was validated before the file was opened)."""
+
+    BAD_INPUTS = (
+        ["add-locator", "ENTITY-USER", "--path", "src/x.py:41"],
+        ["add-field", "ENTITY-USER", "f", "--path", "../x.py"],
+        ["add-assertion", "ENTITY-USER", "--path", "t.py:9", "--symbol", "t", "--run", "r"],
+        ["set", "ENTITY-USER", "--json", '{"locators": [{"path": "src/x.py", "lines": 3}]}'],
+        ["comment", "set", "binding", "ENTITY-USER", "--text", "abc "],
+        ["coverage", "curated", "set", "SEC", "--reason", "a\x01b"],
+    )
+
+    def _expect(self, fixture: str | None, code: str, exit_code: int) -> None:
+        with TempDir() as tmp:
+            before = None
+            if fixture is not None:
+                before = read_bytes(copy_fixture(fixture, tmp))
+            for argv in self.BAD_INPUTS:
+                run = run_cli(argv, cwd=tmp)
+                self.assertEqual((run.code, run.envelope["error"]["code"]), (exit_code, code), argv)
+                if before is not None:
+                    self.assertEqual(read_bytes(os.path.join(tmp, "bindings.yaml")), before)
+
+    def test_file_access_wins_over_input(self) -> None:
+        self._expect(None, "ERR-FILE-MISSING", 2)
+
+    def test_schema_version_wins_over_input(self) -> None:
+        self._expect("inv-schema-version.yaml", "ERR-SCHEMA-VERSION", 1)
+
+    def test_pre_validation_wins_over_input(self) -> None:
+        self._expect("inv-no-line-numbers.yaml", "ERR-FILE-INVALID", 1)
+
+    def test_target_lookup_wins_over_input(self) -> None:
+        with TempDir() as tmp:
+            copy_fixture("canonical.yaml", tmp)
+            for argv in (
+                ["add-locator", "ENTITY-NOPE", "--path", "src/x.py:41"],
+                ["add-field", "ENTITY-NOPE", "f", "--path", "../x.py"],
+                ["add-assertion", "ENTITY-NOPE", "--owed", "s\x01"],
+                ["comment", "set", "binding", "ENTITY-NOPE", "--text", "abc "],
+            ):
+                run = run_cli(argv, cwd=tmp)
+                self.assertEqual(
+                    (run.code, run.envelope["error"]["code"]), (1, "ERR-NOT-FOUND"), argv
+                )
+
+    def test_input_invalid_carries_the_pre_findings(self) -> None:
+        with TempDir() as tmp:
+            copy_fixture("inv-role-requires-wire.yaml", tmp)
+            ids = [r["id"] for r in run_cli(["list"], cwd=tmp).envelope["result"]["bindings"]]
+            run = run_cli(["add-locator", ids[0], "--path", "src/x.py:41"], cwd=tmp)
+            env = run.envelope
+            self.assertEqual((run.code, env["error"]["code"]), (1, "ERR-INPUT-INVALID"))
+            self.assertEqual(_codes(env, "pre"), ["INV-ROLE-REQUIRES-WIRE"])
 
 
 class OrderPreserved(unittest.TestCase):

@@ -112,6 +112,20 @@ class CoverageRules(unittest.TestCase):
         self.assertTrue(_has(codes, "INV-COVERAGE-WELLFORMED", "reason for `API` is empty"))
 
 
+class PathCheck(unittest.TestCase):
+    """DICT: INV-PATH-EXISTS — bound-assertion paths are checked too, at the assertion anchor."""
+
+    def test_bound_assertion_path_under_the_flag(self) -> None:
+        m, _ = model.from_plain(
+            _plain(asserted_by=[{"path": "tests/nope.py", "symbol": "t", "run": "r"}])
+        )
+        self.assertEqual(validator.validate(m), [])
+        findings = validator.validate(m, check_paths=True, root=".")
+        self.assertEqual(
+            [(f.code, f.anchor.type) for f in findings], [("INV-PATH-EXISTS", "assertion")]
+        )
+
+
 class ModelEdges(unittest.TestCase):
     def test_type_names(self) -> None:
         cases = [
