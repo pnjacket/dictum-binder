@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [problem-motivation, target-users-personas, goals-success-criteria, capability-register, constraints-assumptions, risks]
 current-rung: contract-grade
 status: published
-version: 2.0.0
+version: 2.0.1
 ---
 
 # Product & Requirements — dictum-binder
@@ -82,7 +82,7 @@ Twelve capabilities, all **in scope for v1** (the operator marked nothing out), 
 
 - **Language and runtime.** Python, minimum 3.11 (so the operator's Debian 12 machine runs it on the system interpreter; a venv is used regardless). Supported platforms are whatever Python 3.11+ supports; none is targeted specifically.
 - **Licence.** MIT. **Every declared dependency — runtime, transitive, development, and test — must itself be MIT** (Governance's inbound policy); the interpreter, pip, and the build backend are environment infrastructure outside the rule. ruamel.yaml (MIT, zero dependencies) is the only runtime dependency, chosen for comment fidelity; the toolchain is the standard library plus ruff and pyrefly.
-- **Distribution.** A GitHub repository that users clone and install into a user-space bin; binary name `dbind`. Private until the first release, public at the first release. Ships alongside Dictum v1.3.0 (pending on Dictum main at scaffold time). `[REVISIT]` this doc set is authored against v1.2.0; run the upgrade walk when v1.3.0 is vendored.
+- **Distribution.** A GitHub repository that users clone and install into a user-space bin; binary name `dbind` (renamed from `lspd` on 2026-09-19, before any publication). Naming convention in every artifact — docs, README, help text: prose names the product dictum-binder; `dbind` appears only where a command line is meant. Private until the first release, public at the first release. Ships alongside Dictum v1.3.0 (pending on Dictum main at scaffold time). `[REVISIT]` this doc set is authored against v1.2.0; run the upgrade walk when v1.3.0 is vendored.
 - **Schema.** Exactly the Dictum template's keys plus three additions the operator has decided: `arm:` on an assertion, `owed:` for a deferred assertion, and a required top-level `schema_version:` (integer, equal to the dictum-binder major version, written by `init`; a mismatch is a validation error). Anything else is an error. The schema is owned by this project; the operator is the author of the Dictum standard but this project acts as a **third party** and does not contribute the schema back into the template.
 - **Numeric IDs are prohibited — a rule tighter than the standard.** Dictum's grammar allows numeric tokens (`CAP-003`); dictum-binder rejects them as map keys because LLMs work poorly with numbered IDs. Only semantic IDs (`CAP-MODEL-CREATE`) are accepted: a segment consisting entirely of digits is rejected, while digits inside a segment (`API-V2-USERS`, `SCREEN-3D`) are fine. This is a deliberate compatibility narrowing: a Dictum-conforming map that uses numeric IDs fails dictum-binder validation until its IDs are re-minted. `[REVISIT]` the operator, as the standard's author, may introduce this rule in a future major revision of Dictum; until then it is this product's own.
 - **Versioning.** A change to the Dictum binding-map template is a new major version of dictum-binder. The file's `schema_version` tracks it. The package version is `1.0.0.dev0` from the first slice and `1.0.0` at the release, so the major — and therefore `schema_version` — is 1 throughout.

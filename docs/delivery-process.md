@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [vertical-slice-rule-slice-types, definition-of-done, build-playbook-sequence, work-item-hierarchy-slice-level, build-ready-gate-scope, verified-build-status-tracking, branching-release-versioning]
 current-rung: contract-grade
 status: published
-version: 1.2.1
+version: 1.2.2
 ---
 
 # Delivery Process — dictum-binder
@@ -91,6 +91,7 @@ Every in-scope concern (the eleven in the manifest) at Contract-grade **and publ
 - **First target: `1.0.0`**, so `schema_version` is `1` from the first release with no decoupling.
 - The version is `1.0.0.dev0` in `pyproject.toml` from slice 1 (so the package major, and `schema_version`, are 1 throughout) and is **stamped `1.0.0` by the implementing LLM** as part of the release slice, never derived from the tag; the tag `v1.0.0` must equal it (release gate).
 - The release is a **plain git tag**; no GitHub Release object, no published wheel. The repository goes public at that tag.
+- **A breaking surface change before the tag is pushed re-cuts the same tag** (decided 2026-09-19 for the `lspd` → `dbind` rename): the tag is moved onto the corrected commit, the release gate re-runs there, and the build-status record folds the work into the existing rows (re-verification of the rows it touches plus a Notes entry) rather than minting a seventh row. After publication, a breaking surface change is a new major by the semantic-versioning rule in Interfaces.
 - Semantic versioning thereafter: a Dictum template change is a major (`ADR-MAJOR-PER-TEMPLATE`); anything additive within the surface is a minor.
 
 ## Open Questions
