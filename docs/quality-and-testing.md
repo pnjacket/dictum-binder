@@ -95,7 +95,7 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 
 Merge gate — **seven gates**, all required, run by CI on every push and pull request, Python 3.11 on Ubuntu:
 
-1. `python -m unittest discover` — all five tiers green.
+1. `python -m unittest discover` — all five tiers green. **Mid-build scoping**: every full-set meta-test (coverage-map completeness, E2E journey per capability, operations-table rows, `--help` tree walk, record ↔ minted IDs) is scoped to the IDs whose completing slice the build-status record marks **Built**; an ID whose slice is not yet Built is skipped and listed, never failed. From the release slice on the scope is the full set.
 2. **Line coverage 100 %** across the union of all tiers, measured by the standard library's `trace` module (`python -m trace --count --missing`) and reduced by an own report script (`tools/coverage_report.py`, standard library only) that lists every unexecuted line of `src/lspd/`. Any excluded line carries `# pragma: no cover — <reason>` on the same line; a fitness test fails on a pragma without a reason. Branch coverage is not measured (Non-goals). The target is total line coverage; a reason is the only way to fall short.
 3. `ruff check` and `ruff format --check` clean.
 4. `pyrefly check` in strict mode clean over `src/` and `tests/`.
