@@ -84,6 +84,162 @@ class Journeys(unittest.TestCase):
                 handle.read(), open(os.path.join(FIXTURES, "carriers.yaml"), "rb").read()
             )
 
+    def _seed(self) -> str:
+        target = os.path.join(self.tmp, "bindings.yaml")
+        shutil.copyfile(os.path.join(FIXTURES, "canonical.yaml"), target)
+        return target
+
+    def test_cap_set(self) -> None:
+        """DICT: CAP-SET"""
+        target = self._seed()
+        doc = '{"locators": [{"path": "src/x.py", "symbol": "X", "comment": "c"}], "comment": "b"}'
+        run = lspd(["set", "INV-X", "--json", doc], self.tmp)
+        self.assertEqual(run.code, 0, run.stdout)
+        self.assertEqual(run.envelope["result"]["binding"]["comment"], "b")
+        text = open(target, encoding="utf-8").read()
+        self.assertIn(
+            "  # b\n  INV-X:\n    locators:\n      - { path: src/x.py, symbol: X } # c\n", text
+        )
+        self.assertEqual(lspd(["set", "INV-X", "--json", '{"locators": []}'], self.tmp).code, 0)
+        self.assertEqual(lspd(["set", "INV-X", "--json", "nope"], self.tmp).code, 1)
+        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+
+    def test_cap_add(self) -> None:
+        """DICT: CAP-ADD"""
+        self._seed()
+        loc = lspd(
+            [
+                "add-locator",
+                "ROUTE-HOME",
+                "--path",
+                "web/h.ts",
+                "--symbol",
+                "H",
+                "--role",
+                "producer",
+                "--comment",
+                "c",
+            ],
+            self.tmp,
+        )
+        self.assertEqual(loc.code, 0, loc.stdout)
+        self.assertEqual(
+            lspd(
+                ["add-locator", "ROUTE-HOME", "--path", "web/h.ts", "--symbol", "H"], self.tmp
+            ).envelope["error"]["code"],
+            "ERR-DUPLICATE",
+        )
+        fld = lspd(
+            [
+                "add-field",
+                "ROUTE-HOME",
+                "title",
+                "--path",
+                "web/h.ts",
+                "--symbol",
+                "H.title",
+                "--comment",
+                "c",
+            ],
+            self.tmp,
+        )
+        self.assertEqual(fld.code, 0, fld.stdout)
+        self.assertEqual(
+            lspd(["add-field", "ROUTE-HOME", "title", "--path", "web/h2.ts"], self.tmp).code, 0
+        )
+        bound = lspd(
+            [
+                "add-assertion",
+                "ROUTE-HOME",
+                "--path",
+                "t.py",
+                "--symbol",
+                "t_h",
+                "--run",
+                "python3 -m unittest t",
+                "--arm",
+                "a",
+                "--comment",
+                "c",
+            ],
+            self.tmp,
+        )
+        self.assertEqual(bound.code, 0, bound.stdout)
+        self.assertEqual(
+            lspd(["add-assertion", "ROUTE-HOME", "--owed", "slice-4"], self.tmp).code, 0
+        )
+        self.assertEqual(
+            lspd(["add-assertion", "ROUTE-HOME", "--path", "t.py"], self.tmp).envelope["error"][
+                "code"
+            ],
+            "ERR-USAGE",
+        )
+        self.assertEqual(lspd(["add-locator", "ENTITY-NOPE", "--path", "x.py"], self.tmp).code, 1)
+        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+
+    def test_cap_remove(self) -> None:
+        """DICT: CAP-REMOVE"""
+        self._seed()
+        self.assertEqual(lspd(["remove", "ENTITY-USER", "--field", "config"], self.tmp).code, 0)
+        self.assertEqual(
+            lspd(
+                ["remove", "ENTITY-USER", "--assertion", "--owed", "slice-9", "--arm", "c"],
+                self.tmp,
+            ).code,
+            0,
+        )
+        self.assertEqual(
+            lspd(
+                [
+                    "remove",
+                    "ENTITY-USER",
+                    "--assertion",
+                    "--path",
+                    "tests/test_user.py",
+                    "--symbol",
+                    "test_email_case",
+                    "--arm",
+                    "b",
+                ],
+                self.tmp,
+            ).code,
+            0,
+        )
+        stub = lspd(
+            ["remove", "ROUTE-HOME", "--locator", "--path", "web/src/app.routes.ts"], self.tmp
+        )
+        self.assertEqual(stub.envelope["result"]["binding"]["locators"], [])
+        whole = lspd(["remove", "SCREEN-STUB"], self.tmp)
+        self.assertEqual(whole.envelope["result"], {"binding": None, "removed": "SCREEN-STUB"})
+        self.assertEqual(
+            lspd(["remove", "SCREEN-STUB"], self.tmp).envelope["error"]["code"], "ERR-NOT-FOUND"
+        )
+        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+
+    def test_cap_coverage(self) -> None:
+        """DICT: CAP-COVERAGE"""
+        self._seed()
+        self.assertEqual(
+            lspd(["coverage", "get"], self.tmp).envelope["result"]["coverage"]["fully_bound"],
+            ["ENTITY", "INV", "ROUTE"],
+        )
+        self.assertEqual(lspd(["coverage", "fully-bound", "add", "SCREEN"], self.tmp).code, 0)
+        self.assertEqual(lspd(["coverage", "fully-bound", "add", "API"], self.tmp).code, 1)
+        self.assertEqual(lspd(["coverage", "fully-bound", "remove", "SCREEN"], self.tmp).code, 0)
+        self.assertEqual(
+            lspd(
+                ["coverage", "curated", "set", "CAP", "--reason", "r", "--comment", "c"], self.tmp
+            ).code,
+            0,
+        )
+        self.assertEqual(
+            lspd(["coverage", "curated", "set", "CAP", "--reason", "r2"], self.tmp).code, 0
+        )
+        self.assertEqual(lspd(["coverage", "curated", "unset", "CAP"], self.tmp).code, 0)
+        self.assertEqual(lspd(["coverage", "curated", "unset", "CAP"], self.tmp).code, 1)
+        self.assertEqual(lspd(["coverage"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
+        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+
     def test_cap_schema(self) -> None:
         """DICT: CAP-SCHEMA"""
         raw = lspd(["schema"], self.tmp)
@@ -103,6 +259,17 @@ class Journeys(unittest.TestCase):
             ["schema", "--help"],
             ["get", "--help"],
             ["list", "--help"],
+            ["set", "--help"],
+            ["add-locator", "--help"],
+            ["add-field", "--help"],
+            ["add-assertion", "--help"],
+            ["remove", "--help"],
+            ["coverage", "--help"],
+            ["coverage", "get", "--help"],
+            ["coverage", "fully-bound", "--help"],
+            ["coverage", "fully-bound", "add", "--help"],
+            ["coverage", "curated", "--help"],
+            ["coverage", "curated", "set", "--help"],
         ):
             run = lspd(argv, self.tmp)
             self.assertEqual(run.code, 0)
@@ -133,6 +300,35 @@ class MetaInvocations(unittest.TestCase):
         self.assertTrue(any(argv == ["schema", "--checksum"] for argv in argvs))
         self.assertTrue(any(argv[:2] == ["list", "--kind"] for argv in argvs))
         self.assertTrue(any(argv == ["list", "--full"] for argv in argvs))
+        heads = {tuple(argv[:1]) for argv in argvs} | {tuple(argv[:2]) for argv in argvs}
+        for head in (
+            ("set",),
+            ("add-locator",),
+            ("add-field",),
+            ("add-assertion",),
+            ("remove",),
+            ("coverage", "get"),
+            ("coverage", "fully-bound"),
+            ("coverage", "curated"),
+        ):
+            self.assertIn(head, heads, head)
+        flags = {(argv[0], flag) for argv in argvs for flag in argv[1:] if flag.startswith("--")}
+        for pair in (
+            ("add-locator", "--symbol"),
+            ("add-locator", "--role"),
+            ("add-locator", "--comment"),
+            ("add-field", "--symbol"),
+            ("add-field", "--comment"),
+            ("add-assertion", "--owed"),
+            ("add-assertion", "--arm"),
+            ("add-assertion", "--comment"),
+            ("remove", "--locator"),
+            ("remove", "--field"),
+            ("remove", "--assertion"),
+            ("remove", "--arm"),
+            ("coverage", "--comment"),
+        ):
+            self.assertIn(pair, flags, pair)
         self.assertTrue(any(argv == ["--help"] for argv in argvs))
         self.assertTrue(any(argv == ["--version"] for argv in argvs))
         flat = {a for argv in argvs for a in argv}

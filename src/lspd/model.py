@@ -748,3 +748,138 @@ def map_to_plain(m: Map) -> dict[str, Any]:
             cov["curated"] = {k: e.reason for k, e in m.coverage.curated.items()}
         out["coverage"] = cov
     return out
+
+
+# -- input documents (OUT-* projections used as write input) ----------------------------
+
+_INPUT_ANCHOR_TYPE = {
+    "binding": "binding",
+    "locator": "locator",
+    "field_locator": "field",
+    "assertion": "assertion",
+    "curated": "curated",
+}
+
+
+def _split_comment(
+    value: Any, anchor: Anchor, conv: _Converter
+) -> tuple[dict[str, Any] | None, str | None]:
+    """Copy an input object without its ``null`` keys (absent) and its ``comment`` key."""
+    if not isinstance(value, Mapping):
+        return None, None
+    plain = {str(k): v for k, v in value.items() if v is not None and k != "comment"}
+    comment = value.get("comment")
+    if comment is not None and not isinstance(comment, str):
+        conv.finding(
+            "INV-CLOSED-KEYS",
+            anchor,
+            f"`comment` must be a string or null, found {_type_name(comment)}",
+            None,
+        )
+        comment = None
+    return plain, comment
+
+
+def from_input(
+    value: Any, node: str, *, binding_id: str = "", name: str = "", kind: str = ""
+) -> tuple[Any, list[Finding]]:
+    """An input document (nulls mean absent, ``comment`` keys sit at their anchors, ``id`` and
+    ``kind`` may accompany a binding) converted like a file value: the object with its comments
+    attached, plus the shape findings. Unrepresentable content yields ``None``."""
+    conv = _Converter(_no_line)
+    anchor = Anchor(_INPUT_ANCHOR_TYPE[node], id=binding_id or None, field=name or None)
+    if node == "curated":
+        anchor = Anchor("curated", kind=kind)
+    if not isinstance(value, Mapping):
+        conv.finding(
+            "INV-CLOSED-KEYS",
+            anchor,
+            f"{node} input must be an object, found {_type_name(value)}",
+            None,
+        )
+        return None, conv.findings
+    plain, comment = _split_comment(value, anchor, conv)
+    assert plain is not None
+    if node == "binding":
+        plain.pop("id", None)
+        plain.pop("kind", None)
+        b = _binding_from_input(plain, binding_id, conv)
+        if b is not None:
+            b.comment = comment
+        return b, conv.findings
+    if node == "locator":
+        loc = conv.locator(plain, binding_id, [plain], 0, None)
+        if loc is not None:
+            loc.comment = comment
+        return loc, conv.findings
+    if node == "field_locator":
+        fl = conv.field_locator(plain, binding_id, name, {name: plain}, None)
+        if fl is not None:
+            fl.comment = comment
+        return fl, conv.findings
+    if node == "assertion":
+        a = conv.assertion(plain, binding_id, [plain], 0, None)
+        if a is not None:
+            a.comment = comment
+        return a, conv.findings
+    reason = plain.get("reason")
+    if not isinstance(reason, str):
+        conv.finding(
+            "INV-CLOSED-KEYS",
+            anchor,
+            f"curated reason must be a string, found {_type_name(reason)}",
+            None,
+        )
+        return None, conv.findings
+    for key in plain:
+        if key != "reason":
+            conv.finding("INV-CLOSED-KEYS", anchor, f"unknown key `{key}` in curated entry", None)
+    return CuratedEntry(reason=reason, comment=comment), conv.findings
+
+
+def _binding_from_input(plain: dict[str, Any], binding_id: str, conv: _Converter) -> Binding | None:
+    """Strip nested nulls and comments before the shape pass, then re-attach the comments."""
+    anchor = Anchor("binding", id=binding_id)
+    loc_comments: list[str | None] = []
+    field_comments: dict[str, str | None] = {}
+    assertion_comments: list[str | None] = []
+    raw_locators = plain.get("locators")
+    if isinstance(raw_locators, list):
+        stripped = []
+        for item in raw_locators:
+            item_plain, item_comment = _split_comment(item, anchor, conv)
+            stripped.append(item if item_plain is None else item_plain)
+            loc_comments.append(item_comment)
+        plain["locators"] = stripped
+    raw_fields = plain.get("fields")
+    if isinstance(raw_fields, Mapping):
+        fields: dict[str, Any] = {}
+        for key, item in raw_fields.items():
+            item_plain, item_comment = _split_comment(item, anchor, conv)
+            fields[str(key)] = item if item_plain is None else item_plain
+            field_comments[str(key)] = item_comment
+        plain["fields"] = fields
+    raw_wire = plain.get("wire")
+    if isinstance(raw_wire, Mapping):
+        plain["wire"] = {str(k): v for k, v in raw_wire.items() if v is not None}
+    raw_asserted = plain.get("asserted_by")
+    if isinstance(raw_asserted, list):
+        stripped = []
+        for item in raw_asserted:
+            item_plain, item_comment = _split_comment(item, anchor, conv)
+            stripped.append(item if item_plain is None else item_plain)
+            assertion_comments.append(item_comment)
+        plain["asserted_by"] = stripped
+    b = conv.binding(binding_id, plain, {binding_id: plain})
+    if b is None:
+        return None
+    if len(loc_comments) == len(b.locators):
+        for loc, text in zip(b.locators, loc_comments, strict=True):
+            loc.comment = text
+    if b.fields is not None:
+        for key, fl in b.fields.items():
+            fl.comment = field_comments.get(key)
+    if b.asserted_by is not None and len(assertion_comments) == len(b.asserted_by):
+        for a, text in zip(b.asserted_by, assertion_comments, strict=True):
+            a.comment = text
+    return b

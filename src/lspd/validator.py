@@ -9,6 +9,7 @@ DICT: COMPONENT-VALIDATOR
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from lspd.model import (
     KIND_RE,
@@ -20,6 +21,7 @@ from lspd.model import (
     Finding,
     Locator,
     Map,
+    from_input,
     has_control_chars,
     is_contract_id,
     path_form_problem,
@@ -53,9 +55,10 @@ def _assertion_anchor(b: Binding, a: Assertion) -> Anchor:
 
 
 class _Rules:
-    def __init__(self, check_paths: bool, root: str) -> None:
+    def __init__(self, check_paths: bool, root: str, *, input_mode: bool = False) -> None:
         self.check_paths = check_paths
         self.root = root
+        self.input_mode = input_mode
         self.findings: list[Finding] = []
 
     def add(
@@ -131,6 +134,8 @@ class _Rules:
             self.add("INV-COMMENT-TEXT", anchor, "comment begins or ends with an empty line", line)
         if has_control_chars(text.replace("\n", "")):
             self.add("INV-COMMENT-TEXT", anchor, "comment contains a control character", line)
+        elif self.input_mode and any(s != s.rstrip(" ") for s in lines):
+            self.add("INV-COMMENT-TEXT", anchor, "comment line has trailing whitespace", line)
 
     # -- entities ----------------------------------------------------------------------
 
@@ -365,4 +370,44 @@ def validate(m: Map, *, check_paths: bool = False, root: str = ".") -> list[Find
     """The rule pass over a Model (unsorted; combine with the Loader's findings, then finalize)."""
     rules = _Rules(check_paths, root)
     rules.document(m)
+    return rules.findings
+
+
+def validate_input(
+    value: Any,
+    node: str,
+    *,
+    binding_id: str = "",
+    name: str = "",
+    kind: str = "",
+    check_paths: bool = False,
+    root: str = ".",
+) -> list[Finding]:
+    """Shape pass then rule pass over a candidate input document (unsorted). Input semantics:
+    trailing whitespace in a comment is an error, never a repairable warning."""
+    obj, findings = from_input(value, node, binding_id=binding_id, name=name, kind=kind)
+    if obj is None:
+        return findings
+    rules = _Rules(check_paths, root, input_mode=True)
+    rules.findings = findings
+    host = Binding(id=binding_id)
+    if node == "binding":
+        rules.binding(obj)
+    elif node == "locator":
+        rules.locator(host, obj)
+    elif node == "field_locator":
+        rules.field(host, name, obj)
+    elif node == "assertion":
+        rules.assertion(host, obj)
+    else:
+        entry_anchor = Anchor("curated", kind=kind)
+        rules.comment(obj.comment, entry_anchor, None)
+        rules.scalar(obj.reason, "curated reason", entry_anchor, None, empty_owned_elsewhere=True)
+        if obj.reason == "":
+            rules.add(
+                "INV-COVERAGE-WELLFORMED",
+                entry_anchor,
+                f"curated reason for `{kind}` is empty",
+                None,
+            )
     return rules.findings

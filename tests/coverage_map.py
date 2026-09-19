@@ -11,6 +11,7 @@ INV = "tests.unit.test_invariants.WriteGatedInvariants"
 MS = "tests.unit.test_model_schema"
 EL = "tests.unit.test_emitter_loader"
 Q = "tests.contract.test_query"
+W = "tests.contract.test_writes"
 VR = "tests.unit.test_validator_rules"
 ER = "tests.unit.test_errors_render"
 GOLD = "tests.golden.test_canonical.Canonical"
@@ -34,10 +35,10 @@ MAP: dict[str, list[str] | str] = {
     "CAP-HELP": [f"{E2E}.test_cap_help"],
     # capabilities — later slices
     "CAP-QUERY": [f"{E2E}.test_cap_query"],
-    "CAP-SET": [],
-    "CAP-ADD": [],
-    "CAP-REMOVE": [],
-    "CAP-COVERAGE": [],
+    "CAP-SET": [f"{E2E}.test_cap_set"],
+    "CAP-ADD": [f"{E2E}.test_cap_add"],
+    "CAP-REMOVE": [f"{E2E}.test_cap_remove"],
+    "CAP-COVERAGE": [f"{E2E}.test_cap_coverage"],
     "CAP-COMMENT": [],
     "CAP-FORMAT": [],
     # success criteria
@@ -136,8 +137,14 @@ MAP: dict[str, list[str] | str] = {
     ],
     # invariants — tool properties
     "INV-CANONICAL-FIXPOINT": [f"{GOLD}.test_emit_is_a_fixpoint_for_every_loadable_fixture"],
-    "INV-ORDER-PRESERVED": [],
-    "INV-ATOMIC-WRITE": [f"{EL}.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file"],
+    "INV-ORDER-PRESERVED": [
+        f"{W}.OrderPreserved.test_noncanonical_file_is_repaired_with_order_kept",
+        f"{W}.OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order",
+    ],
+    "INV-ATOMIC-WRITE": [
+        f"{EL}.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file",
+        f"{W}.ValidateAroundWrite.test_error_level_file_refuses_every_writer",
+    ],
     # components
     "COMPONENT-CLI": [f"{FS}.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates"],
     "COMPONENT-LOADER": [
@@ -160,9 +167,14 @@ MAP: dict[str, list[str] | str] = {
         f"{CERR}.ErrorCatalog.test_err_internal_from_an_unexpected_exception",
         f"{CEL}.Envelope.test_debug_adds_a_traceback_only_on_stderr",
     ],
-    "PATTERN-VALIDATE-AROUND-WRITE": [],
+    "PATTERN-VALIDATE-AROUND-WRITE": [
+        f"{W}.ValidateAroundWrite.test_error_level_file_refuses_every_writer",
+        f"{W}.ValidateAroundWrite.test_pre_warning_is_tolerated_and_reported",
+        f"{W}.Set.test_shape_breaking_input_writes_nothing",
+    ],
     "PATTERN-ATOMIC-REPLACE": [
-        f"{EL}.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file"
+        f"{EL}.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file",
+        f"{CERR}.SecurityForcings.test_sec_symlink_final_target",
     ],
     "PATTERN-EXIT-CODES": [f"{CERR}.ErrorCatalog.test_exit_code_partition"],
     "PATTERN-OUTPUT-MODE": [
@@ -227,14 +239,33 @@ MAP: dict[str, list[str] | str] = {
         f"{Q}.List.test_full",
         f"{Q}.List.test_empty_map",
     ],
-    "CLI-SET": [],
-    "CLI-ADD-LOCATOR": [],
-    "CLI-ADD-FIELD": [],
-    "CLI-ADD-ASSERTION": [],
-    "CLI-REMOVE": [],
-    "CLI-COVERAGE-GET": [],
-    "CLI-COVERAGE-FULLY-BOUND": [],
-    "CLI-COVERAGE-CURATED": [],
+    "CLI-SET": [
+        f"{W}.Set.test_create_appends_last_and_replace_keeps_place",
+        f"{W}.Set.test_omitted_equals_null_and_comments_clear",
+        f"{W}.Set.test_stdin_document",
+        f"{W}.Set.test_warning_only_input_is_written_and_reported_post",
+        f"{W}.Set.test_usage_conditions",
+    ],
+    "CLI-ADD-LOCATOR": [
+        f"{W}.AddLocator.test_appends_last_with_every_flag",
+        f"{W}.AddLocator.test_duplicate_not_found_and_input_rules",
+    ],
+    "CLI-ADD-FIELD": [f"{W}.AddField.test_new_appends_and_existing_replaces_keeping_comment"],
+    "CLI-ADD-ASSERTION": [
+        f"{W}.AddAssertion.test_bound_and_owed_append_last",
+        f"{W}.AddAssertion.test_duplicate_identity_and_partial_shapes",
+    ],
+    "CLI-REMOVE": [
+        f"{W}.Remove.test_whole_binding_goes_with_its_comments",
+        f"{W}.Remove.test_entries",
+        f"{W}.Remove.test_not_found_and_selector_usage",
+    ],
+    "CLI-COVERAGE-GET": [f"{W}.Coverage.test_get"],
+    "CLI-COVERAGE-FULLY-BOUND": [
+        f"{W}.Coverage.test_fully_bound",
+        f"{W}.Coverage.test_group_without_subcommand_is_usage",
+    ],
+    "CLI-COVERAGE-CURATED": [f"{W}.Coverage.test_curated_and_empty_block_removal"],
     "CLI-COMMENT-GET": [],
     "CLI-COMMENT-SET": [],
     "CLI-COMMENT-UNSET": [],
@@ -265,10 +296,14 @@ MAP: dict[str, list[str] | str] = {
         f"{Q}.List.test_summaries_in_file_order",
         f"{Q}.List.test_has_comment_sees_every_anchor",
     ],
-    "OUT-COVERAGE": [],
+    "OUT-COVERAGE": [f"{W}.Coverage.test_get"],
     "OUT-COMMENT": [],
     "OUT-FORMAT-RESULT": [],
-    "OUT-WRITE-RESULT": [],
+    "OUT-WRITE-RESULT": [
+        f"{W}.Set.test_create_appends_last_and_replace_keeps_place",
+        f"{W}.Remove.test_whole_binding_goes_with_its_comments",
+        f"{W}.Coverage.test_fully_bound",
+    ],
     # errors — slice 1
     "ERR-USAGE": [f"{CERR}.ErrorCatalog.test_err_usage_conditions"],
     "ERR-FILE-MISSING": [f"{CERR}.ErrorCatalog.test_err_file_missing"],
@@ -285,10 +320,22 @@ MAP: dict[str, list[str] | str] = {
         f"{Q}.SchemaVersionGate.test_get_and_list_refuse_another_major",
         f"{Q}.SchemaVersionGate.test_missing_schema_version_is_the_same_error",
     ],
-    "ERR-FILE-INVALID": [],
-    "ERR-NOT-FOUND": [],
-    "ERR-DUPLICATE": [],
-    "ERR-INPUT-INVALID": [],
+    "ERR-FILE-INVALID": [f"{W}.ValidateAroundWrite.test_error_level_file_refuses_every_writer"],
+    "ERR-NOT-FOUND": [
+        f"{Q}.Get.test_unknown_id_is_not_found_and_returns_nothing",
+        f"{W}.Remove.test_not_found_and_selector_usage",
+        f"{W}.AddLocator.test_duplicate_not_found_and_input_rules",
+    ],
+    "ERR-DUPLICATE": [
+        f"{W}.AddLocator.test_duplicate_not_found_and_input_rules",
+        f"{W}.AddAssertion.test_duplicate_identity_and_partial_shapes",
+        f"{W}.Coverage.test_fully_bound",
+    ],
+    "ERR-INPUT-INVALID": [
+        f"{W}.AddLocator.test_duplicate_not_found_and_input_rules",
+        f"{W}.Set.test_shape_breaking_input_writes_nothing",
+        f"{W}.Set.test_comment_value_rules_apply_to_json_input",
+    ],
     # security assertions
     "SEC-ZERO-NETWORK": [
         f"{FS}.Imports.test_forbidden_modules_and_calls",

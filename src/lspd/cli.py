@@ -11,26 +11,33 @@ DICT: COMPONENT-CLI
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
 import traceback
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from importlib import metadata
 from typing import Any
 
-from lspd import emitter, loader, render, schema, validator
+from lspd import emitter, loader, model, render, schema, validator
+from lspd.commands import add as cmd_add
+from lspd.commands import coverage as cmd_coverage
 from lspd.commands import init as cmd_init
 from lspd.commands import query as cmd_query
+from lspd.commands import remove as cmd_remove
+from lspd.commands import set as cmd_set
 from lspd.commands import validate as cmd_validate
 from lspd.errors import (
     FileExistsAlreadyError,
+    FileInvalidError,
+    InputInvalidError,
     InternalError,
     LspdError,
     SchemaVersionError,
     UsageError,
 )
-from lspd.model import KIND_PATTERN, Finding, Map, is_contract_id
+from lspd.model import KIND_PATTERN, Finding, Map, is_contract_id, kind_of
 
 DISTRIBUTION = "dictum-binder"
 HELP_WIDTH = 100
@@ -272,9 +279,204 @@ def build_parser() -> _Parser:
     p_list.add_argument("--full", action="store_true", help="whole bindings instead of summaries")
     _add_global_options(p_list, mirrored=True)
 
-    parser.subparsers_by_name.update(
-        {"init": p_init, "validate": p_validate, "schema": p_schema, "get": p_get, "list": p_list}
+    paths = {
+        "init": p_init,
+        "validate": p_validate,
+        "schema": p_schema,
+        "get": p_get,
+        "list": p_list,
+    }
+
+    def command(
+        group: Any, name: str, path: str, help_text: str, description: str, errors: str
+    ) -> _Parser:
+        p = group.add_parser(
+            name,
+            help=help_text,
+            description=description,
+            epilog=f"{_EXIT_TEXT}\nerrors: {errors}",
+            formatter_class=_Formatter,
+            add_help=False,
+        )
+        p.path = path
+        p.add_argument("-h", "--help", action=_HelpAction, help="show this help and exit")
+        paths[path] = p
+        return p
+
+    write_errors = (
+        "ERR-FILE-INVALID (1) · ERR-INPUT-INVALID (1) · ERR-SCHEMA-VERSION (1)\n"
+        "  · ERR-FILE-MISSING (2) · ERR-IO (2) · ERR-PARSE (2) · ERR-FILE-TOO-LARGE (1)\n"
+        "  · ERR-USAGE (1) · ERR-INTERNAL (2)"
     )
+    p_set = command(
+        sub,
+        "set",
+        "set",
+        "create or replace a whole binding from a JSON document",
+        "Upsert the binding ID from an OUT-BINDING document (--json DOC, or --json - for stdin).\n"
+        "An unknown ID is appended last; a known ID is replaced in place. Comments in the\n"
+        "document are set at their anchors; null or omitted means absent.",
+        "ERR-USAGE for invalid/non-object JSON or a contradicting id/kind · " + write_errors,
+    )
+    p_set.add_argument("id", metavar="ID", help="contract ID")
+    p_set.add_argument("--json", metavar="DOC", required=True, help="OUT-BINDING document, or -")
+    _add_global_options(p_set, mirrored=True)
+
+    p_add_loc = command(
+        sub,
+        "add-locator",
+        "add-locator",
+        "append a locator to a binding",
+        "Append one locator (path, optional symbol, role and comment) to the binding ID.",
+        "ERR-NOT-FOUND (1) · ERR-DUPLICATE (1) · " + write_errors,
+    )
+    p_add_loc.add_argument("id", metavar="ID", help="contract ID")
+    p_add_loc.add_argument("--path", metavar="P", required=True, help="repository-relative path")
+    p_add_loc.add_argument("--symbol", metavar="S", help="symbol inside the path")
+    p_add_loc.add_argument("--role", choices=("producer", "consumer"), help="wire role")
+    p_add_loc.add_argument("--comment", metavar="TEXT", help="comment at the locator")
+    _add_global_options(p_add_loc, mirrored=True)
+
+    p_add_field = command(
+        sub,
+        "add-field",
+        "add-field",
+        "set a field locator on a binding",
+        "Set the field NAME of the binding ID (a present NAME is replaced in place, keeping\n"
+        "its comment unless --comment is given; a new NAME is appended last).",
+        "ERR-NOT-FOUND (1) · " + write_errors,
+    )
+    p_add_field.add_argument("id", metavar="ID", help="contract ID")
+    p_add_field.add_argument("name", metavar="NAME", help="field name")
+    p_add_field.add_argument("--path", metavar="P", required=True, help="repository-relative path")
+    p_add_field.add_argument("--symbol", metavar="S", help="symbol inside the path")
+    p_add_field.add_argument("--comment", metavar="TEXT", help="comment at the field")
+    _add_global_options(p_add_field, mirrored=True)
+
+    p_add_assertion = command(
+        sub,
+        "add-assertion",
+        "add-assertion",
+        "append an assertion to a binding",
+        "Append one assertion: bound (--path --symbol --run) or owed (--owed), optionally with\n"
+        "--arm and --comment. A partial shape or both shapes at once is ERR-USAGE.",
+        "ERR-NOT-FOUND (1) · ERR-DUPLICATE (1) · " + write_errors,
+    )
+    p_add_assertion.add_argument("id", metavar="ID", help="contract ID")
+    p_add_assertion.add_argument("--path", metavar="P", help="test file path (bound shape)")
+    p_add_assertion.add_argument("--symbol", metavar="S", help="test symbol (bound shape)")
+    p_add_assertion.add_argument("--run", metavar="R", help="run selector (bound shape)")
+    p_add_assertion.add_argument("--owed", metavar="REF", help="owed reference (owed shape)")
+    p_add_assertion.add_argument("--arm", metavar="A", help="arm label")
+    p_add_assertion.add_argument("--comment", metavar="TEXT", help="comment at the assertion")
+    _add_global_options(p_add_assertion, mirrored=True)
+
+    p_remove = command(
+        sub,
+        "remove",
+        "remove",
+        "remove a binding, or one locator, field or assertion inside it",
+        "Remove the whole binding ID (with its comments) or, with exactly one selector, one\n"
+        "entry: --locator --path P [--symbol S] · --field NAME · --assertion (--path P\n"
+        "--symbol S | --owed REF) [--arm A]. Removing the last locator leaves the stub.",
+        "ERR-NOT-FOUND (1) · " + write_errors,
+    )
+    p_remove.add_argument("id", metavar="ID", help="contract ID")
+    p_remove.add_argument(
+        "--locator", action="store_true", help="select a locator by --path/--symbol"
+    )
+    p_remove.add_argument("--field", metavar="NAME", help="select the field NAME")
+    p_remove.add_argument("--assertion", action="store_true", help="select an assertion by shape")
+    p_remove.add_argument("--path", metavar="P", help="path of the selected entry")
+    p_remove.add_argument("--symbol", metavar="S", help="symbol of the selected entry")
+    p_remove.add_argument("--owed", metavar="REF", help="owed reference of the selected assertion")
+    p_remove.add_argument("--arm", metavar="A", help="arm of the selected assertion")
+    _add_global_options(p_remove, mirrored=True)
+
+    p_cov = command(
+        sub,
+        "coverage",
+        "coverage",
+        "read or edit the coverage declaration (get · fully-bound · curated)",
+        "The coverage block: `get` prints it; `fully-bound add|remove KIND` and\n"
+        "`curated set|unset KIND` edit it. A group without its subcommand is ERR-USAGE.",
+        "ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    _add_global_options(p_cov, mirrored=True)
+    cov_sub = p_cov.add_subparsers(
+        dest="coverage_command", metavar="<subcommand>", parser_class=_Parser
+    )
+    cov_sub.required = True
+    p_cov_get = command(
+        cov_sub,
+        "get",
+        "coverage get",
+        "print the coverage block",
+        "Print OUT-COVERAGE (empty list / empty object when the file has no coverage block).",
+        "ERR-SCHEMA-VERSION (1) · ERR-FILE-MISSING (2) · ERR-IO (2) · ERR-PARSE (2)\n"
+        "  · ERR-FILE-TOO-LARGE (1) · ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    _add_global_options(p_cov_get, mirrored=True)
+    p_fb = command(
+        cov_sub,
+        "fully-bound",
+        "coverage fully-bound",
+        "add or remove a kind under fully_bound",
+        "`add KIND` appends last (ERR-DUPLICATE if listed; ERR-INPUT-INVALID if curated);\n"
+        "`remove KIND` drops it (ERR-NOT-FOUND if absent); the last one drops the key.",
+        "ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    _add_global_options(p_fb, mirrored=True)
+    fb_sub = p_fb.add_subparsers(dest="action", metavar="<action>", parser_class=_Parser)
+    fb_sub.required = True
+    for action in ("add", "remove"):
+        p_action = command(
+            fb_sub,
+            action,
+            f"coverage fully-bound {action}",
+            f"{action} KIND",
+            f"{action.capitalize()} KIND in fully_bound.",
+            ("ERR-DUPLICATE (1) · " if action == "add" else "ERR-NOT-FOUND (1) · ") + write_errors,
+        )
+        p_action.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
+        _add_global_options(p_action, mirrored=True)
+    p_cur = command(
+        cov_sub,
+        "curated",
+        "coverage curated",
+        "set or unset a curated entry with its reason",
+        "`set KIND --reason TEXT [--comment TEXT]` replaces in place or appends last;\n"
+        "`unset KIND` drops the entry with its comment (ERR-NOT-FOUND if absent).",
+        "ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    _add_global_options(p_cur, mirrored=True)
+    cur_sub = p_cur.add_subparsers(dest="action", metavar="<action>", parser_class=_Parser)
+    cur_sub.required = True
+    p_cur_set = command(
+        cur_sub,
+        "set",
+        "coverage curated set",
+        "set KIND --reason TEXT",
+        "Set the curated entry KIND with its reason; an existing entry keeps its comment\n"
+        "unless --comment is given. ERR-INPUT-INVALID if KIND is fully bound.",
+        write_errors,
+    )
+    p_cur_set.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
+    p_cur_set.add_argument("--reason", metavar="TEXT", required=True, help="why it is curated")
+    p_cur_set.add_argument("--comment", metavar="TEXT", help="comment at the entry")
+    _add_global_options(p_cur_set, mirrored=True)
+    p_cur_unset = command(
+        cur_sub,
+        "unset",
+        "coverage curated unset",
+        "unset KIND",
+        "Drop the curated entry KIND together with its comment.",
+        "ERR-NOT-FOUND (1) · " + write_errors,
+    )
+    p_cur_unset.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
+    _add_global_options(p_cur_unset, mirrored=True)
+
+    parser.subparsers_by_name.update(paths)
     return parser
 
 
@@ -285,24 +487,80 @@ def parse(parser: _Parser, args: Sequence[str]) -> argparse.Namespace:
     """parse_args whose unrecognised-argument error names the deepest level reached, plus the
     command-line grammar checks argparse cannot express (IDs and kinds)."""
     ns, extras = parser.parse_known_args(args)
-    deepest = parser.subparsers_by_name.get(ns.command, parser)
+    deepest = _deepest(parser, ns)
+
+    def usage(message: str) -> UsageError:
+        return UsageError(message, deepest.format_help(), deepest.path)
+
     if extras:
-        raise UsageError(
-            f"unrecognized arguments: {' '.join(extras)}", deepest.format_help(), deepest.path
-        )
-    for contract_id in getattr(ns, "ids", []):
+        raise usage(f"unrecognized arguments: {' '.join(extras)}")
+    ids = getattr(ns, "ids", None) or ([ns.id] if getattr(ns, "id", None) else [])
+    for contract_id in ids:
         if not is_contract_id(contract_id):
-            raise UsageError(
-                f"`{contract_id}` is not a contract ID", deepest.format_help(), deepest.path
-            )
-    for kind in getattr(ns, "kind", []):
+            raise usage(f"`{contract_id}` is not a contract ID")
+    kinds = getattr(ns, "kind", None)
+    for kind in [kinds] if isinstance(kinds, str) else kinds or []:
         if not _KIND_RE.match(kind):
-            raise UsageError(
-                f"`{kind}` is not a kind (expected {KIND_PATTERN})",
-                deepest.format_help(),
-                deepest.path,
-            )
+            raise usage(f"`{kind}` is not a kind (expected {KIND_PATTERN})")
+    if ns.command == "add-assertion":
+        _check_assertion_shape(ns, usage, run_applies=True)
+    elif ns.command == "remove":
+        selectors = [ns.locator, ns.field is not None, ns.assertion]
+        if sum(selectors) > 1:
+            raise usage("--locator, --field and --assertion are mutually exclusive")
+        if ns.locator and ns.path is None:
+            raise usage("--locator needs --path")
+        if ns.assertion:
+            _check_assertion_shape(ns, usage, run_applies=False)
+        if not any(selectors) and any(v is not None for v in (ns.path, ns.symbol, ns.owed, ns.arm)):
+            raise usage("--path/--symbol/--owed/--arm need --locator or --assertion")
+        if ns.field is not None and any(
+            v is not None for v in (ns.path, ns.symbol, ns.owed, ns.arm)
+        ):
+            raise usage("--field takes no --path/--symbol/--owed/--arm")
+    elif ns.command == "set":
+        ns.document = _json_document(ns, usage)
     return ns
+
+
+def _deepest(parser: _Parser, ns: argparse.Namespace) -> _Parser:
+    parts = [ns.command, getattr(ns, "coverage_command", None), getattr(ns, "action", None)]
+    path = ""
+    deepest = parser
+    for part in parts:
+        if not part:
+            break
+        path = f"{path} {part}".strip()
+        deepest = parser.subparsers_by_name.get(path, deepest)
+    return deepest
+
+
+def _check_assertion_shape(
+    ns: argparse.Namespace, usage: Callable[[str], UsageError], *, run_applies: bool
+) -> None:
+    bound = [ns.path, ns.symbol] + ([ns.run] if run_applies else [])
+    if ns.owed is not None and any(v is not None for v in bound):
+        raise usage("an assertion is bound (--path --symbol --run) or owed (--owed), not both")
+    if any(v is not None for v in bound) and not all(v is not None for v in bound):
+        names = "--path --symbol --run" if run_applies else "--path --symbol"
+        raise usage(f"a bound assertion needs all of {names}")
+    if ns.owed is None and not any(v is not None for v in bound):
+        raise usage("an assertion needs its bound shape or --owed")
+
+
+def _json_document(ns: argparse.Namespace, usage: Callable[[str], UsageError]) -> dict[str, Any]:
+    text = sys.stdin.read() if ns.json == "-" else ns.json
+    try:
+        doc = json.loads(text)
+    except ValueError as exc:
+        raise usage(f"--json is not valid JSON: {exc}") from exc
+    if not isinstance(doc, dict):
+        raise usage("--json must be a JSON object (OUT-BINDING)")
+    if "id" in doc and doc["id"] is not None and doc["id"] != ns.id:
+        raise usage(f"document id `{doc['id']}` contradicts the positional ID `{ns.id}`")
+    if "kind" in doc and doc["kind"] is not None and doc["kind"] != kind_of(ns.id):
+        raise usage(f"document kind `{doc['kind']}` contradicts the ID's kind `{kind_of(ns.id)}`")
+    return doc
 
 
 def _write_stdout(text: str) -> None:
@@ -369,6 +627,115 @@ class _Run:
         m = self._load(gate_schema_version=True)
         return cmd_query.list_bindings(m, self.ns.kind, full=self.ns.full)
 
+    # -- writes: PATTERN-VALIDATE-AROUND-WRITE -----------------------------------------
+
+    def _write(self, mutate: Callable[[Map], dict[str, Any]]) -> dict[str, Any]:
+        m = self._load(gate_schema_version=True)
+        if _exit_for(self.pre):
+            raise FileInvalidError([f for f in self.pre if f.severity == "error"])
+        result = mutate(m)
+        self.post = validator.finalize(
+            validator.validate(m, check_paths=self.ns.check_paths, root=os.getcwd())
+        )
+        if _exit_for(self.post):  # pragma: no cover — valid model + valid input; a tool bug
+            raise InternalError(
+                "post-validation failed",
+                "; ".join(f.code for f in self.post if f.severity == "error"),
+            )
+        emitter.write(m, loader.resolve_target(self.ns.file))
+        return result
+
+    def _input(self, value: Any, node: str, **where: str) -> Any:
+        """validate_input, then the converted object; any error is ERR-INPUT-INVALID."""
+        findings = validator.finalize(
+            validator.validate_input(
+                value, node, check_paths=self.ns.check_paths, root=os.getcwd(), **where
+            )
+        )
+        if _exit_for(findings):
+            raise InputInvalidError(findings)
+        obj, _ = model.from_input(value, node, **where)
+        return obj
+
+    def set(self) -> dict[str, Any]:
+        b = self._input(self.ns.document, "binding", binding_id=self.ns.id)
+        return self._write(lambda m: cmd_set.result(cmd_set.apply(m, b)))
+
+    def add_locator(self) -> dict[str, Any]:
+        value = {
+            "path": self.ns.path,
+            "symbol": self.ns.symbol,
+            "role": self.ns.role,
+            "comment": self.ns.comment,
+        }
+        loc = self._input(value, "locator", binding_id=self.ns.id)
+        return self._write(lambda m: cmd_set.result(cmd_add.locator(m, self.ns.id, loc)))
+
+    def add_field(self) -> dict[str, Any]:
+        value = {"path": self.ns.path, "symbol": self.ns.symbol, "comment": self.ns.comment}
+        fl = self._input(value, "field_locator", binding_id=self.ns.id, name=self.ns.name)
+        return self._write(
+            lambda m: cmd_set.result(
+                cmd_add.field(
+                    m, self.ns.id, self.ns.name, fl, comment_given=self.ns.comment is not None
+                )
+            )
+        )
+
+    def add_assertion(self) -> dict[str, Any]:
+        value = {
+            "path": self.ns.path,
+            "symbol": self.ns.symbol,
+            "run": self.ns.run,
+            "arm": self.ns.arm,
+            "owed": self.ns.owed,
+            "comment": self.ns.comment,
+        }
+        a = self._input(value, "assertion", binding_id=self.ns.id)
+        return self._write(lambda m: cmd_set.result(cmd_add.assertion(m, self.ns.id, a)))
+
+    def remove(self) -> dict[str, Any]:
+        ns = self.ns
+        if ns.locator:
+            return self._write(
+                lambda m: cmd_set.result(cmd_remove.locator(m, ns.id, ns.path, ns.symbol))
+            )
+        if ns.field is not None:
+            return self._write(lambda m: cmd_set.result(cmd_remove.field(m, ns.id, ns.field)))
+        if ns.assertion:
+            identity = (
+                ("owed", ns.owed, ns.arm)
+                if ns.owed is not None
+                else ("bound", ns.path, ns.symbol, ns.arm)
+            )
+            return self._write(lambda m: cmd_set.result(cmd_remove.assertion(m, ns.id, identity)))
+        return self._write(lambda m: cmd_remove.binding(m, ns.id))
+
+    def coverage(self) -> dict[str, Any]:
+        ns = self.ns
+        if ns.coverage_command == "get":
+            return cmd_coverage.result(self._load(gate_schema_version=True))
+        if ns.coverage_command == "fully-bound":
+            if ns.action == "add":
+                return self._write(
+                    lambda m: cmd_coverage.result(cmd_coverage.fully_bound_add(m, ns.kind))
+                )
+            return self._write(
+                lambda m: cmd_coverage.result(cmd_coverage.fully_bound_remove(m, ns.kind))
+            )
+        if ns.action == "set":
+            entry = self._input(
+                {"reason": ns.reason, "comment": ns.comment}, "curated", kind=ns.kind
+            )
+            return self._write(
+                lambda m: cmd_coverage.result(
+                    cmd_coverage.curated_set(
+                        m, ns.kind, entry, comment_given=ns.comment is not None
+                    )
+                )
+            )
+        return self._write(lambda m: cmd_coverage.result(cmd_coverage.curated_unset(m, ns.kind)))
+
 
 def main(argv: Sequence[str] | None = None) -> int:
     """The `lspd` console script. Returns the exit code; prints exactly one document."""
@@ -388,7 +755,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 0
         run = _Run(ns)
-        result = getattr(run, command)()
+        result = getattr(run, command.replace("-", "_"))()
         _write_stdout(
             render.render(
                 command,

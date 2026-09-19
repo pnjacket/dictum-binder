@@ -227,6 +227,13 @@ class SecurityForcings(unittest.TestCase):
             ):
                 run_cli(["--check-paths", "validate"], cwd=tmp)
             run_cli(["--file", "second.yaml", "init"], cwd=tmp)
+            copy_fixture("canonical.yaml", tmp)
+            run_cli(["add-locator", "ROUTE-HOME", "--path", "web/x.ts"], cwd=tmp)
+            run_cli(["set", "CAP-X", "--json", '{"locators": []}'], cwd=tmp)
+            run_cli(["remove", "SCREEN-STUB"], cwd=tmp)
+            run_cli(["coverage", "curated", "set", "CAP", "--reason", "r"], cwd=tmp)
+            run_cli(["get", "ROUTE-HOME"], cwd=tmp)
+            run_cli(["list"], cwd=tmp)
             allowed_prefixes = (
                 os.path.join(real, "bindings.yaml"),
                 os.path.join(real, "second.yaml"),
@@ -248,6 +255,15 @@ class SecurityForcings(unittest.TestCase):
             self.assertEqual(
                 read_bytes(os.path.join(tmp, "real.yaml")), b"schema_version: 1\n\nbindings: {}\n"
             )
+            write = run_cli(
+                ["--file", "a", "set", "ENTITY-A", "--json", '{"locators": []}'], cwd=tmp
+            )
+            self.assertEqual(write.code, 0, write.stdout)
+            self.assertTrue(
+                os.path.islink(os.path.join(tmp, "a")) and os.path.islink(os.path.join(tmp, "b"))
+            )
+            self.assertIn(b"ENTITY-A", read_bytes(os.path.join(tmp, "real.yaml")))
+            self.assertEqual(sorted(os.listdir(tmp)), ["a", "b", "real.yaml"])
 
     def test_sec_fail_closed_no_traceback(self) -> None:
         """DICT: SEC-FAIL-CLOSED"""
@@ -271,16 +287,14 @@ class SecurityForcings(unittest.TestCase):
     def test_sec_trust_boundary_mode_bits(self) -> None:
         """DICT: SEC-TRUST-BOUNDARY.
 
-        A 0600 target stays 0600 across a write (the emitter unit test covers replace).
+        A 0600 target stays 0600 across a write.
         """
         with TempDir() as tmp:
             run_cli(["init"], cwd=tmp)
             target = os.path.join(tmp, "bindings.yaml")
             os.chmod(target, 0o600)
-            from lspd import emitter, loader
-
-            m, _ = loader.load(target)
-            emitter.write(m, target)
+            run = run_cli(["set", "ENTITY-A", "--json", '{"locators": []}'], cwd=tmp)
+            self.assertEqual(run.code, 0, run.stdout)
             self.assertEqual(os.stat(target).st_mode & 0o777, 0o600)
 
 
