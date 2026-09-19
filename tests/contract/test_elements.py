@@ -192,7 +192,14 @@ class HelpAndVersion(unittest.TestCase):
     """DICT: CLI-HELP / CLI-VERSION"""
 
     def test_help_at_every_level_is_plain_text(self) -> None:
-        for argv in (["--help"], ["init", "--help"], ["validate", "-h"], ["schema", "--help"]):
+        for argv in (
+            ["--help"],
+            ["init", "--help"],
+            ["validate", "-h"],
+            ["schema", "--help"],
+            ["get", "--help"],
+            ["list", "--help"],
+        ):
             with self.subTest(argv=argv):
                 run = run_cli(argv)
                 self.assertEqual(run.code, 0)

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 import traceback
 from collections.abc import Sequence
@@ -20,9 +21,16 @@ from typing import Any
 
 from lspd import emitter, loader, render, schema, validator
 from lspd.commands import init as cmd_init
+from lspd.commands import query as cmd_query
 from lspd.commands import validate as cmd_validate
-from lspd.errors import FileExistsAlreadyError, InternalError, LspdError, UsageError
-from lspd.model import Finding
+from lspd.errors import (
+    FileExistsAlreadyError,
+    InternalError,
+    LspdError,
+    SchemaVersionError,
+    UsageError,
+)
+from lspd.model import KIND_PATTERN, Finding, Map, is_contract_id
 
 DISTRIBUTION = "dictum-binder"
 HELP_WIDTH = 100
@@ -215,18 +223,85 @@ def build_parser() -> _Parser:
         help="print the lowercase SHA-256 of the schema bytes instead",
     )
     _add_global_options(p_schema, mirrored=True)
-    parser.subparsers_by_name.update({"init": p_init, "validate": p_validate, "schema": p_schema})
+    p_get = sub.add_parser(
+        "get",
+        help="one or more bindings by ID, in argument order",
+        description=(
+            "Print the requested bindings (OUT-BINDING, comments included) in argument order.\n"
+            "The first unknown ID is ERR-NOT-FOUND and nothing is returned."
+        ),
+        epilog=(
+            f"{_EXIT_TEXT}\n"
+            "errors: ERR-NOT-FOUND (1) · ERR-SCHEMA-VERSION (1) · ERR-FILE-MISSING (2)\n"
+            "  · ERR-IO (2) · ERR-PARSE (2) · ERR-FILE-TOO-LARGE (1) · ERR-USAGE (1)\n"
+            "  · ERR-INTERNAL (2)"
+        ),
+        formatter_class=_Formatter,
+        add_help=False,
+    )
+    p_get.path = "get"
+    p_get.add_argument("-h", "--help", action=_HelpAction, help="show this help and exit")
+    p_get.add_argument("ids", metavar="ID", nargs="+", help="contract ID (repeats return copies)")
+    _add_global_options(p_get, mirrored=True)
+
+    p_list = sub.add_parser(
+        "list",
+        help="binding summaries in file order, optionally by kind; --full for whole bindings",
+        description=(
+            "Print OUT-BINDING-SUMMARY rows in file order, or whole bindings with --full.\n"
+            "No --kind means every binding; repeated --kind form a union; no match is an empty\n"
+            "list, exit 0."
+        ),
+        epilog=(
+            f"{_EXIT_TEXT}\n"
+            "errors: ERR-SCHEMA-VERSION (1) · ERR-FILE-MISSING (2) · ERR-IO (2) · ERR-PARSE (2)\n"
+            "  · ERR-FILE-TOO-LARGE (1) · ERR-USAGE (1) · ERR-INTERNAL (2)"
+        ),
+        formatter_class=_Formatter,
+        add_help=False,
+    )
+    p_list.path = "list"
+    p_list.add_argument("-h", "--help", action=_HelpAction, help="show this help and exit")
+    p_list.add_argument(
+        "--kind",
+        metavar="KIND",
+        action="append",
+        default=[],
+        help="keep bindings of this kind ([A-Z][A-Z0-9]+); repeatable, union",
+    )
+    p_list.add_argument("--full", action="store_true", help="whole bindings instead of summaries")
+    _add_global_options(p_list, mirrored=True)
+
+    parser.subparsers_by_name.update(
+        {"init": p_init, "validate": p_validate, "schema": p_schema, "get": p_get, "list": p_list}
+    )
     return parser
 
 
+_KIND_RE = re.compile(KIND_PATTERN)
+
+
 def parse(parser: _Parser, args: Sequence[str]) -> argparse.Namespace:
-    """parse_args whose unrecognised-argument error names the deepest level reached."""
+    """parse_args whose unrecognised-argument error names the deepest level reached, plus the
+    command-line grammar checks argparse cannot express (IDs and kinds)."""
     ns, extras = parser.parse_known_args(args)
+    deepest = parser.subparsers_by_name.get(ns.command, parser)
     if extras:
-        deepest = parser.subparsers_by_name.get(ns.command, parser)
         raise UsageError(
             f"unrecognized arguments: {' '.join(extras)}", deepest.format_help(), deepest.path
         )
+    for contract_id in getattr(ns, "ids", []):
+        if not is_contract_id(contract_id):
+            raise UsageError(
+                f"`{contract_id}` is not a contract ID", deepest.format_help(), deepest.path
+            )
+    for kind in getattr(ns, "kind", []):
+        if not _KIND_RE.match(kind):
+            raise UsageError(
+                f"`{kind}` is not a kind (expected {KIND_PATTERN})",
+                deepest.format_help(),
+                deepest.path,
+            )
     return ns
 
 
@@ -271,12 +346,28 @@ class _Run:
         emitter.write(m, target, create=True)
         return cmd_init.result(target)
 
-    def validate(self) -> dict[str, Any]:
+    def _load(self, *, gate_schema_version: bool) -> Map:
+        """Loader + pre-validation. Every reader but `validate` refuses another schema major
+        before any other work (ERR-SCHEMA-VERSION)."""
         m, loaded = loader.load(self.ns.file, size_limit=not self.ns.no_size_limit)
+        if gate_schema_version and m.schema_version != schema.SCHEMA_VERSION:
+            self.pre = validator.finalize(loaded)
+            raise SchemaVersionError(m.schema_version, schema.SCHEMA_VERSION)
         self.pre = validator.finalize(
             loaded + validator.validate(m, check_paths=self.ns.check_paths, root=os.getcwd())
         )
+        return m
+
+    def validate(self) -> dict[str, Any]:
+        self._load(gate_schema_version=False)
         return cmd_validate.result(self.pre, paths_checked=self.ns.check_paths)
+
+    def get(self) -> dict[str, Any]:
+        return cmd_query.get(self._load(gate_schema_version=True), self.ns.ids)
+
+    def list(self) -> dict[str, Any]:
+        m = self._load(gate_schema_version=True)
+        return cmd_query.list_bindings(m, self.ns.kind, full=self.ns.full)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -297,7 +388,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 0
         run = _Run(ns)
-        result = run.init() if command == "init" else run.validate()
+        result = getattr(run, command)()
         _write_stdout(
             render.render(
                 command,

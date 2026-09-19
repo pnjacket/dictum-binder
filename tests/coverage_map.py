@@ -10,6 +10,7 @@ from __future__ import annotations
 INV = "tests.unit.test_invariants.WriteGatedInvariants"
 MS = "tests.unit.test_model_schema"
 EL = "tests.unit.test_emitter_loader"
+Q = "tests.contract.test_query"
 VR = "tests.unit.test_validator_rules"
 ER = "tests.unit.test_errors_render"
 GOLD = "tests.golden.test_canonical.Canonical"
@@ -32,7 +33,7 @@ MAP: dict[str, list[str] | str] = {
     "CAP-SCHEMA": [f"{E2E}.test_cap_schema"],
     "CAP-HELP": [f"{E2E}.test_cap_help"],
     # capabilities — later slices
-    "CAP-QUERY": [],
+    "CAP-QUERY": [f"{E2E}.test_cap_query"],
     "CAP-SET": [],
     "CAP-ADD": [],
     "CAP-REMOVE": [],
@@ -45,7 +46,10 @@ MAP: dict[str, list[str] | str] = {
         f"{GOLD}.test_emit_is_a_fixpoint_for_every_loadable_fixture",
     ],
     "SUCCESS-COMPLETE-OPS": [],
-    "SUCCESS-BOUNDED-OUTPUT": [],
+    "SUCCESS-BOUNDED-OUTPUT": [
+        f"{Q}.Get.test_bounded_output",
+        f"{Q}.List.test_kind_filter_union_and_empty_result",
+    ],
     "SUCCESS-CROSS-MODEL": "n/a — not automated: an operator observation recorded per trial "
     "session",
     "SUCCESS-SCHEMA-MATCH": [
@@ -211,8 +215,18 @@ MAP: dict[str, list[str] | str] = {
     "CLI-VERSION": [f"{CEL}.HelpAndVersion.test_version"],
     # CLI elements — later slices
     "CLI-FORMAT": [],
-    "CLI-GET": [],
-    "CLI-LIST": [],
+    "CLI-GET": [
+        f"{Q}.Get.test_full_projection_with_comments",
+        f"{Q}.Get.test_argument_order_and_repeats",
+        f"{Q}.Get.test_error_level_findings_exit_1_with_the_result",
+        f"{Q}.Get.test_bad_id_on_the_command_line_is_usage",
+    ],
+    "CLI-LIST": [
+        f"{Q}.List.test_summaries_in_file_order",
+        f"{Q}.List.test_kind_filter_union_and_empty_result",
+        f"{Q}.List.test_full",
+        f"{Q}.List.test_empty_map",
+    ],
     "CLI-SET": [],
     "CLI-ADD-LOCATOR": [],
     "CLI-ADD-FIELD": [],
@@ -237,11 +251,20 @@ MAP: dict[str, list[str] | str] = {
     "OUT-INIT-RESULT": [f"{CEL}.Init.test_creates_the_canonical_empty_map"],
     "OUT-SCHEMA": [f"{CEL}.Schema.test_raw_schema_and_checksum"],
     # output documents — later slices
-    "OUT-BINDING": [],
-    "OUT-LOCATOR": [],
-    "OUT-FIELD-LOCATOR": [],
-    "OUT-ASSERTION": [],
-    "OUT-BINDING-SUMMARY": [],
+    "OUT-BINDING": [
+        f"{Q}.Get.test_full_projection_with_comments",
+        f"{Q}.Get.test_stub_and_absent_optionals_are_null",
+    ],
+    "OUT-LOCATOR": [f"{Q}.Get.test_full_projection_with_comments"],
+    "OUT-FIELD-LOCATOR": [f"{Q}.Get.test_full_projection_with_comments"],
+    "OUT-ASSERTION": [
+        f"{Q}.Get.test_full_projection_with_comments",
+        f"{Q}.Get.test_bound_assertion_and_wire_projection",
+    ],
+    "OUT-BINDING-SUMMARY": [
+        f"{Q}.List.test_summaries_in_file_order",
+        f"{Q}.List.test_has_comment_sees_every_anchor",
+    ],
     "OUT-COVERAGE": [],
     "OUT-COMMENT": [],
     "OUT-FORMAT-RESULT": [],
@@ -258,7 +281,10 @@ MAP: dict[str, list[str] | str] = {
     "ERR-FILE-TOO-LARGE": [f"{CEL}.Validate.test_size_cap_and_lift"],
     "ERR-INTERNAL": [f"{CERR}.ErrorCatalog.test_err_internal_from_an_unexpected_exception"],
     # errors — later slices
-    "ERR-SCHEMA-VERSION": [],
+    "ERR-SCHEMA-VERSION": [
+        f"{Q}.SchemaVersionGate.test_get_and_list_refuse_another_major",
+        f"{Q}.SchemaVersionGate.test_missing_schema_version_is_the_same_error",
+    ],
     "ERR-FILE-INVALID": [],
     "ERR-NOT-FOUND": [],
     "ERR-DUPLICATE": [],

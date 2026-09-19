@@ -61,6 +61,29 @@ class Journeys(unittest.TestCase):
             json.loads(human.stdout)
         self.assertEqual(lspd(["validate", "--file", "nope.yaml"], self.tmp).code, 2)
 
+    def test_cap_query(self) -> None:
+        """DICT: CAP-QUERY"""
+        shutil.copyfile(
+            os.path.join(FIXTURES, "carriers.yaml"), os.path.join(self.tmp, "bindings.yaml")
+        )
+        got = lspd(["get", "ENTITY-A"], self.tmp)
+        self.assertEqual(got.code, 0, got.stdout)
+        (b,) = got.envelope["result"]["bindings"]
+        self.assertEqual((b["id"], b["comment"]), ("ENTITY-A", "binding block\nsecond line"))
+        listed = lspd(["list"], self.tmp)
+        self.assertEqual(
+            [r["id"] for r in listed.envelope["result"]["bindings"]], ["ENTITY-A", "ENTITY-B"]
+        )
+        self.assertEqual(lspd(["list", "--kind", "ENTITY"], self.tmp).code, 0)
+        full = lspd(["list", "--full"], self.tmp)
+        self.assertIn("locators", full.envelope["result"]["bindings"][0])
+        missing = lspd(["get", "ENTITY-NOPE"], self.tmp)
+        self.assertEqual((missing.code, missing.envelope["error"]["code"]), (1, "ERR-NOT-FOUND"))
+        with open(os.path.join(self.tmp, "bindings.yaml"), "rb") as handle:
+            self.assertEqual(
+                handle.read(), open(os.path.join(FIXTURES, "carriers.yaml"), "rb").read()
+            )
+
     def test_cap_schema(self) -> None:
         """DICT: CAP-SCHEMA"""
         raw = lspd(["schema"], self.tmp)
@@ -73,7 +96,14 @@ class Journeys(unittest.TestCase):
 
     def test_cap_help(self) -> None:
         """DICT: CAP-HELP"""
-        for argv in (["--help"], ["init", "--help"], ["validate", "--help"], ["schema", "--help"]):
+        for argv in (
+            ["--help"],
+            ["init", "--help"],
+            ["validate", "--help"],
+            ["schema", "--help"],
+            ["get", "--help"],
+            ["list", "--help"],
+        ):
             run = lspd(argv, self.tmp)
             self.assertEqual(run.code, 0)
             self.assertTrue(run.stdout.startswith("usage: lspd"))
@@ -98,9 +128,11 @@ class MetaInvocations(unittest.TestCase):
             )
             for argv in argvs
         }
-        for element in (("init",), ("validate",), ("schema",)):
+        for element in (("init",), ("validate",), ("schema",), ("get", "ENTITY-A"), ("list",)):
             self.assertIn(element, positional, element)
         self.assertTrue(any(argv == ["schema", "--checksum"] for argv in argvs))
+        self.assertTrue(any(argv[:2] == ["list", "--kind"] for argv in argvs))
+        self.assertTrue(any(argv == ["list", "--full"] for argv in argvs))
         self.assertTrue(any(argv == ["--help"] for argv in argvs))
         self.assertTrue(any(argv == ["--version"] for argv in argvs))
         flat = {a for argv in argvs for a in argv}

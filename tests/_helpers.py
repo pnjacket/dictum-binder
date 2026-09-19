@@ -71,3 +71,22 @@ def copy_fixture(name: str, into: str, as_name: str = "bindings.yaml") -> str:
     target = os.path.join(into, as_name)
     shutil.copyfile(fixture(name), target)
     return target
+
+
+KINDS = ("ENTITY", "INV", "API", "ROUTE", "CAP", "SCREEN", "COMPONENT", "POLICY", "SEC", "ADR")
+
+
+def many_bindings(count: int = 50) -> bytes:
+    """A deterministic canonical map with ``count`` bindings across ten kinds (bounded-output
+    tests, Quality: generated, never committed)."""
+    out = ["schema_version: 1", "", "bindings:", ""]
+    for n in range(count):
+        kind = KINDS[n % len(KINDS)]
+        out += [
+            f"  {kind}-GEN-N{n:03d}:",
+            "    locators:",
+            f"      - {{ path: src/gen/{kind.lower()}_{n:03d}.py, symbol: Gen{n:03d} }}",
+            "",
+        ]
+    out[-1] = ""
+    return ("\n".join(out)).rstrip("\n").encode("utf-8") + b"\n"
