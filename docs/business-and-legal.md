@@ -7,7 +7,7 @@ trigger: distributed (open source), plus an ip-trademark constraint (the Dictum 
 in-scope-subaspects: [eula-tos, ip-trademark-constraints]
 current-rung: contract-grade
 status: published
-version: 1.2.0
+version: 1.2.1
 ---
 
 # Business & Legal — dictum-binder
@@ -79,7 +79,7 @@ The terms of use are the `LICENSE` file itself (EULA/ToS, prose-shaped; Contract
 
 ## Acceptance criteria
 
-1. A fitness test asserts `LEGAL-DICTUM-NAMING` clauses (1), (2), and (4) textually over `README.md`, the `--help` output of `lspd`, and `LICENSE`.
+1. A fitness test asserts `LEGAL-DICTUM-NAMING` clauses (1), (2), and (4) textually over `README.md`, the `--help` output of `dbind`, and `LICENSE`.
 2. Clause (3) is checked by the same test: no file under `README.md`, `docs/`, `src/`, `tests/`, or `tools/` contains a paragraph longer than two sentences that also appears in `dictum/STANDARD.md` or `dictum/concerns/*.md`; `dictum/`, `.claude/`, and `CLAUDE.md` are not scanned.
 3. The manifest's `out_of_scope_subaspects` for this concern equals exactly the six keys listed in Non-goals, each with its `absent` justification (the Part 9 residual checklist, verified by the `doc-maturity-auditor`).
 

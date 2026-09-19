@@ -7,12 +7,12 @@ trigger: always
 in-scope-subaspects: [problem-motivation, target-users-personas, goals-success-criteria, capability-register, constraints-assumptions, risks]
 current-rung: contract-grade
 status: published
-version: 1.2.0
+version: 2.0.0
 ---
 
 # Product & Requirements — dictum-binder
 
-> One-line: a deterministic command-line tool, installed as `lspd`, that is the reader, writer, and validator of a Dictum project's `bindings.yaml`, so that the binding map has one canonical style and a predictable token cost regardless of which LLM or human touches it.
+> One-line: a deterministic command-line tool, installed as `dbind`, that is the reader, writer, and validator of a Dictum project's `bindings.yaml`, so that the binding map has one canonical style and a predictable token cost regardless of which LLM or human touches it.
 
 ## Purpose & Scope
 
@@ -32,7 +32,7 @@ Product-level non-goals (rules set by the operator, not derivable from the stand
 - **No backups, no undo.** The target file is version-controlled by its owner; history is not the tool's concern. `absent`.
 - **No upward search, no auto-create.** The file is `./bindings.yaml` or the `--file` argument; a missing file requires `init` first. `deferred` — reassess in a later version if needed.
 - **No multi-map discovery or merge view.** Follows from single-file. `deferred` with the same re-entry as above.
-- **No support for a moved template within one major version.** When a Dictum release changes the binding-map template, that is a **new major version of `lspd`**; a single binary supports exactly one template shape. `absent` by decision.
+- **No support for a moved template within one major version.** When a Dictum release changes the binding-map template, that is a **new major version of dictum-binder**; a single binary supports exactly one template shape. `absent` by decision.
 - **No silent defaults on ambiguous conditions.** Every ambiguous state (an empty file, an empty comment, a kind declared twice, a missing path under the check) is an error the LLM fixes explicitly; the tool never guesses. `absent` by decision.
 - **No concurrent-writer handling.** Two processes writing the same file at once are not coordinated; the last write wins. `absent`: single local user is the trait fact.
 
@@ -56,7 +56,7 @@ A deterministic tool that owns read, write, and validate removes the LLM from th
 
 ### Target users / personas
 
-Three personas, defined in Contracts (`PERSONA-AGENT`, `PERSONA-HUMAN`, `PERSONA-CONVERTER`). There is no fourth. The Dictum tooling itself is not a distinct persona: if the Dictum skills are ever changed to shell out to `lspd`, they act as `PERSONA-AGENT`.
+Three personas, defined in Contracts (`PERSONA-AGENT`, `PERSONA-HUMAN`, `PERSONA-CONVERTER`). There is no fourth. The Dictum tooling itself is not a distinct persona: if the Dictum skills are ever changed to shell out to `dbind`, they act as `PERSONA-AGENT`.
 
 ### Goals & success criteria
 
@@ -75,19 +75,19 @@ Twelve capabilities, all **in scope for v1** (the operator marked nothing out), 
 
 - JSON on stdout by default; `--human` selects the readable rendering. `--help` is plain text at every level.
 - Findings from the validation that runs before and after every write ride in the same envelope as the result.
-- **Exit codes partition by who can fix the failure.** `0` — clean, or warnings only. `1` — the **caller** can fix it — by changing the call, or by fixing the file (by hand when the file itself is invalid, since `lspd` refuses to write it): validation errors, an unknown ID or entry, a duplicate entry, rejected input, wrong arguments. `2` — the **environment** must change first: the file is missing (run `init`), unreadable, unparseable, or not writable. Every failure carries a distinct error code inside the envelope; the catalog is minted by Interfaces.
+- **Exit codes partition by who can fix the failure.** `0` — clean, or warnings only. `1` — the **caller** can fix it — by changing the call, or by fixing the file (by hand when the file itself is invalid, since dictum-binder refuses to write it): validation errors, an unknown ID or entry, a duplicate entry, rejected input, wrong arguments. `2` — the **environment** must change first: the file is missing (run `init`), unreadable, unparseable, or not writable. Every failure carries a distinct error code inside the envelope; the catalog is minted by Interfaces.
 - **Input that breaks the shape is rejected; input that only warns is written.** A binding supplied to `set` or `add-*` with an unknown key or a line number is refused (exit 1, nothing written). One that raises only a warning (a `role` without `wire`) is written and the warning reported — with one carve-out: input the Emitter would have to **normalise** to write (trailing whitespace or empty edge lines in comment text) is rejected as `ERR-INPUT-INVALID`, never silently cleaned, even though trailing whitespace found in a file is only a warning (an empty edge line in a file is error-level either way).
 
 ### Constraints & assumptions
 
 - **Language and runtime.** Python, minimum 3.11 (so the operator's Debian 12 machine runs it on the system interpreter; a venv is used regardless). Supported platforms are whatever Python 3.11+ supports; none is targeted specifically.
 - **Licence.** MIT. **Every declared dependency — runtime, transitive, development, and test — must itself be MIT** (Governance's inbound policy); the interpreter, pip, and the build backend are environment infrastructure outside the rule. ruamel.yaml (MIT, zero dependencies) is the only runtime dependency, chosen for comment fidelity; the toolchain is the standard library plus ruff and pyrefly.
-- **Distribution.** A GitHub repository that users clone and install into a user-space bin; binary name `lspd`. Private until the first release, public at the first release. Ships alongside Dictum v1.3.0 (pending on Dictum main at scaffold time). `[REVISIT]` this doc set is authored against v1.2.0; run the upgrade walk when v1.3.0 is vendored.
-- **Schema.** Exactly the Dictum template's keys plus three additions the operator has decided: `arm:` on an assertion, `owed:` for a deferred assertion, and a required top-level `schema_version:` (integer, equal to the `lspd` major version, written by `init`; a mismatch is a validation error). Anything else is an error. The schema is owned by this project; the operator is the author of the Dictum standard but this project acts as a **third party** and does not contribute the schema back into the template.
-- **Numeric IDs are prohibited — a rule tighter than the standard.** Dictum's grammar allows numeric tokens (`CAP-003`); `lspd` rejects them as map keys because LLMs work poorly with numbered IDs. Only semantic IDs (`CAP-MODEL-CREATE`) are accepted: a segment consisting entirely of digits is rejected, while digits inside a segment (`API-V2-USERS`, `SCREEN-3D`) are fine. This is a deliberate compatibility narrowing: a Dictum-conforming map that uses numeric IDs fails `lspd` validation until its IDs are re-minted. `[REVISIT]` the operator, as the standard's author, may introduce this rule in a future major revision of Dictum; until then it is this product's own.
-- **Versioning.** A change to the Dictum binding-map template is a new major version of `lspd`. The file's `schema_version` tracks it. The package version is `1.0.0.dev0` from the first slice and `1.0.0` at the release, so the major — and therefore `schema_version` — is 1 throughout.
+- **Distribution.** A GitHub repository that users clone and install into a user-space bin; binary name `dbind`. Private until the first release, public at the first release. Ships alongside Dictum v1.3.0 (pending on Dictum main at scaffold time). `[REVISIT]` this doc set is authored against v1.2.0; run the upgrade walk when v1.3.0 is vendored.
+- **Schema.** Exactly the Dictum template's keys plus three additions the operator has decided: `arm:` on an assertion, `owed:` for a deferred assertion, and a required top-level `schema_version:` (integer, equal to the dictum-binder major version, written by `init`; a mismatch is a validation error). Anything else is an error. The schema is owned by this project; the operator is the author of the Dictum standard but this project acts as a **third party** and does not contribute the schema back into the template.
+- **Numeric IDs are prohibited — a rule tighter than the standard.** Dictum's grammar allows numeric tokens (`CAP-003`); dictum-binder rejects them as map keys because LLMs work poorly with numbered IDs. Only semantic IDs (`CAP-MODEL-CREATE`) are accepted: a segment consisting entirely of digits is rejected, while digits inside a segment (`API-V2-USERS`, `SCREEN-3D`) are fine. This is a deliberate compatibility narrowing: a Dictum-conforming map that uses numeric IDs fails dictum-binder validation until its IDs are re-minted. `[REVISIT]` the operator, as the standard's author, may introduce this rule in a future major revision of Dictum; until then it is this product's own.
+- **Versioning.** A change to the Dictum binding-map template is a new major version of dictum-binder. The file's `schema_version` tracks it. The package version is `1.0.0.dev0` from the first slice and `1.0.0` at the release, so the major — and therefore `schema_version` — is 1 throughout.
 - **Ordering.** Edits preserve existing order and append; only `format` reorders.
-- **Writes refuse a map that has errors; warnings are tolerated.** Every write validates the file first; any error-level finding refuses the write with `ERR-FILE-INVALID` and nothing is changed (the LLM fixes the file **by hand**, guided by `validate`'s findings, then continues through `lspd`). Warning-level findings are reported and the write proceeds. Decided 2026-09-17 after the implementation-planner showed that tolerating error-level content would force the model to carry unrepresentable data.
+- **Writes refuse a map that has errors; warnings are tolerated.** Every write validates the file first; any error-level finding refuses the write with `ERR-FILE-INVALID` and nothing is changed (the LLM fixes the file **by hand**, guided by `validate`'s findings, then continues through dictum-binder). Warning-level findings are reported and the write proceeds. Decided 2026-09-17 after the implementation-planner showed that tolerating error-level content would force the model to carry unrepresentable data.
 - **Value vocabularies are open.** `wire.casing`, `wire.enums`, `wire.dates`, and `compare_via` accept any non-empty string; the template's values are examples, not an enumeration.
 - **Excluded kinds are silent.** A binding whose kind the template excludes from the map (`CAP`, `POLICY`, `ROLE`, `LICENSE-TIER`, `PERF`) is accepted without a finding; the tool does not know which kinds a given doc set makes code-realisable.
 - **Performance.** No target (deferred concern).
@@ -121,8 +121,8 @@ This concern is the root of the ID web and consumes nothing minted elsewhere. Wh
 
 1. **An agent closes a slice.** A model has just realised `ENTITY-USER` in `src/models/user.py`. It runs `set ENTITY-USER` with the locator, then `add-assertion INV-USER-EMAIL-UNIQUE` with the verbatim test title and the run selector. Each call validates before and after, writes atomically, and returns the affected binding plus findings. The model never saw the file and read only two bindings' worth of output. (`CAP-SET`, `CAP-ADD`, `SUCCESS-BOUNDED-OUTPUT`)
 2. **A human tidies up.** After a week of agent edits, bindings sit in insertion order. The maintainer runs `format`; the file is rewritten in canonical order with every comment kept at its anchor. A second `format` changes nothing. (`CAP-FORMAT`, `SUCCESS-ROUNDTRIP`)
-3. **A converter author.** Someone with a map in a different style downloads the JSON Schema from the repository, checks its SHA-256 against the README and against `lspd schema --checksum`, and writes a converter. They then run `validate` on the result and fix the findings the schema could not express (a `role` without `wire`; numeric IDs). (`CAP-SCHEMA`, `CAP-VALIDATE`, `SUCCESS-SCHEMA-MATCH`)
-4. **A hand-over between models.** The next model starts with `lspd --help`, learns the surface in one call, runs `list --kind INV` to see what is asserted, and `get` on the one binding it needs. Its reads cost the same as the previous model's would have. (`CAP-HELP`, `CAP-QUERY`, `SUCCESS-CROSS-MODEL`)
+3. **A converter author.** Someone with a map in a different style downloads the JSON Schema from the repository, checks its SHA-256 against the README and against `dbind schema --checksum`, and writes a converter. They then run `validate` on the result and fix the findings the schema could not express (a `role` without `wire`; numeric IDs). (`CAP-SCHEMA`, `CAP-VALIDATE`, `SUCCESS-SCHEMA-MATCH`)
+4. **A hand-over between models.** The next model starts with `dbind --help`, learns the surface in one call, runs `list --kind INV` to see what is asserted, and `get` on the one binding it needs. Its reads cost the same as the previous model's would have. (`CAP-HELP`, `CAP-QUERY`, `SUCCESS-CROSS-MODEL`)
 5. **Retirement.** A contract is tombstoned in the manifest by the doc-change-impact skill. The agent runs `remove <ID>`; the binding is gone, order elsewhere untouched, and the post-write validation confirms nothing else referenced that locator. (`CAP-REMOVE`)
 6. **A rejected write.** An agent tries `add-locator ENTITY-X --path src/x.py:41 --symbol f`, a line-numbered path copied from an old map. The call exits 1 with `ERR-INPUT-INVALID` carrying `INV-NO-LINE-NUMBERS`; the file is untouched; the agent resubmits with `--path src/x.py`. (`CAP-ADD`, exit-code partition)
 
@@ -172,8 +172,8 @@ Each row: description · persona(s) · scope · success-criterion reference · l
 | `CAP-COVERAGE` | Declare coverage | Add or remove a kind under `fully_bound`; set or unset a `curated` entry with its reason | agent | in (v1) | `SUCCESS-COMPLETE-OPS` | A kind in both lists: exit 1. Empty reason on `curated`: exit 1. Unset of an absent entry: exit 1 |
 | `CAP-COMMENT` | Comments | Get, set, and unset the comment at a defined anchor (file header, a binding, one locator or assertion, a coverage entry); round-tripped byte-for-byte and exposed in JSON | agent, human | in (v1) | `SUCCESS-ROUNDTRIP` | Unknown anchor: exit 1. Setting an empty string: exit 1 (use unset). Unset of an absent comment: exit 1. Anchor syntax is minted by Interfaces |
 | `CAP-PATHCHECK` | Path check (opt-in) | With a flag, additionally verify each locator `path` — in the file and in any write input — exists relative to the working directory | agent, human | in (v1) | `SUCCESS-COMPLETE-OPS` | Off by default. A missing path is an **error** (`INV-PATH-EXISTS`), so with the flag on a write naming a missing path is refused. The only filesystem read outside the target file; paths are stat-ed, never read |
-| `CAP-SCHEMA` | Schema artifact | `lspd schema` prints the embedded JSON Schema; `lspd schema --checksum` prints its SHA-256. The same schema ships as a plain file in the repository with its SHA-256 in the README. The executable never reads the external file. The schema covers shape only; rules it cannot express are listed in the README beside the checksum and enforced by `CAP-VALIDATE` | converter, agent | in (v1) | `SUCCESS-SCHEMA-MATCH` | No failure path beyond I/O on stdout (exit 2) |
-| `CAP-HELP` | Self-description | Comprehensive plain-text `--help` at every level: `lspd --help`, `lspd <command> --help`, `lspd <command> <subcommand> --help` | agent, human | in (v1) | `SUCCESS-CROSS-MODEL` | `--help` on an unknown command: exit 1 with the usage error |
+| `CAP-SCHEMA` | Schema artifact | `dbind schema` prints the embedded JSON Schema; `dbind schema --checksum` prints its SHA-256. The same schema ships as a plain file in the repository with its SHA-256 in the README. The executable never reads the external file. The schema covers shape only; rules it cannot express are listed in the README beside the checksum and enforced by `CAP-VALIDATE` | converter, agent | in (v1) | `SUCCESS-SCHEMA-MATCH` | No failure path beyond I/O on stdout (exit 2) |
+| `CAP-HELP` | Self-description | Comprehensive plain-text `--help` at every level: `dbind --help`, `dbind <command> --help`, `dbind <command> <subcommand> --help` | agent, human | in (v1) | `SUCCESS-CROSS-MODEL` | `--help` on an unknown command: exit 1 with the usage error |
 
 ### Success criteria
 
@@ -183,7 +183,7 @@ Each row: description · persona(s) · scope · success-criterion reference · l
 | `SUCCESS-COMPLETE-OPS` | Every operation the standard performs on the map (table below) is served by a named command, and each row has a passing contract test |
 | `SUCCESS-BOUNDED-OUTPUT` | `get` returns exactly one binding and `list` exactly the matching entries; the envelope contains no other file content |
 | `SUCCESS-CROSS-MODEL` | At the end of each of the operator's trial sessions with a different model on the same repository, `validate` reports no errors and `format` is a no-op — no model hand-edited the file |
-| `SUCCESS-SCHEMA-MATCH` | The shipped schema file's SHA-256 equals `lspd schema --checksum` equals the value in the README |
+| `SUCCESS-SCHEMA-MATCH` | The shipped schema file's SHA-256 equals `dbind schema --checksum` equals the value in the README |
 
 Operations the standard performs on the map, and the command that serves each (the basis of `SUCCESS-COMPLETE-OPS`):
 
@@ -210,7 +210,7 @@ Each maps to an observable check; Quality owns the test definitions.
 2. Operations-table tests for `SUCCESS-COMPLETE-OPS` — a contract test per row of the operations table above; the test suite fails if a row has no test.
 3. Bounded-output tests for `SUCCESS-BOUNDED-OUTPUT` — contract tests on `get` and `list` assert the envelope's payload equals exactly the selected entries; a fixture with many bindings is used so leakage would be visible.
 4. Operator record for `SUCCESS-CROSS-MODEL` — recorded by the operator per trial session: `validate` exit 0 with no errors and `format` producing no diff. Not automated; the record is the check.
-5. Checksum test for `SUCCESS-SCHEMA-MATCH` — a CI test computes the shipped file's SHA-256 and asserts equality with `lspd schema --checksum` and with the README value.
+5. Checksum test for `SUCCESS-SCHEMA-MATCH` — a CI test computes the shipped file's SHA-256 and asserts equality with `dbind schema --checksum` and with the README value.
 6. Every `CAP-*` row's failure paths — each named exit-1 and exit-2 condition has a forced-condition contract test (Interfaces' `ERR-###` catalog names the forcing).
 7. Every `PERSONA-*` is referenced by at least one `CAP-*`, and every `CAP-*` by at least one `SUCCESS-*`.
 

@@ -7,7 +7,7 @@ trigger: third-party-deps (manifest trait `third_party_deps`)
 in-scope-subaspects: [per-external-contract, failure-modes-fallback-degradation, criticality, version-pinning]
 current-rung: contract-grade
 status: published
-version: 1.2.0
+version: 1.2.1
 ---
 
 # Integrations & External Dependencies — dictum-binder
@@ -62,7 +62,7 @@ None open.
 ## Examples / Worked scenarios
 
 1. **A ruamel.yaml minor release.** Dependabot-style notice or a manual check finds 0.20. The implementer widens the range in a dedicated commit; CI runs the licence gate (still MIT, zero deps), the golden tier (round trip unchanged), and the seven-anchor tests (comment attachment unchanged). Green: the bump lands. Red on anchors: the bump is reverted and the finding recorded.
-2. **ruamel.yaml missing at runtime.** A user installed the wheel into an environment where the dependency failed to build. `lspd validate` → `ERR-INTERNAL` with "ruamel.yaml is not importable"; `lspd --help` and `lspd schema` still work.
+2. **ruamel.yaml missing at runtime.** A user installed the wheel into an environment where the dependency failed to build. `dbind validate` → `ERR-INTERNAL` with "ruamel.yaml is not importable"; `dbind --help` and `dbind schema` still work.
 
 ## Design Decisions
 

@@ -7,12 +7,12 @@ trigger: always
 in-scope-subaspects: [test-pyramid-test-types, coverage-map, real-flow-e2e-standard, quality-bars-gates, test-data-strategy]
 current-rung: contract-grade
 status: published
-version: 1.2.0
+version: 2.0.0
 ---
 
 # Quality & Testing — dictum-binder
 
-> One-line: five `unittest` tiers, a coverage map that gives every minted ID a test or a stated reason, 100 % line coverage from the standard library's `trace` as a gate with written exclusions, `pyrefly` strict and ruff, zero retries, synthetic fixtures only, an MIT-only toolchain, and an E2E standard that drives the installed `lspd` binary through every element in its default state.
+> One-line: five `unittest` tiers, a coverage map that gives every minted ID a test or a stated reason, 100 % line coverage from the standard library's `trace` as a gate with written exclusions, `pyrefly` strict and ruff, zero retries, synthetic fixtures only, an MIT-only toolchain, and an E2E standard that drives the installed dictum-binder binary through every element in its default state.
 
 ## Purpose & Scope
 
@@ -39,9 +39,9 @@ Five tiers, all standard-library `unittest`, one package directory per tier unde
 |---|---|---|---|
 | **Unit** | `COMPONENT-MODEL`, `COMPONENT-VALIDATOR`, `COMPONENT-EMITTER`, `COMPONENT-LOADER`, `COMPONENT-SCHEMA` in isolation | direct calls; one test method per `INV-*`; `subTest` for table-driven grammar cases | `tests/unit/` |
 | **Golden** | The canonical layout and round-trip fidelity | fixture files under `tests/fixtures/`; `load`→`emit` byte comparison; `format` fixpoint | `tests/golden/` |
-| **Contract** | Every `CLI-*`, `OUT-*`, `ERR-*` | in-process `lspd.cli.main(argv)` with captured stdout/stderr and exit code, in a `tempfile` directory; exact projection and key-order assertions | `tests/contract/` |
+| **Contract** | Every `CLI-*`, `OUT-*`, `ERR-*` | in-process `dbind.cli.main(argv)` with captured stdout/stderr and exit code, in a `tempfile` directory; exact projection and key-order assertions | `tests/contract/` |
 | **Fitness** | Structural and textual rules owned by Architecture, Interfaces (the `--help` tree walk), Security, Governance, Business & Legal, Delivery, Operations, and Integrations | `ast` and text over the repository: import confinement, sole writer, acyclic pipeline, pragma reasons, forbidden imports (`SEC-*`), `SOURCE:` marker form (`POLICY-SOURCE-MARKER`), README/LICENSE/`--help` wording (`LEGAL-DICTUM-NAMING`), `pyproject.toml` dependency set (`DEP-*`), build-status record ↔ tests ↔ minted IDs (Delivery) | `tests/fitness/` |
-| **E2E** | Every `CAP-*` through the real installed binary | `subprocess.run(["lspd", …])` per `E2E-STANDARD` | `tests/e2e/` |
+| **E2E** | Every `CAP-*` through the real installed binary | `subprocess.run(["dbind", …])` per `E2E-STANDARD` | `tests/e2e/` |
 
 ### Coverage map
 
@@ -55,7 +55,7 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 | contract | contract: one test per row of Product's operations table, named after the row; a meta-test asserts every row has a test | `SUCCESS-COMPLETE-OPS` |
 | contract | contract: fifty-binding fixture; `get` of two IDs and `list --kind` yield exactly the selected entries and no other ID string | `SUCCESS-BOUNDED-OUTPUT` |
 | — | n/a — not automated: an operator observation recorded per trial session (validate clean + `format --check` exit 0); the automated half is `CLI-FORMAT --check`'s contract test | `SUCCESS-CROSS-MODEL` |
-| contract | CI: SHA-256 of `lspd.schema.json` == `lspd schema --checksum` == README value | `SUCCESS-SCHEMA-MATCH` |
+| contract | CI: SHA-256 of `dbind.schema.json` == `dbind schema --checksum` == README value | `SUCCESS-SCHEMA-MATCH` |
 | unit, golden | unit: construction and `to_plain`/`from_plain` round trip per entity; golden: every entity appears in the canonical fixture | `ENTITY-MAP`, `ENTITY-BINDING`, `ENTITY-LOCATOR`, `ENTITY-FIELD-LOCATOR`, `ENTITY-WIRE`, `ENTITY-ASSERTION`, `ENTITY-COVERAGE`, `ENTITY-COMMENT`, `ENTITY-FINDING` |
 | unit | unit: table-driven accept/reject sets (Domain acceptance 2 and the path rules) | `ENTITY-CONTRACT-ID`, `ENTITY-PATH` |
 | unit | unit: one violating synthetic fixture each → exactly that finding code at the expected anchor, exit 1 (the unit half **completes** each of these; the write-path refusal of the same violation is proven by the `CLI-SET`/`CLI-ADD-*` edge-input rows, `ERR-INPUT-INVALID`, and by `ERR-FILE-INVALID`'s forcing) | the fifteen write-gated `INV-*` (`INV-ID-GRAMMAR`, `INV-SCHEMA-VERSION`, `INV-CLOSED-KEYS`, `INV-NO-LINE-NUMBERS`, `INV-PATH-FORM`, `INV-SYMBOL-NONEMPTY`, `INV-ROLE-VALUES`, `INV-WIRE-SUBSET`, `INV-ASSERTION-SHAPE`, `INV-FIELD-NAME`, `INV-COVERAGE-WELLFORMED`, `INV-LOCATOR-UNIQUE`, `INV-ASSERTION-UNIQUE`, `INV-COMMENT-ANCHORED`, `INV-COMMENT-TEXT`) |
@@ -89,18 +89,18 @@ Every in-scope ID has a row; an ID with no observable check has an explicit `n/a
 
 ### Real-flow E2E standard
 
-`E2E-STANDARD` — a journey exercises the product's **own code for real**: it runs the **installed `lspd` executable** (console script) as a subprocess with a real working directory and real files, and asserts the real stdout (parsed as JSON: codes, `ok`, `result`; message texts are not contracted), stderr, exit code, and resulting file bytes (exact). Nothing of the product is imported into the test process for the E2E tier; no in-process shortcut. There are no external dependencies to substitute and no login to bypass, so the substitution set is empty and stated as such. The CLI has no screens; the "operate every control" rule maps to: **every `CLI-*` element is invoked at least once in its default state (no optional flags) and once per element-specific optional flag**; each global option other than `--help`/`--version` (`--file`, `--human`, `--check-paths`, `--no-size-limit`, `--debug`) is invoked at least once on a representative element, and `--check-paths` additionally on `validate` and on one write; asserting a non-error outcome where the contract promises one. Environment: `ENV-LOCAL` (the editable install in the developer's venv) and `ENV-CI` (a wheel built from the commit and installed into a fresh venv before the tier runs — the binding fidelity for the staged DoD), per Operations' map. The E2E tier invokes the executable by its explicit path inside the environment under test (`<venv>/bin/lspd`), never via `PATH`, so the dev install can never shadow the wheel install. Rule (a) of the standard applies: a test may compute an expected canonical file through the pure `emitter` module in the test process, which injects nothing into the subprocess.
+`E2E-STANDARD` — a journey exercises the product's **own code for real**: it runs the **installed `dbind` executable** (console script) as a subprocess with a real working directory and real files, and asserts the real stdout (parsed as JSON: codes, `ok`, `result`; message texts are not contracted), stderr, exit code, and resulting file bytes (exact). Nothing of the product is imported into the test process for the E2E tier; no in-process shortcut. There are no external dependencies to substitute and no login to bypass, so the substitution set is empty and stated as such. The CLI has no screens; the "operate every control" rule maps to: **every `CLI-*` element is invoked at least once in its default state (no optional flags) and once per element-specific optional flag**; each global option other than `--help`/`--version` (`--file`, `--human`, `--check-paths`, `--no-size-limit`, `--debug`) is invoked at least once on a representative element, and `--check-paths` additionally on `validate` and on one write; asserting a non-error outcome where the contract promises one. Environment: `ENV-LOCAL` (the editable install in the developer's venv) and `ENV-CI` (a wheel built from the commit and installed into a fresh venv before the tier runs — the binding fidelity for the staged DoD), per Operations' map. The E2E tier invokes the executable by its explicit path inside the environment under test (`<venv>/bin/dbind`), never via `PATH`, so the dev install can never shadow the wheel install. Rule (a) of the standard applies: a test may compute an expected canonical file through the pure `emitter` module in the test process, which injects nothing into the subprocess.
 
 ### Quality bars & gates
 
 Merge gate — **seven gates**, all required, run by CI on every push and pull request, Python 3.11 on Ubuntu:
 
 1. `python -m unittest discover` — all five tiers green. **Mid-build scoping**: every full-set meta-test (coverage-map completeness, E2E journey per capability, operations-table rows, `--help` tree walk, record ↔ minted IDs) is scoped to the IDs whose completing slice the build-status record marks **Built**; an ID whose slice is not yet Built is skipped and listed, never failed. From the release slice on the scope is the full set.
-2. **Line coverage 100 %** across the union of all tiers, measured by the standard library's `trace` module (`python -m trace --count --missing`) and reduced by an own report script (`tools/coverage_report.py`, standard library only) that lists every unexecuted line of `src/lspd/`. Any excluded line carries `# pragma: no cover — <reason>` on the same line; a fitness test fails on a pragma without a reason. Branch coverage is not measured (Non-goals). The target is total line coverage; a reason is the only way to fall short.
+2. **Line coverage 100 %** across the union of all tiers, measured by the standard library's `trace` module (`python -m trace --count --missing`) and reduced by an own report script (`tools/coverage_report.py`, standard library only) that lists every unexecuted line of `src/dbind/`. Any excluded line carries `# pragma: no cover — <reason>` on the same line; a fitness test fails on a pragma without a reason. Branch coverage is not measured (Non-goals). The target is total line coverage; a reason is the only way to fall short.
 3. `ruff check` and `ruff format --check` clean.
 4. `pyrefly check` in strict mode clean over `src/` and `tests/`.
-5. `lspd.schema.json` regenerated from `COMPONENT-SCHEMA` equals the committed file; its SHA-256 equals the README value.
-6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule, the release slice): `lspd validate` exit 0 and `lspd format --check` exit 0 on it. Until the file exists the CI step is skipped and says so; from the release slice on it is required.
+5. `dbind.schema.json` regenerated from `COMPONENT-SCHEMA` equals the committed file; its SHA-256 equals the README value.
+6. Once the repository's own `bindings.yaml` exists (Delivery's dogfooding rule, the release slice): `dbind validate` exit 0 and `dbind format --check` exit 0 on it. Until the file exists the CI step is skipped and says so; from the release slice on it is required.
 7. **Licence gate**: `tools/licence_gate.py` over the resolved environment passes — every declared distribution and its transitive tree is exactly MIT (`POLICY-INBOUND-MIT-ONLY`, Governance). The `SOURCE:` marker check (`POLICY-SOURCE-MARKER`) and the naming check (`POLICY-NAMING-ENFORCEMENT`) run inside gate 1's fitness tier.
 
 **Flake / re-run policy:** zero retries, no quarantine list. A red run obligates investigation before any re-run. A genuine transient (re-run green with zero code change) is recorded as an incident with both run identifiers in the build-status record's notes (Delivery); the test is never quarantined. There is no measurement tier (Performance deferred), so no co-defined re-run rule exists.
@@ -126,7 +126,7 @@ None open.
 
 1. **A new `INV-*` lands.** The author adds one violating fixture, one unit test asserting the finding at its anchor, and one contract test that the write path rejects it. The coverage-map meta-test fails until the map row exists.
 2. **A pragma without a reason.** `# pragma: no cover` alone fails the fitness test; `# pragma: no cover — unreachable: argparse exits before this line` passes.
-3. **E2E for `CAP-COMMENT`.** In a temp dir: `lspd init`; `lspd set ENTITY-X --json '…'`; `lspd comment set binding ENTITY-X --text "why"`; `lspd comment get binding ENTITY-X` → text equals; `lspd comment unset binding ENTITY-X`; `lspd comment get …` → exit 1 `ERR-NOT-FOUND`. The file's bytes are asserted at each step against the emitter-computed expectation.
+3. **E2E for `CAP-COMMENT`.** In a temp dir: `dbind init`; `dbind set ENTITY-X --json '…'`; `dbind comment set binding ENTITY-X --text "why"`; `dbind comment get binding ENTITY-X` → text equals; `dbind comment unset binding ENTITY-X`; `dbind comment get …` → exit 1 `ERR-NOT-FOUND`. The file's bytes are asserted at each step against the emitter-computed expectation.
 4. **A transient red.** CI fails on a temp-dir cleanup race; re-run green with no diff. The incident and both run IDs go into `docs/IMPLEMENTATION.md`; the test stays.
 
 ## Design Decisions

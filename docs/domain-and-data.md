@@ -7,7 +7,7 @@ trigger: always
 in-scope-subaspects: [domain-entities-relationships, identifiers, business-invariants-rules, lifecycle-states, persistence-storage-schema, consistency-transactions, migrations-versioning]
 current-rung: contract-grade
 status: published
-version: 1.2.0
+version: 1.2.1
 ---
 
 # Domain & Data — dictum-binder
@@ -18,7 +18,7 @@ version: 1.2.0
 
 Owns the canonical model of everything inside `bindings.yaml` and the rules `CAP-VALIDATE` enforces on it. The **shape** comes from Dictum's `templates/binding-map.template.md` (vendored under `dictum/`); the **rigidity** — closed key sets, canonical layout, comment anchors, the numeric-ID prohibition, `schema_version` — is this product's own. The domain is deliberately closed: what this doc does not define, the map cannot contain.
 
-Enforcement classes used below, because *enforced ≠ checkable* (spec bar): **by-construction** — the store cannot represent the violation; **write-gated** — every `lspd` write refuses to produce the violating state, and every read reports it (a hand edit can still create it, so reads are the backstop); **advisory** — reported as a warning, never blocks.
+Enforcement classes used below, because *enforced ≠ checkable* (spec bar): **by-construction** — the store cannot represent the violation; **write-gated** — every dictum-binder write refuses to produce the violating state, and every read reports it (a hand edit can still create it, so reads are the backstop); **advisory** — reported as a warning, never blocks.
 
 ## Non-goals / Out-of-scope
 
@@ -27,7 +27,7 @@ Enforcement classes used below, because *enforced ≠ checkable* (spec bar): **b
 - The manifest, the concern docs, and the code tree are **not** entities of this product (never read). `absent` by the product boundary.
 - Which contract **kinds** are code-realisable is not modelled: the tool accepts any kind silently (Product constraint). `absent`.
 - No semantic validation of `symbol`, `run`, `compare_via`, or `wire` values: all are opaque non-empty strings. `absent` by decision (Product).
-- No schema migration in v1: a `schema_version` other than the binary's is an error, never auto-converted. `deferred` — re-entry at the first `lspd` major bump.
+- No schema migration in v1: a `schema_version` other than the binary's is an error, never auto-converted. `deferred` — re-entry at the first dictum-binder major bump.
 
 ## Requirements
 
@@ -129,7 +129,7 @@ Single writer, single file. A write is: read → pre-validate → **refuse if an
 
 ### Migrations & versioning
 
-`schema_version` is a required top-level integer equal to the `lspd` major version that owns the layout; v1 writes `1`. A file whose value differs from the running binary's major fails validation (`INV-SCHEMA-VERSION`, exit 1); every command other than `validate` refuses to proceed with `ERR-SCHEMA-VERSION` (Interfaces), so nothing is ever read from or written to a map of another major. The binary's major is the constant `SCHEMA_VERSION` in `COMPONENT-SCHEMA`, asserted equal to the package version's major by a fitness test; before the first release the package version is `1.0.0.dev0`, so the major is already 1. No migration exists in v1; a future major bump owes one (deferred, Non-goals).
+`schema_version` is a required top-level integer equal to the dictum-binder major version that owns the layout; v1 writes `1`. A file whose value differs from the running binary's major fails validation (`INV-SCHEMA-VERSION`, exit 1); every command other than `validate` refuses to proceed with `ERR-SCHEMA-VERSION` (Interfaces), so nothing is ever read from or written to a map of another major. The binary's major is the constant `SCHEMA_VERSION` in `COMPONENT-SCHEMA`, asserted equal to the package version's major by a fitness test; before the first release the package version is `1.0.0.dev0`, so the major is already 1. No migration exists in v1; a future major bump owes one (deferred, Non-goals).
 
 ## Open Questions
 
@@ -143,7 +143,7 @@ None open.
 
 ## Examples / Worked scenarios
 
-1. **Reading a hand-edited file.** A model added `- { path: src/x.py, symbol: f, lines: 40-52 }`. `validate` reports `INV-CLOSED-KEYS` (unknown key `lines`) and `INV-NO-LINE-NUMBERS`, both errors, anchored at `ENTITY-X` locator 2; exit 1. Both findings are error-level, so every `lspd` write is refused (`ERR-FILE-INVALID`) until the model deletes the `lines:` key **by hand**; it then re-runs `validate` (clean) and continues through `lspd`.
+1. **Reading a hand-edited file.** A model added `- { path: src/x.py, symbol: f, lines: 40-52 }`. `validate` reports `INV-CLOSED-KEYS` (unknown key `lines`) and `INV-NO-LINE-NUMBERS`, both errors, anchored at `ENTITY-X` locator 2; exit 1. Both findings are error-level, so every dictum-binder write is refused (`ERR-FILE-INVALID`) until the model deletes the `lines:` key **by hand**; it then re-runs `validate` (clean) and continues through dictum-binder.
 2. **Promoting an owed assertion.** `INV-EMAIL-UNIQUE` carries `{ owed: slice-9 }`. Slice 9 lands its test. The agent runs `remove INV-EMAIL-UNIQUE --assertion --owed slice-9` then `add-assertion INV-EMAIL-UNIQUE` with path, symbol, run. A single entry carrying both `owed` and the triple would have been rejected (`INV-ASSERTION-SHAPE`).
 3. **Format as a fixpoint.** A populated map in insertion order is formatted: bindings re-sorted, `fields` untouched, every comment still on its anchor, trailing comments re-emitted trailing. A second `format` is a byte-identical no-op (`INV-CANONICAL-FIXPOINT`).
 4. **Numeric ID.** A converter emits `CAP-003`. `validate` reports `INV-ID-GRAMMAR` with the message naming the all-digit segment; `API-V2-USERS` in the same file passes.
