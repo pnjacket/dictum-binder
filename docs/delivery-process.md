@@ -6,8 +6,8 @@ behavior: core
 trigger: always
 in-scope-subaspects: [vertical-slice-rule-slice-types, definition-of-done, build-playbook-sequence, work-item-hierarchy-slice-level, build-ready-gate-scope, verified-build-status-tracking, branching-release-versioning]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Delivery Process — dictum-binder

@@ -6,8 +6,8 @@ behavior: core
 trigger: always
 in-scope-subaspects: [component-decomposition-responsibilities, component-interactions-data-flow, cross-cutting-patterns, technology-choices, adr-register]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Architecture — dictum-binder

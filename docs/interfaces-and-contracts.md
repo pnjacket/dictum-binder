@@ -6,8 +6,8 @@ behavior: core
 trigger: always
 in-scope-subaspects: [cli-surface, error-model-catalog, versioning-compatibility]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Interfaces & Contracts — dictum-binder

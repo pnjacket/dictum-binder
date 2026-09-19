@@ -6,8 +6,8 @@ behavior: module
 trigger: distributed (open source), plus an ip-trademark constraint (the Dictum naming policy)
 in-scope-subaspects: [eula-tos, ip-trademark-constraints]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Business & Legal — dictum-binder

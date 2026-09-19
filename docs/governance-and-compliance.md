@@ -6,8 +6,8 @@ behavior: baseline
 trigger: always
 in-scope-subaspects: [license-ip-compliance, source-provenance]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Governance & Compliance — dictum-binder

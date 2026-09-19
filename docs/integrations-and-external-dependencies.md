@@ -6,8 +6,8 @@ behavior: module
 trigger: third-party-deps (manifest trait `third_party_deps`)
 in-scope-subaspects: [per-external-contract, failure-modes-fallback-degradation, criticality, version-pinning]
 current-rung: contract-grade
-status: draft
-version: 1.1.0
+status: published
+version: 1.2.0
 ---
 
 # Integrations & External Dependencies — dictum-binder

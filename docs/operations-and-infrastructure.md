@@ -6,8 +6,8 @@ behavior: module
 trigger: a product whose staged DoD needs an ENV fidelity map — activated by the dev-toolchain register (11.10 owned contract 4), not by a running service
 in-scope-subaspects: [environments-fidelity-map, provisioning-iac]
 current-rung: contract-grade
-status: draft
-version: 0.1.0
+status: published
+version: 1.0.0
 ---
 
 # Operations & Infrastructure — dictum-binder

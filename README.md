@@ -13,7 +13,7 @@ dictum-binder is an independent tool for Dictum binding maps. It is not part of
 the official Dictum project and is not endorsed or certified by it. It targets
 Dictum v1.2.0 binding maps (the vendored, authored-against release).
 
-Status: doc set at Contract-grade, in re-draft after audit fixes, not yet re-published; no product code yet.
+Status: doc set published at Contract-grade (build-ready, 2026-09-18); build starting with slice 1.
 
 Licence: MIT (`LICENSE` is created by the first build slice). Contributions are
 accepted under the same MIT terms; no CLA or sign-off. Vendored Dictum
