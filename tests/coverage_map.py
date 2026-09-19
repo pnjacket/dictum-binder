@@ -12,6 +12,7 @@ MS = "tests.unit.test_model_schema"
 EL = "tests.unit.test_emitter_loader"
 Q = "tests.contract.test_query"
 W = "tests.contract.test_writes"
+C = "tests.contract.test_comments"
 VR = "tests.unit.test_validator_rules"
 ER = "tests.unit.test_errors_render"
 GOLD = "tests.golden.test_canonical.Canonical"
@@ -39,7 +40,7 @@ MAP: dict[str, list[str] | str] = {
     "CAP-ADD": [f"{E2E}.test_cap_add"],
     "CAP-REMOVE": [f"{E2E}.test_cap_remove"],
     "CAP-COVERAGE": [f"{E2E}.test_cap_coverage"],
-    "CAP-COMMENT": [],
+    "CAP-COMMENT": [f"{E2E}.test_cap_comment"],
     "CAP-FORMAT": [],
     # success criteria
     "SUCCESS-ROUNDTRIP": [
@@ -159,6 +160,7 @@ MAP: dict[str, list[str] | str] = {
     "COMPONENT-EMITTER": [
         f"{FS}.SoleWriter.test_only_emitter_writes",
         f"{EL}.Layout.test_every_construct_and_comment_carrier",
+        f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes",
     ],
     "COMPONENT-RENDERER": [f"{CEL}.Envelope.test_compact_single_document_with_fixed_key_order"],
     "COMPONENT-SCHEMA": [f"{MS}.JsonSchema.test_every_rule_table_entry_appears_in_the_schema"],
@@ -245,6 +247,8 @@ MAP: dict[str, list[str] | str] = {
         f"{W}.Set.test_stdin_document",
         f"{W}.Set.test_warning_only_input_is_written_and_reported_post",
         f"{W}.Set.test_usage_conditions",
+        f"{C}.SetRoundTrip.test_get_document_set_back_is_identity",
+        f"{C}.SetRoundTrip.test_set_clears_and_sets_comments_at_every_binding_anchor",
     ],
     "CLI-ADD-LOCATOR": [
         f"{W}.AddLocator.test_appends_last_with_every_flag",
@@ -266,9 +270,18 @@ MAP: dict[str, list[str] | str] = {
         f"{W}.Coverage.test_group_without_subcommand_is_usage",
     ],
     "CLI-COVERAGE-CURATED": [f"{W}.Coverage.test_curated_and_empty_block_removal"],
-    "CLI-COMMENT-GET": [],
-    "CLI-COMMENT-SET": [],
-    "CLI-COMMENT-UNSET": [],
+    "CLI-COMMENT-GET": [
+        f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes",
+        f"{C}.Conditions.test_absent_targets",
+    ],
+    "CLI-COMMENT-SET": [
+        f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes",
+        f"{C}.SevenAnchors.test_carrier_form_follows_the_text",
+        f"{C}.Conditions.test_value_rule_on_text",
+        f"{C}.Conditions.test_anchor_grammar",
+        f"{C}.Conditions.test_two_carrier_anchor_refuses_the_write",
+    ],
+    "CLI-COMMENT-UNSET": [f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes"],
     # output documents — slice 1
     "OUT-ENVELOPE": [f"{CEL}.Envelope.test_compact_single_document_with_fixed_key_order"],
     "OUT-ERROR": [
@@ -297,7 +310,7 @@ MAP: dict[str, list[str] | str] = {
         f"{Q}.List.test_has_comment_sees_every_anchor",
     ],
     "OUT-COVERAGE": [f"{W}.Coverage.test_get"],
-    "OUT-COMMENT": [],
+    "OUT-COMMENT": [f"{C}.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes"],
     "OUT-FORMAT-RESULT": [],
     "OUT-WRITE-RESULT": [
         f"{W}.Set.test_create_appends_last_and_replace_keeps_place",

@@ -22,6 +22,7 @@ from typing import Any
 
 from lspd import emitter, loader, model, render, schema, validator
 from lspd.commands import add as cmd_add
+from lspd.commands import comment as cmd_comment
 from lspd.commands import coverage as cmd_coverage
 from lspd.commands import init as cmd_init
 from lspd.commands import query as cmd_query
@@ -37,7 +38,7 @@ from lspd.errors import (
     SchemaVersionError,
     UsageError,
 )
-from lspd.model import KIND_PATTERN, Finding, Map, is_contract_id, kind_of
+from lspd.model import KIND_PATTERN, Anchor, Finding, Map, is_contract_id, kind_of
 
 DISTRIBUTION = "dictum-binder"
 HELP_WIDTH = 100
@@ -404,7 +405,7 @@ def build_parser() -> _Parser:
     )
     _add_global_options(p_cov, mirrored=True)
     cov_sub = p_cov.add_subparsers(
-        dest="coverage_command", metavar="<subcommand>", parser_class=_Parser
+        dest="group_command", metavar="<subcommand>", parser_class=_Parser
     )
     cov_sub.required = True
     p_cov_get = command(
@@ -424,57 +425,87 @@ def build_parser() -> _Parser:
         "add or remove a kind under fully_bound",
         "`add KIND` appends last (ERR-DUPLICATE if listed; ERR-INPUT-INVALID if curated);\n"
         "`remove KIND` drops it (ERR-NOT-FOUND if absent); the last one drops the key.",
-        "ERR-USAGE (1) · ERR-INTERNAL (2)",
+        "ERR-DUPLICATE (1) · ERR-NOT-FOUND (1) · " + write_errors,
     )
+    p_fb.add_argument("action", choices=("add", "remove"), help="add · remove")
+    p_fb.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
     _add_global_options(p_fb, mirrored=True)
-    fb_sub = p_fb.add_subparsers(dest="action", metavar="<action>", parser_class=_Parser)
-    fb_sub.required = True
-    for action in ("add", "remove"):
-        p_action = command(
-            fb_sub,
-            action,
-            f"coverage fully-bound {action}",
-            f"{action} KIND",
-            f"{action.capitalize()} KIND in fully_bound.",
-            ("ERR-DUPLICATE (1) · " if action == "add" else "ERR-NOT-FOUND (1) · ") + write_errors,
-        )
-        p_action.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
-        _add_global_options(p_action, mirrored=True)
     p_cur = command(
         cov_sub,
         "curated",
         "coverage curated",
         "set or unset a curated entry with its reason",
-        "`set KIND --reason TEXT [--comment TEXT]` replaces in place or appends last;\n"
-        "`unset KIND` drops the entry with its comment (ERR-NOT-FOUND if absent).",
-        "ERR-USAGE (1) · ERR-INTERNAL (2)",
-    )
-    _add_global_options(p_cur, mirrored=True)
-    cur_sub = p_cur.add_subparsers(dest="action", metavar="<action>", parser_class=_Parser)
-    cur_sub.required = True
-    p_cur_set = command(
-        cur_sub,
-        "set",
-        "coverage curated set",
-        "set KIND --reason TEXT",
-        "Set the curated entry KIND with its reason; an existing entry keeps its comment\n"
-        "unless --comment is given. ERR-INPUT-INVALID if KIND is fully bound.",
-        write_errors,
-    )
-    p_cur_set.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
-    p_cur_set.add_argument("--reason", metavar="TEXT", required=True, help="why it is curated")
-    p_cur_set.add_argument("--comment", metavar="TEXT", help="comment at the entry")
-    _add_global_options(p_cur_set, mirrored=True)
-    p_cur_unset = command(
-        cur_sub,
-        "unset",
-        "coverage curated unset",
-        "unset KIND",
-        "Drop the curated entry KIND together with its comment.",
+        "`set KIND --reason TEXT [--comment TEXT]` replaces in place or appends last\n"
+        "(ERR-INPUT-INVALID if KIND is fully bound); `unset KIND` drops the entry with its\n"
+        "comment (ERR-NOT-FOUND if absent).",
         "ERR-NOT-FOUND (1) · " + write_errors,
     )
-    p_cur_unset.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
-    _add_global_options(p_cur_unset, mirrored=True)
+    p_cur.add_argument("action", choices=("set", "unset"), help="set · unset")
+    p_cur.add_argument("kind", metavar="KIND", help="kind ([A-Z][A-Z0-9]+)")
+    p_cur.add_argument("--reason", metavar="TEXT", help="why it is curated (set)")
+    p_cur.add_argument("--comment", metavar="TEXT", help="comment at the entry (set)")
+    _add_global_options(p_cur, mirrored=True)
+
+    p_comment = command(
+        sub,
+        "comment",
+        "comment",
+        "read, set or unset the comment at an anchor (get · set · unset)",
+        "The comment at one anchor. Anchors: header · binding ID · locator ID --path P\n"
+        "[--symbol S] · field ID NAME · assertion ID (--path P --symbol S | --owed REF)\n"
+        "[--arm A] · coverage · curated KIND. A group without its subcommand is ERR-USAGE.",
+        "ERR-USAGE (1) · ERR-INTERNAL (2)",
+    )
+    _add_global_options(p_comment, mirrored=True)
+    cm_sub = p_comment.add_subparsers(
+        dest="group_command", metavar="<subcommand>", parser_class=_Parser
+    )
+    cm_sub.required = True
+    read_errors = (
+        "ERR-NOT-FOUND (1) · ERR-SCHEMA-VERSION (1) · ERR-FILE-MISSING (2) · ERR-IO (2)\n"
+        "  · ERR-PARSE (2) · ERR-FILE-TOO-LARGE (1) · ERR-USAGE (1) · ERR-INTERNAL (2)"
+    )
+    for action, help_text, description, errors in (
+        (
+            "get",
+            "print the comment at an anchor",
+            "Print OUT-COMMENT for the anchor; ERR-NOT-FOUND when the target or its comment is\n"
+            "absent.",
+            read_errors,
+        ),
+        (
+            "set",
+            "set the comment at an anchor (--text)",
+            "Replace the comment at the anchor with --text (newlines make a block above; a\n"
+            "single line trails its entry). Trailing whitespace, empty edge lines, only empty\n"
+            "lines or a control character are ERR-INPUT-INVALID (INV-COMMENT-TEXT).",
+            "ERR-NOT-FOUND (1) · " + write_errors,
+        ),
+        (
+            "unset",
+            "remove the comment at an anchor",
+            "Remove the comment at the anchor; ERR-NOT-FOUND when there is none.",
+            "ERR-NOT-FOUND (1) · " + write_errors,
+        ),
+    ):
+        p_action = command(cm_sub, action, f"comment {action}", help_text, description, errors)
+        p_action.add_argument(
+            "anchor",
+            metavar="ANCHOR",
+            choices=("header", "binding", "locator", "field", "assertion", "coverage", "curated"),
+            help="header · binding · locator · field · assertion · coverage · curated",
+        )
+        p_action.add_argument(
+            "target", metavar="ID|KIND", nargs="?", help="binding ID, or KIND for curated"
+        )
+        p_action.add_argument("name", metavar="NAME", nargs="?", help="field name (field anchor)")
+        p_action.add_argument("--path", metavar="P", help="locator / bound-assertion path")
+        p_action.add_argument("--symbol", metavar="S", help="locator / bound-assertion symbol")
+        p_action.add_argument("--owed", metavar="REF", help="owed-assertion reference")
+        p_action.add_argument("--arm", metavar="A", help="assertion arm")
+        if action == "set":
+            p_action.add_argument("--text", metavar="TEXT", required=True, help="comment text")
+        _add_global_options(p_action, mirrored=True)
 
     parser.subparsers_by_name.update(paths)
     return parser
@@ -520,11 +551,52 @@ def parse(parser: _Parser, args: Sequence[str]) -> argparse.Namespace:
             raise usage("--field takes no --path/--symbol/--owed/--arm")
     elif ns.command == "set":
         ns.document = _json_document(ns, usage)
+    elif ns.command == "comment" and ns.group_command:
+        _check_anchor(ns, usage)
+    elif ns.command == "coverage" and ns.group_command == "curated":
+        if ns.action == "set" and ns.reason is None:
+            raise usage("curated set needs --reason")
+        if ns.action == "unset" and (ns.reason is not None or ns.comment is not None):
+            raise usage("curated unset takes no --reason/--comment")
+    ns.command_path = deepest.path
     return ns
 
 
+def _check_anchor(ns: argparse.Namespace, usage: Callable[[str], UsageError]) -> None:
+    """The anchor grammar of the comment commands (Interfaces, Global conventions)."""
+    kind = ns.anchor
+    options = [v is not None for v in (ns.path, ns.symbol, ns.owed, ns.arm)]
+    if kind in ("header", "coverage"):
+        if ns.target is not None or ns.name is not None or any(options):
+            raise usage(f"anchor `{kind}` takes no identity")
+        return
+    if ns.target is None:
+        raise usage(f"anchor `{kind}` needs its {'KIND' if kind == 'curated' else 'ID'}")
+    if kind == "curated":
+        if not _KIND_RE.match(ns.target):
+            raise usage(f"`{ns.target}` is not a kind (expected {KIND_PATTERN})")
+        if ns.name is not None or any(options):
+            raise usage("anchor `curated` takes only its KIND")
+        return
+    if not is_contract_id(ns.target):
+        raise usage(f"`{ns.target}` is not a contract ID")
+    if kind == "binding":
+        if ns.name is not None or any(options):
+            raise usage("anchor `binding` takes only its ID")
+    elif kind == "locator":
+        if ns.path is None or ns.name is not None or ns.owed is not None or ns.arm is not None:
+            raise usage("anchor `locator` is ID --path P [--symbol S]")
+    elif kind == "field":
+        if ns.name is None or any(options):
+            raise usage("anchor `field` is ID NAME")
+    else:
+        if ns.name is not None:
+            raise usage("anchor `assertion` takes no NAME")
+        _check_assertion_shape(ns, usage, run_applies=False)
+
+
 def _deepest(parser: _Parser, ns: argparse.Namespace) -> _Parser:
-    parts = [ns.command, getattr(ns, "coverage_command", None), getattr(ns, "action", None)]
+    parts = [ns.command, getattr(ns, "group_command", None)]
     path = ""
     deepest = parser
     for part in parts:
@@ -546,6 +618,23 @@ def _check_assertion_shape(
         raise usage(f"a bound assertion needs all of {names}")
     if ns.owed is None and not any(v is not None for v in bound):
         raise usage("an assertion needs its bound shape or --owed")
+
+
+def _anchor_of(ns: argparse.Namespace) -> Anchor:
+    """The anchor an input comment is meant for, from the parsed anchor arguments."""
+    if ns.anchor in ("header", "coverage"):
+        return Anchor(ns.anchor)
+    if ns.anchor == "curated":
+        return Anchor("curated", kind=ns.target)
+    return Anchor(
+        ns.anchor,
+        id=ns.target,
+        path=ns.path,
+        symbol=ns.symbol,
+        owed=ns.owed,
+        arm=ns.arm,
+        field=ns.name,
+    )
 
 
 def _json_document(ns: argparse.Namespace, usage: Callable[[str], UsageError]) -> dict[str, Any]:
@@ -645,16 +734,24 @@ class _Run:
         emitter.write(m, loader.resolve_target(self.ns.file))
         return result
 
-    def _input(self, value: Any, node: str, **where: str) -> Any:
+    def _input(
+        self, value: Any, node: str, *, binding_id: str = "", name: str = "", kind: str = ""
+    ) -> Any:
         """validate_input, then the converted object; any error is ERR-INPUT-INVALID."""
         findings = validator.finalize(
             validator.validate_input(
-                value, node, check_paths=self.ns.check_paths, root=os.getcwd(), **where
+                value,
+                node,
+                binding_id=binding_id,
+                name=name,
+                kind=kind,
+                check_paths=self.ns.check_paths,
+                root=os.getcwd(),
             )
         )
         if _exit_for(findings):
             raise InputInvalidError(findings)
-        obj, _ = model.from_input(value, node, **where)
+        obj, _ = model.from_input(value, node, binding_id=binding_id, name=name, kind=kind)
         return obj
 
     def set(self) -> dict[str, Any]:
@@ -711,11 +808,37 @@ class _Run:
             return self._write(lambda m: cmd_set.result(cmd_remove.assertion(m, ns.id, identity)))
         return self._write(lambda m: cmd_remove.binding(m, ns.id))
 
+    def comment(self) -> dict[str, Any]:
+        ns = self.ns
+
+        def target(m: Map) -> cmd_comment.Target:
+            return cmd_comment.resolve(
+                m,
+                ns.anchor,
+                ns.target,
+                ns.name,
+                path=ns.path,
+                symbol=ns.symbol,
+                owed=ns.owed,
+                arm=ns.arm,
+            )
+
+        if ns.group_command == "get":
+            return cmd_comment.get(target(self._load(gate_schema_version=True)))
+        if ns.group_command == "unset":
+            return self._write(lambda m: cmd_comment.unset(target(m)))
+        findings = validator.finalize(
+            validator.validate_input(ns.text, "comment", anchor=_anchor_of(ns))
+        )
+        if _exit_for(findings):
+            raise InputInvalidError(findings)
+        return self._write(lambda m: cmd_comment.set_text(target(m), ns.text))
+
     def coverage(self) -> dict[str, Any]:
         ns = self.ns
-        if ns.coverage_command == "get":
+        if ns.group_command == "get":
             return cmd_coverage.result(self._load(gate_schema_version=True))
-        if ns.coverage_command == "fully-bound":
+        if ns.group_command == "fully-bound":
             if ns.action == "add":
                 return self._write(
                     lambda m: cmd_coverage.result(cmd_coverage.fully_bound_add(m, ns.kind))
@@ -748,14 +871,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         _check_empty_strings(args)
         parser = build_parser()
         ns = parse(parser, args)
-        command = ns.command
+        command = ns.command_path
         if command == "schema":
             _write_stdout(
                 schema.checksum() + "\n" if ns.checksum else schema.schema_json().decode("utf-8")
             )
             return 0
         run = _Run(ns)
-        result = getattr(run, command.replace("-", "_"))()
+        result = getattr(run, ns.command.replace("-", "_"))()
         _write_stdout(
             render.render(
                 command,

@@ -380,11 +380,17 @@ def validate_input(
     binding_id: str = "",
     name: str = "",
     kind: str = "",
+    anchor: Anchor | None = None,
     check_paths: bool = False,
     root: str = ".",
 ) -> list[Finding]:
     """Shape pass then rule pass over a candidate input document (unsorted). Input semantics:
-    trailing whitespace in a comment is an error, never a repairable warning."""
+    trailing whitespace in a comment is an error, never a repairable warning. The node
+    ``comment`` takes the bare text and the anchor it is meant for."""
+    if node == "comment":
+        rules = _Rules(check_paths, root, input_mode=True)
+        rules.comment(value, anchor or Anchor("header"), None)
+        return rules.findings
     obj, findings = from_input(value, node, binding_id=binding_id, name=name, kind=kind)
     if obj is None:
         return findings

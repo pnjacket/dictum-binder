@@ -448,7 +448,7 @@ class Coverage(unittest.TestCase):
         with TempDir() as tmp:
             run_cli(["init"], cwd=tmp)
             empty = run_cli(["coverage", "get"], cwd=tmp)
-            self.assertEqual((empty.code, empty.envelope["command"]), (0, "coverage"))
+            self.assertEqual((empty.code, empty.envelope["command"]), (0, "coverage get"))
             self.assertEqual(
                 empty.envelope["result"],
                 {"coverage": {"comment": None, "fully_bound": [], "curated": {}}},
@@ -493,7 +493,7 @@ class Coverage(unittest.TestCase):
             bad = run_cli(["coverage", "fully-bound", "add", "bad"], cwd=tmp)
             self.assertEqual(
                 (bad.envelope["error"]["code"], bad.envelope["command"]),
-                ("ERR-USAGE", "coverage fully-bound add"),
+                ("ERR-USAGE", "coverage fully-bound"),
             )
 
     def test_curated_and_empty_block_removal(self) -> None:
@@ -556,7 +556,10 @@ class Coverage(unittest.TestCase):
                 (["coverage"], "coverage"),
                 (["coverage", "fully-bound"], "coverage fully-bound"),
                 (["coverage", "curated"], "coverage curated"),
-                (["coverage", "curated", "set", "API"], "coverage curated set"),
+                (["coverage", "curated", "set", "API"], "coverage curated"),
+                (["coverage", "curated", "unset", "API", "--reason", "r"], "coverage curated"),
+                (["coverage", "fully-bound", "add"], "coverage fully-bound"),
+                (["coverage", "fully-bound", "drop", "API"], "coverage fully-bound"),
                 (["coverage", "bogus"], "coverage"),
             ):
                 run = run_cli(argv, cwd=tmp)

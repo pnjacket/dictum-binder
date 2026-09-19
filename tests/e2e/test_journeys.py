@@ -240,6 +240,81 @@ class Journeys(unittest.TestCase):
         self.assertEqual(lspd(["coverage"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
         self.assertEqual(lspd(["validate"], self.tmp).code, 0)
 
+    def test_cap_comment(self) -> None:
+        """DICT: CAP-COMMENT — Quality's E2E example 3, bytes asserted at each step."""
+        target = os.path.join(self.tmp, "bindings.yaml")
+        self.assertEqual(lspd(["init"], self.tmp).code, 0)
+        doc = '{"locators": [{"path": "src/x.py", "symbol": "X"}]}'
+        self.assertEqual(lspd(["set", "ENTITY-X", "--json", doc], self.tmp).code, 0)
+        base = (
+            "schema_version: 1\n\nbindings:\n\n  ENTITY-X:\n    locators:\n"
+            "      - { path: src/x.py, symbol: X }\n"
+        )
+        self.assertEqual(open(target, "rb").read(), base.encode("utf-8"))
+        run = lspd(["comment", "set", "binding", "ENTITY-X", "--text", "why"], self.tmp)
+        self.assertEqual(run.code, 0, run.stdout)
+        self.assertEqual(
+            open(target, "rb").read(),
+            base.replace("  ENTITY-X:", "  # why\n  ENTITY-X:").encode("utf-8"),
+        )
+        got = lspd(["comment", "get", "binding", "ENTITY-X"], self.tmp)
+        self.assertEqual((got.code, got.envelope["result"]["text"]), (0, "why"))
+        self.assertEqual(
+            lspd(
+                [
+                    "comment",
+                    "set",
+                    "locator",
+                    "ENTITY-X",
+                    "--path",
+                    "src/x.py",
+                    "--symbol",
+                    "X",
+                    "--text",
+                    "l",
+                ],
+                self.tmp,
+            ).code,
+            0,
+        )
+        self.assertEqual(
+            lspd(
+                ["comment", "unset", "locator", "ENTITY-X", "--path", "src/x.py", "--symbol", "X"],
+                self.tmp,
+            ).code,
+            0,
+        )
+        self.assertEqual(lspd(["comment", "unset", "binding", "ENTITY-X"], self.tmp).code, 0)
+        self.assertEqual(open(target, "rb").read(), base.encode("utf-8"))
+        missing = lspd(["comment", "get", "binding", "ENTITY-X"], self.tmp)
+        self.assertEqual((missing.code, missing.envelope["error"]["code"]), (1, "ERR-NOT-FOUND"))
+        self.assertEqual(lspd(["comment", "set", "header", "--text", "h"], self.tmp).code, 0)
+        self.assertEqual(
+            lspd(["comment", "set", "field", "ENTITY-X", "f", "--text", "t"], self.tmp).code, 1
+        )
+        self.assertEqual(
+            lspd(
+                [
+                    "comment",
+                    "set",
+                    "assertion",
+                    "ENTITY-X",
+                    "--owed",
+                    "s",
+                    "--arm",
+                    "a",
+                    "--text",
+                    "t",
+                ],
+                self.tmp,
+            ).code,
+            1,
+        )
+        self.assertEqual(lspd(["comment", "get", "coverage"], self.tmp).code, 1)
+        self.assertEqual(lspd(["comment", "get", "curated", "API"], self.tmp).code, 1)
+        self.assertEqual(lspd(["comment"], self.tmp).envelope["error"]["code"], "ERR-USAGE")
+        self.assertEqual(lspd(["validate"], self.tmp).code, 0)
+
     def test_cap_schema(self) -> None:
         """DICT: CAP-SCHEMA"""
         raw = lspd(["schema"], self.tmp)
@@ -267,9 +342,9 @@ class Journeys(unittest.TestCase):
             ["coverage", "--help"],
             ["coverage", "get", "--help"],
             ["coverage", "fully-bound", "--help"],
-            ["coverage", "fully-bound", "add", "--help"],
             ["coverage", "curated", "--help"],
-            ["coverage", "curated", "set", "--help"],
+            ["comment", "--help"],
+            ["comment", "set", "--help"],
         ):
             run = lspd(argv, self.tmp)
             self.assertEqual(run.code, 0)
@@ -310,8 +385,20 @@ class MetaInvocations(unittest.TestCase):
             ("coverage", "get"),
             ("coverage", "fully-bound"),
             ("coverage", "curated"),
+            ("comment", "get"),
+            ("comment", "set"),
+            ("comment", "unset"),
         ):
             self.assertIn(head, heads, head)
+        anchors = {
+            argv[2]
+            for argv in argvs
+            if argv[:1] == ["comment"] and len(argv) > 2 and not argv[2].startswith("--")
+        }
+        self.assertEqual(
+            anchors,
+            {"header", "binding", "locator", "field", "assertion", "coverage", "curated"},
+        )
         flags = {(argv[0], flag) for argv in argvs for flag in argv[1:] if flag.startswith("--")}
         for pair in (
             ("add-locator", "--symbol"),
@@ -327,6 +414,8 @@ class MetaInvocations(unittest.TestCase):
             ("remove", "--assertion"),
             ("remove", "--arm"),
             ("coverage", "--comment"),
+            ("comment", "--symbol"),
+            ("comment", "--arm"),
         ):
             self.assertIn(pair, flags, pair)
         self.assertTrue(any(argv == ["--help"] for argv in argvs))

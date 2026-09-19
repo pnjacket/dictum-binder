@@ -207,11 +207,11 @@ class HelpAndVersion(unittest.TestCase):
             ["coverage", "--help"],
             ["coverage", "get", "--help"],
             ["coverage", "fully-bound", "--help"],
-            ["coverage", "fully-bound", "add", "--help"],
-            ["coverage", "fully-bound", "remove", "--help"],
             ["coverage", "curated", "--help"],
-            ["coverage", "curated", "set", "--help"],
-            ["coverage", "curated", "unset", "--help"],
+            ["comment", "--help"],
+            ["comment", "get", "--help"],
+            ["comment", "set", "--help"],
+            ["comment", "unset", "--help"],
         ):
             with self.subTest(argv=argv):
                 run = run_cli(argv)
