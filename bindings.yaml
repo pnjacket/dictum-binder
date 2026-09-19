@@ -1,0 +1,745 @@
+# bindings.yaml — dictum-binder's own contract→code binding map (Dictum v1.2.0 binding map;
+# written by an LLM in the canonical style, then conformed with `lspd format`).
+schema_version: 1
+
+bindings:
+
+  ADR-ARGPARSE:
+    locators:
+      - { path: src/lspd/cli.py, symbol: build_parser }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Imports.test_argparse_only_in_cli, run: "python3 -m unittest tests.fitness.test_structure.Imports.test_argparse_only_in_cli" }
+
+  ADR-FORMAT-ONLY-REORDERS:
+    locators:
+      - { path: src/lspd/commands/format.py, symbol: canonicalise }
+    asserted_by:
+      - { path: tests/contract/test_format.py, symbol: Format.test_only_format_reorders_and_only_the_top_level_lists, run: "python3 -m unittest tests.contract.test_format.Format.test_only_format_reorders_and_only_the_top_level_lists" }
+      - { path: tests/contract/test_writes.py, symbol: OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order, run: "python3 -m unittest tests.contract.test_writes.OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order" }
+
+  ADR-INIT-REQUIRED:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_Run.init" }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_file_missing, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_file_missing" }
+      - { path: tests/contract/test_elements.py, symbol: Init.test_refuses_an_existing_target, run: "python3 -m unittest tests.contract.test_elements.Init.test_refuses_an_existing_target" }
+
+  ADR-LOAD-RUAMEL-EMIT-OWN:
+    locators:
+      - { path: src/lspd/loader.py, symbol: parse }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Imports.test_ruamel_only_in_loader_and_no_other_third_party, run: "python3 -m unittest tests.fitness.test_structure.Imports.test_ruamel_only_in_loader_and_no_other_third_party" }
+      - { path: tests/fitness/test_structure.py, symbol: SoleWriter.test_only_emitter_writes, run: "python3 -m unittest tests.fitness.test_structure.SoleWriter.test_only_emitter_writes" }
+
+  ADR-MAJOR-PER-TEMPLATE:
+    locators:
+      - { path: src/lspd/schema.py, symbol: SCHEMA_VERSION }
+    asserted_by:
+      - { path: tests/fitness/test_governance_ops.py, symbol: PinsAndWorkflow.test_pyproject_pins, run: "python3 -m unittest tests.fitness.test_governance_ops.PinsAndWorkflow.test_pyproject_pins" }
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_schema_version_mismatch_is_a_finding_not_an_error, run: "python3 -m unittest tests.contract.test_elements.Validate.test_schema_version_mismatch_is_a_finding_not_an_error" }
+
+  ADR-NO-LINE-NUMBERS:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.symbol" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  ADR-NO-LOGGING:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_fail" }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Imports.test_forbidden_modules_and_calls, run: "python3 -m unittest tests.fitness.test_structure.Imports.test_forbidden_modules_and_calls" }
+
+  ADR-NO-SILENT-DEFAULTS:
+    locators:
+      - { path: src/lspd/loader.py, symbol: "_strip_leader" }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_parse_fixtures_and_generated_bytes, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_parse_fixtures_and_generated_bytes" }
+
+  ADR-NUMERIC-IDS-REJECTED:
+    locators:
+      - { path: src/lspd/model.py, symbol: "_grammar_message" }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: ContractIdGrammar.test_table, run: "python3 -m unittest tests.unit.test_model_schema.ContractIdGrammar.test_table" }
+
+  ADR-OWN-SHAPE-VALIDATOR:
+    locators:
+      - { path: src/lspd/schema.py, symbol: check_shape }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Imports.test_ruamel_only_in_loader_and_no_other_third_party, run: "python3 -m unittest tests.fitness.test_structure.Imports.test_ruamel_only_in_loader_and_no_other_third_party" }
+      - { path: tests/unit/test_model_schema.py, symbol: JsonSchema.test_every_rule_table_entry_appears_in_the_schema, run: "python3 -m unittest tests.unit.test_model_schema.JsonSchema.test_every_rule_table_entry_appears_in_the_schema" }
+
+  ADR-SCHEMA-SINGLE-SOURCE:
+    locators:
+      - { path: src/lspd/schema.py, symbol: RULES }
+    asserted_by:
+      - { path: tests/fitness/test_governance_ops.py, symbol: SchemaFile.test_shipped_file_equals_embedded_schema_and_readme_checksum, run: "python3 -m unittest tests.fitness.test_governance_ops.SchemaFile.test_shipped_file_equals_embedded_schema_and_readme_checksum" }
+
+  ADR-SINGLE-FILE:
+    locators:
+      - { path: src/lspd/cli.py, symbol: DEFAULT_FILE }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Init.test_file_option_before_or_after_the_command, run: "python3 -m unittest tests.contract.test_elements.Init.test_file_option_before_or_after_the_command" }
+
+  ADR-STRUCTURAL-ONLY:
+    locators:
+      - { path: src/lspd/validator.py, symbol: validate }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: SecurityForcings.test_sec_file_footprint, run: "python3 -m unittest tests.contract.test_errors_security.SecurityForcings.test_sec_file_footprint" }
+
+  CLI-ADD-ASSERTION:
+    locators:
+      - { path: src/lspd/commands/add.py, symbol: assertion }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: AddAssertion.test_bound_and_owed_append_last, run: "python3 -m unittest tests.contract.test_writes.AddAssertion.test_bound_and_owed_append_last" }
+      - { path: tests/contract/test_writes.py, symbol: AddAssertion.test_duplicate_identity_and_partial_shapes, run: "python3 -m unittest tests.contract.test_writes.AddAssertion.test_duplicate_identity_and_partial_shapes" }
+
+  CLI-ADD-FIELD:
+    locators:
+      - { path: src/lspd/commands/add.py, symbol: field }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: AddField.test_new_appends_and_existing_replaces_keeping_comment, run: "python3 -m unittest tests.contract.test_writes.AddField.test_new_appends_and_existing_replaces_keeping_comment" }
+
+  CLI-ADD-LOCATOR:
+    locators:
+      - { path: src/lspd/commands/add.py, symbol: locator }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: AddLocator.test_appends_last_with_every_flag, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_appends_last_with_every_flag" }
+      - { path: tests/contract/test_writes.py, symbol: AddLocator.test_duplicate_not_found_and_input_rules, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_duplicate_not_found_and_input_rules" }
+
+  CLI-COMMENT-GET:
+    locators:
+      - { path: src/lspd/commands/comment.py, symbol: get }
+    asserted_by:
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes" }
+      - { path: tests/contract/test_comments.py, symbol: Conditions.test_absent_targets, run: "python3 -m unittest tests.contract.test_comments.Conditions.test_absent_targets" }
+
+  CLI-COMMENT-SET:
+    locators:
+      - { path: src/lspd/commands/comment.py, symbol: set_text }
+    asserted_by:
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes" }
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_carrier_form_follows_the_text, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_carrier_form_follows_the_text" }
+      - { path: tests/contract/test_comments.py, symbol: Conditions.test_value_rule_on_text, run: "python3 -m unittest tests.contract.test_comments.Conditions.test_value_rule_on_text" }
+      - { path: tests/contract/test_comments.py, symbol: Conditions.test_anchor_grammar, run: "python3 -m unittest tests.contract.test_comments.Conditions.test_anchor_grammar" }
+      - { path: tests/contract/test_comments.py, symbol: Conditions.test_two_carrier_anchor_refuses_the_write, run: "python3 -m unittest tests.contract.test_comments.Conditions.test_two_carrier_anchor_refuses_the_write" }
+
+  CLI-COMMENT-UNSET:
+    locators:
+      - { path: src/lspd/commands/comment.py, symbol: unset }
+    asserted_by:
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes" }
+
+  CLI-COVERAGE-CURATED:
+    locators:
+      - { path: src/lspd/commands/coverage.py, symbol: curated_set }
+      - { path: src/lspd/commands/coverage.py, symbol: curated_unset }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_curated_and_empty_block_removal, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_curated_and_empty_block_removal" }
+
+  CLI-COVERAGE-FULLY-BOUND:
+    locators:
+      - { path: src/lspd/commands/coverage.py, symbol: fully_bound_add }
+      - { path: src/lspd/commands/coverage.py, symbol: fully_bound_remove }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_fully_bound, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_fully_bound" }
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_group_without_subcommand_is_usage, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_group_without_subcommand_is_usage" }
+
+  CLI-COVERAGE-GET:
+    locators:
+      - { path: src/lspd/commands/coverage.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_get, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_get" }
+
+  CLI-FORMAT:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_Run.format" }
+    asserted_by:
+      - { path: tests/contract/test_format.py, symbol: Format.test_rewrites_sorted_canonical_and_is_idempotent, run: "python3 -m unittest tests.contract.test_format.Format.test_rewrites_sorted_canonical_and_is_idempotent" }
+      - { path: tests/contract/test_format.py, symbol: Format.test_check_never_writes_and_exits_1_iff_it_would_change, run: "python3 -m unittest tests.contract.test_format.Format.test_check_never_writes_and_exits_1_iff_it_would_change" }
+      - { path: tests/contract/test_format.py, symbol: Format.test_layout_warnings_are_repaired_and_other_warnings_kept, run: "python3 -m unittest tests.contract.test_format.Format.test_layout_warnings_are_repaired_and_other_warnings_kept" }
+      - { path: tests/contract/test_format.py, symbol: Format.test_error_level_findings_refuse_it_under_both_modes, run: "python3 -m unittest tests.contract.test_format.Format.test_error_level_findings_refuse_it_under_both_modes" }
+
+  CLI-GET:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: get }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_full_projection_with_comments, run: "python3 -m unittest tests.contract.test_query.Get.test_full_projection_with_comments" }
+      - { path: tests/contract/test_query.py, symbol: Get.test_argument_order_and_repeats, run: "python3 -m unittest tests.contract.test_query.Get.test_argument_order_and_repeats" }
+      - { path: tests/contract/test_query.py, symbol: Get.test_error_level_findings_exit_1_with_the_result, run: "python3 -m unittest tests.contract.test_query.Get.test_error_level_findings_exit_1_with_the_result" }
+      - { path: tests/contract/test_query.py, symbol: Get.test_bad_id_on_the_command_line_is_usage, run: "python3 -m unittest tests.contract.test_query.Get.test_bad_id_on_the_command_line_is_usage" }
+
+  CLI-HELP:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_HelpAction" }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: HelpAndVersion.test_help_at_every_level_is_plain_text, run: "python3 -m unittest tests.contract.test_elements.HelpAndVersion.test_help_at_every_level_is_plain_text" }
+      - { path: tests/contract/test_elements.py, symbol: HelpAndVersion.test_help_on_unknown_command_is_usage_error, run: "python3 -m unittest tests.contract.test_elements.HelpAndVersion.test_help_on_unknown_command_is_usage_error" }
+      - { path: tests/fitness/test_help_tree.py, symbol: HelpTree.test_walk_yields_exactly_the_cli_command_paths, run: "python3 -m unittest tests.fitness.test_help_tree.HelpTree.test_walk_yields_exactly_the_cli_command_paths" }
+
+  CLI-INIT:
+    locators:
+      - { path: src/lspd/commands/init.py, symbol: empty_map }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Init.test_creates_the_canonical_empty_map, run: "python3 -m unittest tests.contract.test_elements.Init.test_creates_the_canonical_empty_map" }
+      - { path: tests/contract/test_elements.py, symbol: Init.test_refuses_an_existing_target, run: "python3 -m unittest tests.contract.test_elements.Init.test_refuses_an_existing_target" }
+
+  CLI-LIST:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: list_bindings }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: List.test_summaries_in_file_order, run: "python3 -m unittest tests.contract.test_query.List.test_summaries_in_file_order" }
+      - { path: tests/contract/test_query.py, symbol: List.test_kind_filter_union_and_empty_result, run: "python3 -m unittest tests.contract.test_query.List.test_kind_filter_union_and_empty_result" }
+      - { path: tests/contract/test_query.py, symbol: List.test_full, run: "python3 -m unittest tests.contract.test_query.List.test_full" }
+      - { path: tests/contract/test_query.py, symbol: List.test_empty_map, run: "python3 -m unittest tests.contract.test_query.List.test_empty_map" }
+
+  CLI-REMOVE:
+    locators:
+      - { path: src/lspd/commands/remove.py, symbol: binding }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Remove.test_whole_binding_goes_with_its_comments, run: "python3 -m unittest tests.contract.test_writes.Remove.test_whole_binding_goes_with_its_comments" }
+      - { path: tests/contract/test_writes.py, symbol: Remove.test_entries, run: "python3 -m unittest tests.contract.test_writes.Remove.test_entries" }
+      - { path: tests/contract/test_writes.py, symbol: Remove.test_not_found_and_selector_usage, run: "python3 -m unittest tests.contract.test_writes.Remove.test_not_found_and_selector_usage" }
+
+  CLI-SCHEMA:
+    locators:
+      - { path: src/lspd/schema.py, symbol: checksum }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Schema.test_raw_schema_and_checksum, run: "python3 -m unittest tests.contract.test_elements.Schema.test_raw_schema_and_checksum" }
+
+  CLI-SET:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_Run.set" }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Set.test_create_appends_last_and_replace_keeps_place, run: "python3 -m unittest tests.contract.test_writes.Set.test_create_appends_last_and_replace_keeps_place" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_omitted_equals_null_and_comments_clear, run: "python3 -m unittest tests.contract.test_writes.Set.test_omitted_equals_null_and_comments_clear" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_stdin_document, run: "python3 -m unittest tests.contract.test_writes.Set.test_stdin_document" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_warning_only_input_is_written_and_reported_post, run: "python3 -m unittest tests.contract.test_writes.Set.test_warning_only_input_is_written_and_reported_post" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_usage_conditions, run: "python3 -m unittest tests.contract.test_writes.Set.test_usage_conditions" }
+      - { path: tests/contract/test_comments.py, symbol: SetRoundTrip.test_get_document_set_back_is_identity, run: "python3 -m unittest tests.contract.test_comments.SetRoundTrip.test_get_document_set_back_is_identity" }
+      - { path: tests/contract/test_comments.py, symbol: SetRoundTrip.test_set_clears_and_sets_comments_at_every_binding_anchor, run: "python3 -m unittest tests.contract.test_comments.SetRoundTrip.test_set_clears_and_sets_comments_at_every_binding_anchor" }
+
+  CLI-VALIDATE:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_Run.validate" }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_clean_file, run: "python3 -m unittest tests.contract.test_elements.Validate.test_clean_file" }
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_error_findings_exit_1_with_ok_true, run: "python3 -m unittest tests.contract.test_elements.Validate.test_error_findings_exit_1_with_ok_true" }
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_check_paths, run: "python3 -m unittest tests.contract.test_elements.Validate.test_check_paths" }
+
+  CLI-VERSION:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_VersionAction" }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: HelpAndVersion.test_version, run: "python3 -m unittest tests.contract.test_elements.HelpAndVersion.test_version" }
+
+  COMPONENT-CLI:
+    locators:
+      - { path: src/lspd/cli.py }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Orchestration.test_flow_components_are_isolated_and_cli_orchestrates, run: "python3 -m unittest tests.fitness.test_structure.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates" }
+      - { path: tests/fitness/test_help_tree.py, symbol: HelpTree.test_walk_yields_exactly_the_cli_command_paths, run: "python3 -m unittest tests.fitness.test_help_tree.HelpTree.test_walk_yields_exactly_the_cli_command_paths" }
+
+  COMPONENT-COMMANDS:
+    locators:
+      - { path: src/lspd/commands/__init__.py }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Orchestration.test_flow_components_are_isolated_and_cli_orchestrates, run: "python3 -m unittest tests.fitness.test_structure.Orchestration.test_flow_components_are_isolated_and_cli_orchestrates" }
+      - { path: tests/fitness/test_help_tree.py, symbol: HelpTree.test_walk_yields_exactly_the_cli_command_paths, run: "python3 -m unittest tests.fitness.test_help_tree.HelpTree.test_walk_yields_exactly_the_cli_command_paths" }
+      - { path: tests/contract/test_complete_ops.py, symbol: CompleteOps.test_row_3_record_or_update_a_binding_as_a_slice_lands, run: "python3 -m unittest tests.contract.test_complete_ops.CompleteOps.test_row_3_record_or_update_a_binding_as_a_slice_lands" }
+
+  COMPONENT-EMITTER:
+    locators:
+      - { path: src/lspd/emitter.py }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: SoleWriter.test_only_emitter_writes, run: "python3 -m unittest tests.fitness.test_structure.SoleWriter.test_only_emitter_writes" }
+      - { path: tests/unit/test_emitter_loader.py, symbol: Layout.test_every_construct_and_comment_carrier, run: "python3 -m unittest tests.unit.test_emitter_loader.Layout.test_every_construct_and_comment_carrier" }
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes" }
+
+  COMPONENT-LOADER:
+    locators:
+      - { path: src/lspd/loader.py }
+    asserted_by:
+      - { path: tests/fitness/test_structure.py, symbol: Imports.test_ruamel_only_in_loader_and_no_other_third_party, run: "python3 -m unittest tests.fitness.test_structure.Imports.test_ruamel_only_in_loader_and_no_other_third_party" }
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_carriers_round_trip_and_transparent_markers, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_carriers_round_trip_and_transparent_markers" }
+
+  COMPONENT-MODEL:
+    locators:
+      - { path: src/lspd/model.py }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+
+  COMPONENT-RENDERER:
+    locators:
+      - { path: src/lspd/render.py }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Envelope.test_compact_single_document_with_fixed_key_order, run: "python3 -m unittest tests.contract.test_elements.Envelope.test_compact_single_document_with_fixed_key_order" }
+
+  COMPONENT-SCHEMA:
+    locators:
+      - { path: src/lspd/schema.py }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: JsonSchema.test_every_rule_table_entry_appears_in_the_schema, run: "python3 -m unittest tests.unit.test_model_schema.JsonSchema.test_every_rule_table_entry_appears_in_the_schema" }
+
+  COMPONENT-VALIDATOR:
+    locators:
+      - { path: src/lspd/validator.py }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  ENTITY-ASSERTION:
+    locators:
+      - { path: src/lspd/model.py, symbol: Assertion }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+
+  ENTITY-BINDING:
+    locators:
+      - { path: src/lspd/model.py, symbol: Binding }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+
+  ENTITY-COMMENT:
+    locators:
+      - { path: src/lspd/loader.py, symbol: attach_comments }
+    asserted_by:
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_carriers_round_trip_and_transparent_markers, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_carriers_round_trip_and_transparent_markers" }
+
+  ENTITY-CONTRACT-ID:
+    locators:
+      - { path: src/lspd/model.py, symbol: is_contract_id }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: ContractIdGrammar.test_table, run: "python3 -m unittest tests.unit.test_model_schema.ContractIdGrammar.test_table" }
+
+  ENTITY-COVERAGE:
+    locators:
+      - { path: src/lspd/model.py, symbol: Coverage }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: Dataclasses.test_anchor_projection_and_wire_emptiness, run: "python3 -m unittest tests.unit.test_model_schema.Dataclasses.test_anchor_projection_and_wire_emptiness" }
+
+  ENTITY-FIELD-LOCATOR:
+    locators:
+      - { path: src/lspd/model.py, symbol: FieldLocator }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+
+  ENTITY-FINDING:
+    locators:
+      - { path: src/lspd/model.py, symbol: Finding }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_findings_are_in_document_order_then_code_and_deduplicated, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_findings_are_in_document_order_then_code_and_deduplicated" }
+
+  ENTITY-LOCATOR:
+    locators:
+      - { path: src/lspd/model.py, symbol: Locator }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+
+  ENTITY-MAP:
+    locators:
+      - { path: src/lspd/model.py, symbol: Map }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_full_binding_converts_and_projects_back, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_full_binding_converts_and_projects_back" }
+      - { path: tests/golden/test_canonical.py, symbol: Canonical.test_canonical_validates_clean_and_round_trips, run: "python3 -m unittest tests.golden.test_canonical.Canonical.test_canonical_validates_clean_and_round_trips" }
+
+  ENTITY-PATH:
+    locators:
+      - { path: src/lspd/model.py, symbol: path_form_problem }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: PathForm.test_table, run: "python3 -m unittest tests.unit.test_model_schema.PathForm.test_table" }
+
+  ENTITY-WIRE:
+    locators:
+      - { path: src/lspd/model.py, symbol: Wire }
+    asserted_by:
+      - { path: tests/unit/test_model_schema.py, symbol: Dataclasses.test_anchor_projection_and_wire_emptiness, run: "python3 -m unittest tests.unit.test_model_schema.Dataclasses.test_anchor_projection_and_wire_emptiness" }
+
+  ERR-DUPLICATE:
+    locators:
+      - { path: src/lspd/errors.py, symbol: DuplicateError }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: AddLocator.test_duplicate_not_found_and_input_rules, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_duplicate_not_found_and_input_rules" }
+      - { path: tests/contract/test_writes.py, symbol: AddAssertion.test_duplicate_identity_and_partial_shapes, run: "python3 -m unittest tests.contract.test_writes.AddAssertion.test_duplicate_identity_and_partial_shapes" }
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_fully_bound, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_fully_bound" }
+
+  ERR-FILE-EXISTS:
+    locators:
+      - { path: src/lspd/errors.py, symbol: FileExistsAlreadyError }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Init.test_refuses_an_existing_target, run: "python3 -m unittest tests.contract.test_elements.Init.test_refuses_an_existing_target" }
+
+  ERR-FILE-INVALID:
+    locators:
+      - { path: src/lspd/errors.py, symbol: FileInvalidError }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: ValidateAroundWrite.test_error_level_file_refuses_every_writer, run: "python3 -m unittest tests.contract.test_writes.ValidateAroundWrite.test_error_level_file_refuses_every_writer" }
+
+  ERR-FILE-MISSING:
+    locators:
+      - { path: src/lspd/errors.py, symbol: FileMissingError }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_file_missing, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_file_missing" }
+
+  ERR-FILE-TOO-LARGE:
+    locators:
+      - { path: src/lspd/errors.py, symbol: FileTooLargeError }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_size_cap_and_lift, run: "python3 -m unittest tests.contract.test_elements.Validate.test_size_cap_and_lift" }
+
+  ERR-INPUT-INVALID:
+    locators:
+      - { path: src/lspd/errors.py, symbol: InputInvalidError }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: AddLocator.test_duplicate_not_found_and_input_rules, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_duplicate_not_found_and_input_rules" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_shape_breaking_input_writes_nothing, run: "python3 -m unittest tests.contract.test_writes.Set.test_shape_breaking_input_writes_nothing" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_comment_value_rules_apply_to_json_input, run: "python3 -m unittest tests.contract.test_writes.Set.test_comment_value_rules_apply_to_json_input" }
+
+  ERR-INTERNAL:
+    locators:
+      - { path: src/lspd/errors.py, symbol: InternalError }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_internal_from_an_unexpected_exception, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_internal_from_an_unexpected_exception" }
+
+  ERR-IO:
+    locators:
+      - { path: src/lspd/errors.py, symbol: FileIOError }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_io_directory_target, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_io_directory_target" }
+      - { path: tests/contract/test_elements.py, symbol: Init.test_unwritable_location_is_io_error, run: "python3 -m unittest tests.contract.test_elements.Init.test_unwritable_location_is_io_error" }
+
+  ERR-NOT-FOUND:
+    locators:
+      - { path: src/lspd/errors.py, symbol: NotFoundError }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_unknown_id_is_not_found_and_returns_nothing, run: "python3 -m unittest tests.contract.test_query.Get.test_unknown_id_is_not_found_and_returns_nothing" }
+      - { path: tests/contract/test_writes.py, symbol: Remove.test_not_found_and_selector_usage, run: "python3 -m unittest tests.contract.test_writes.Remove.test_not_found_and_selector_usage" }
+      - { path: tests/contract/test_writes.py, symbol: AddLocator.test_duplicate_not_found_and_input_rules, run: "python3 -m unittest tests.contract.test_writes.AddLocator.test_duplicate_not_found_and_input_rules" }
+
+  ERR-PARSE:
+    locators:
+      - { path: src/lspd/errors.py, symbol: ParseError }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_parse_fixtures_and_generated_bytes, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_parse_fixtures_and_generated_bytes" }
+
+  ERR-SCHEMA-VERSION:
+    locators:
+      - { path: src/lspd/errors.py, symbol: SchemaVersionError }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: SchemaVersionGate.test_get_and_list_refuse_another_major, run: "python3 -m unittest tests.contract.test_query.SchemaVersionGate.test_get_and_list_refuse_another_major" }
+      - { path: tests/contract/test_query.py, symbol: SchemaVersionGate.test_missing_schema_version_is_the_same_error, run: "python3 -m unittest tests.contract.test_query.SchemaVersionGate.test_missing_schema_version_is_the_same_error" }
+
+  ERR-USAGE:
+    locators:
+      - { path: src/lspd/errors.py, symbol: UsageError }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_usage_conditions, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_usage_conditions" }
+
+  INV-ASSERTION-SHAPE:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.assertion" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_validator_rules.py, symbol: AssertionRules.test_bound_assertion_missing_keys, run: "python3 -m unittest tests.unit.test_validator_rules.AssertionRules.test_bound_assertion_missing_keys" }
+      - { path: tests/unit/test_validator_rules.py, symbol: AssertionRules.test_mixed_shape, run: "python3 -m unittest tests.unit.test_validator_rules.AssertionRules.test_mixed_shape" }
+      - { path: tests/unit/test_validator_rules.py, symbol: AssertionRules.test_present_but_empty, run: "python3 -m unittest tests.unit.test_validator_rules.AssertionRules.test_present_but_empty" }
+
+  INV-ASSERTION-UNIQUE:
+    locators:
+      - { path: src/lspd/model.py, symbol: Assertion.identity }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  INV-ATOMIC-WRITE:
+    locators:
+      - { path: src/lspd/emitter.py, symbol: write }
+    asserted_by:
+      - { path: tests/unit/test_emitter_loader.py, symbol: AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file, run: "python3 -m unittest tests.unit.test_emitter_loader.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file" }
+      - { path: tests/contract/test_writes.py, symbol: ValidateAroundWrite.test_error_level_file_refuses_every_writer, run: "python3 -m unittest tests.contract.test_writes.ValidateAroundWrite.test_error_level_file_refuses_every_writer" }
+
+  INV-BYTES:
+    locators:
+      - { path: src/lspd/loader.py, symbol: decode }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_advisory_invariants_are_warnings, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_advisory_invariants_are_warnings" }
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_byte_layer, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_byte_layer" }
+
+  INV-CANONICAL-FIXPOINT:
+    locators:
+      - { path: src/lspd/emitter.py, symbol: emit }
+    asserted_by:
+      - { path: tests/golden/test_canonical.py, symbol: Canonical.test_emit_is_a_fixpoint_for_every_loadable_fixture, run: "python3 -m unittest tests.golden.test_canonical.Canonical.test_emit_is_a_fixpoint_for_every_loadable_fixture" }
+      - { path: tests/golden/test_canonical.py, symbol: Canonical.test_format_applied_twice_equals_format_applied_once, run: "python3 -m unittest tests.golden.test_canonical.Canonical.test_format_applied_twice_equals_format_applied_once" }
+
+  INV-CLOSED-KEYS:
+    locators:
+      - { path: src/lspd/model.py, symbol: "_Converter.closed_keys" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_model_schema.py, symbol: FromPlain.test_type_and_required_key_violations_report_closed_keys, run: "python3 -m unittest tests.unit.test_model_schema.FromPlain.test_type_and_required_key_violations_report_closed_keys" }
+
+  INV-COMMENT-ANCHORED:
+    locators:
+      - { path: src/lspd/loader.py, symbol: "_Anchors" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_parse_errors, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_parse_errors" }
+
+  INV-COMMENT-TEXT:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.comment" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_validator_rules.py, symbol: CommentRules.test_edge_empty_line_and_control_character, run: "python3 -m unittest tests.unit.test_validator_rules.CommentRules.test_edge_empty_line_and_control_character" }
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_leader_stripping_and_trailing_whitespace_in_comments, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_leader_stripping_and_trailing_whitespace_in_comments" }
+
+  INV-COVERAGE-WELLFORMED:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.coverage" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_validator_rules.py, symbol: CoverageRules.test_neither_key, run: "python3 -m unittest tests.unit.test_validator_rules.CoverageRules.test_neither_key" }
+      - { path: tests/unit/test_validator_rules.py, symbol: CoverageRules.test_fully_bound_arms, run: "python3 -m unittest tests.unit.test_validator_rules.CoverageRules.test_fully_bound_arms" }
+      - { path: tests/unit/test_validator_rules.py, symbol: CoverageRules.test_curated_arms, run: "python3 -m unittest tests.unit.test_validator_rules.CoverageRules.test_curated_arms" }
+
+  INV-FIELD-NAME:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.field" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_validator_rules.py, symbol: FieldRules.test_empty_and_control_character_names, run: "python3 -m unittest tests.unit.test_validator_rules.FieldRules.test_empty_and_control_character_names" }
+
+  INV-ID-GRAMMAR:
+    locators:
+      - { path: src/lspd/model.py, symbol: ID_PATTERN }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_model_schema.py, symbol: ContractIdGrammar.test_table, run: "python3 -m unittest tests.unit.test_model_schema.ContractIdGrammar.test_table" }
+
+  INV-ID-UNIQUE:
+    locators:
+      - { path: src/lspd/loader.py, symbol: "_yaml_reason" }
+    asserted_by:
+      - { path: tests/unit/test_emitter_loader.py, symbol: LoaderEdges.test_parse_errors, run: "python3 -m unittest tests.unit.test_emitter_loader.LoaderEdges.test_parse_errors" }
+
+  INV-LOCATOR-UNIQUE:
+    locators:
+      - { path: src/lspd/model.py, symbol: Locator.identity }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  INV-NO-LINE-NUMBERS:
+    locators:
+      - { path: src/lspd/model.py, symbol: LINE_SUFFIX_RE }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_lines_key_fires_both_closed_keys_and_no_line_numbers, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_lines_key_fires_both_closed_keys_and_no_line_numbers" }
+
+  INV-ORDER-PRESERVED:
+    locators:
+      - { path: src/lspd/commands/set.py, symbol: apply }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: OrderPreserved.test_noncanonical_file_is_repaired_with_order_kept, run: "python3 -m unittest tests.contract.test_writes.OrderPreserved.test_noncanonical_file_is_repaired_with_order_kept" }
+      - { path: tests/contract/test_writes.py, symbol: OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order, run: "python3 -m unittest tests.contract.test_writes.OrderPreserved.test_every_write_keeps_the_untouched_lines_in_order" }
+
+  INV-OWNED-TWICE:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.owned_twice" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_advisory_invariants_are_warnings, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_advisory_invariants_are_warnings" }
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_owned_twice_names_the_other_binding, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_owned_twice_names_the_other_binding" }
+
+  INV-PATH-EXISTS:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_path_exists_only_with_the_flag, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_path_exists_only_with_the_flag" }
+
+  INV-PATH-FORM:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.path" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  INV-ROLE-REQUIRES-WIRE:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.binding" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_advisory_invariants_are_warnings, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_advisory_invariants_are_warnings" }
+
+  INV-ROLE-VALUES:
+    locators:
+      - { path: src/lspd/model.py, symbol: "_Converter.enum" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  INV-SCHEMA-VERSION:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.document" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_missing_schema_version_fires_both_codes, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_missing_schema_version_fires_both_codes" }
+
+  INV-SYMBOL-NONEMPTY:
+    locators:
+      - { path: src/lspd/validator.py, symbol: "_Rules.scalar" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+      - { path: tests/unit/test_validator_rules.py, symbol: ScalarAndSymbolRules.test_control_character_in_symbol, run: "python3 -m unittest tests.unit.test_validator_rules.ScalarAndSymbolRules.test_control_character_in_symbol" }
+      - { path: tests/unit/test_model_schema.py, symbol: ControlCharacters.test_table, run: "python3 -m unittest tests.unit.test_model_schema.ControlCharacters.test_table" }
+
+  INV-WIRE-SUBSET:
+    locators:
+      - { path: src/lspd/model.py, symbol: "_Converter.wire" }
+    asserted_by:
+      - { path: tests/unit/test_invariants.py, symbol: WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once, run: "python3 -m unittest tests.unit.test_invariants.WriteGatedInvariants.test_each_write_gated_invariant_fires_exactly_once" }
+
+  OUT-ANCHOR:
+    locators:
+      - { path: src/lspd/render.py, symbol: anchor }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_error_findings_exit_1_with_ok_true, run: "python3 -m unittest tests.contract.test_elements.Validate.test_error_findings_exit_1_with_ok_true" }
+
+  OUT-ASSERTION:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: assertion }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_full_projection_with_comments, run: "python3 -m unittest tests.contract.test_query.Get.test_full_projection_with_comments" }
+      - { path: tests/contract/test_query.py, symbol: Get.test_bound_assertion_and_wire_projection, run: "python3 -m unittest tests.contract.test_query.Get.test_bound_assertion_and_wire_projection" }
+
+  OUT-BINDING:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: binding }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_full_projection_with_comments, run: "python3 -m unittest tests.contract.test_query.Get.test_full_projection_with_comments" }
+      - { path: tests/contract/test_query.py, symbol: Get.test_stub_and_absent_optionals_are_null, run: "python3 -m unittest tests.contract.test_query.Get.test_stub_and_absent_optionals_are_null" }
+
+  OUT-BINDING-SUMMARY:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: summary }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: List.test_summaries_in_file_order, run: "python3 -m unittest tests.contract.test_query.List.test_summaries_in_file_order" }
+      - { path: tests/contract/test_query.py, symbol: List.test_has_comment_sees_every_anchor, run: "python3 -m unittest tests.contract.test_query.List.test_has_comment_sees_every_anchor" }
+
+  OUT-COMMENT:
+    locators:
+      - { path: src/lspd/commands/comment.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_comments.py, symbol: SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes, run: "python3 -m unittest tests.contract.test_comments.SevenAnchors.test_set_get_unset_at_every_anchor_with_exact_bytes" }
+
+  OUT-COVERAGE:
+    locators:
+      - { path: src/lspd/commands/coverage.py, symbol: projection }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_get, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_get" }
+
+  OUT-ENVELOPE:
+    locators:
+      - { path: src/lspd/render.py, symbol: "_envelope_object" }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Envelope.test_compact_single_document_with_fixed_key_order, run: "python3 -m unittest tests.contract.test_elements.Envelope.test_compact_single_document_with_fixed_key_order" }
+
+  OUT-ERROR:
+    locators:
+      - { path: src/lspd/render.py, symbol: error }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_usage_conditions, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_usage_conditions" }
+      - { path: tests/unit/test_errors_render.py, symbol: RendererProjections.test_findings_and_anchor_details, run: "python3 -m unittest tests.unit.test_errors_render.RendererProjections.test_findings_and_anchor_details" }
+      - { path: tests/contract/test_elements.py, symbol: Init.test_refuses_an_existing_target, run: "python3 -m unittest tests.contract.test_elements.Init.test_refuses_an_existing_target" }
+
+  OUT-FIELD-LOCATOR:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: field_locator }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_full_projection_with_comments, run: "python3 -m unittest tests.contract.test_query.Get.test_full_projection_with_comments" }
+
+  OUT-FINDING:
+    locators:
+      - { path: src/lspd/render.py, symbol: finding }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_error_findings_exit_1_with_ok_true, run: "python3 -m unittest tests.contract.test_elements.Validate.test_error_findings_exit_1_with_ok_true" }
+
+  OUT-FORMAT-RESULT:
+    locators:
+      - { path: src/lspd/commands/format.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_format.py, symbol: Format.test_rewrites_sorted_canonical_and_is_idempotent, run: "python3 -m unittest tests.contract.test_format.Format.test_rewrites_sorted_canonical_and_is_idempotent" }
+
+  OUT-INIT-RESULT:
+    locators:
+      - { path: src/lspd/commands/init.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Init.test_creates_the_canonical_empty_map, run: "python3 -m unittest tests.contract.test_elements.Init.test_creates_the_canonical_empty_map" }
+
+  OUT-LOCATOR:
+    locators:
+      - { path: src/lspd/commands/query.py, symbol: locator }
+    asserted_by:
+      - { path: tests/contract/test_query.py, symbol: Get.test_full_projection_with_comments, run: "python3 -m unittest tests.contract.test_query.Get.test_full_projection_with_comments" }
+
+  OUT-SCHEMA:
+    locators:
+      - { path: src/lspd/schema.py, symbol: schema_json }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Schema.test_raw_schema_and_checksum, run: "python3 -m unittest tests.contract.test_elements.Schema.test_raw_schema_and_checksum" }
+
+  OUT-VALIDATE-RESULT:
+    locators:
+      - { path: src/lspd/commands/validate.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Validate.test_clean_file, run: "python3 -m unittest tests.contract.test_elements.Validate.test_clean_file" }
+
+  OUT-WRITE-RESULT:
+    locators:
+      - { path: src/lspd/commands/set.py, symbol: result }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: Set.test_create_appends_last_and_replace_keeps_place, run: "python3 -m unittest tests.contract.test_writes.Set.test_create_appends_last_and_replace_keeps_place" }
+      - { path: tests/contract/test_writes.py, symbol: Remove.test_whole_binding_goes_with_its_comments, run: "python3 -m unittest tests.contract.test_writes.Remove.test_whole_binding_goes_with_its_comments" }
+      - { path: tests/contract/test_writes.py, symbol: Coverage.test_fully_bound, run: "python3 -m unittest tests.contract.test_writes.Coverage.test_fully_bound" }
+
+  PATTERN-ATOMIC-REPLACE:
+    locators:
+      - { path: src/lspd/emitter.py, symbol: write }
+    asserted_by:
+      - { path: tests/unit/test_emitter_loader.py, symbol: AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file, run: "python3 -m unittest tests.unit.test_emitter_loader.AtomicWrite.test_failed_rename_leaves_target_and_no_temp_file" }
+      - { path: tests/contract/test_errors_security.py, symbol: SecurityForcings.test_sec_symlink_final_target, run: "python3 -m unittest tests.contract.test_errors_security.SecurityForcings.test_sec_symlink_final_target" }
+
+  PATTERN-ERROR-ENVELOPE:
+    locators:
+      - { path: src/lspd/cli.py, symbol: main }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_err_internal_from_an_unexpected_exception, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_err_internal_from_an_unexpected_exception" }
+      - { path: tests/contract/test_elements.py, symbol: Envelope.test_debug_adds_a_traceback_only_on_stderr, run: "python3 -m unittest tests.contract.test_elements.Envelope.test_debug_adds_a_traceback_only_on_stderr" }
+
+  PATTERN-EXIT-CODES:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_exit_for" }
+    asserted_by:
+      - { path: tests/contract/test_errors_security.py, symbol: ErrorCatalog.test_exit_code_partition, run: "python3 -m unittest tests.contract.test_errors_security.ErrorCatalog.test_exit_code_partition" }
+
+  PATTERN-OUTPUT-MODE:
+    locators:
+      - { path: src/lspd/render.py, symbol: render }
+    asserted_by:
+      - { path: tests/contract/test_elements.py, symbol: Envelope.test_compact_single_document_with_fixed_key_order, run: "python3 -m unittest tests.contract.test_elements.Envelope.test_compact_single_document_with_fixed_key_order" }
+      - { path: tests/contract/test_elements.py, symbol: Envelope.test_human_rendering_minimums, run: "python3 -m unittest tests.contract.test_elements.Envelope.test_human_rendering_minimums" }
+
+  PATTERN-VALIDATE-AROUND-WRITE:
+    locators:
+      - { path: src/lspd/cli.py, symbol: "_Run._write" }
+    asserted_by:
+      - { path: tests/contract/test_writes.py, symbol: ValidateAroundWrite.test_error_level_file_refuses_every_writer, run: "python3 -m unittest tests.contract.test_writes.ValidateAroundWrite.test_error_level_file_refuses_every_writer" }
+      - { path: tests/contract/test_writes.py, symbol: ValidateAroundWrite.test_pre_warning_is_tolerated_and_reported, run: "python3 -m unittest tests.contract.test_writes.ValidateAroundWrite.test_pre_warning_is_tolerated_and_reported" }
+      - { path: tests/contract/test_writes.py, symbol: Set.test_shape_breaking_input_writes_nothing, run: "python3 -m unittest tests.contract.test_writes.Set.test_shape_breaking_input_writes_nothing" }
+
+coverage:
+  fully_bound: [ADR, CLI, COMPONENT, ENTITY, ERR, INV, OUT, PATTERN]
+  curated:
+    CAP: "realised transitively through the CLI-* elements; each capability is proven by its E2E journey (locus: tests/e2e/test_journeys.py)"
+    DEP: "the one runtime dependency's pin; asserted by tests/fitness/test_governance_ops.py"
+    ENV: "environments are the venv and the CI workflow; asserted by tests/fitness/test_governance_ops.py"
+    LEGAL: "gate-checked; the naming clauses are asserted by tests/fitness/test_governance_ops.py"
+    PERSONA: "definitions, not code"
+    POLICY: "gate-checked deliverables; proven by tools/licence_gate.py, the fitness marker and naming checks, and the provenance register"
+    SEC: "negative assertions with no code locus; proven by the fitness import checks and the contract forcings (locus: tests/fitness/test_structure.py)"
+    SUCCESS: "measurable criteria proven across tiers per tests/coverage_map.py; SUCCESS-CROSS-MODEL is operator-recorded"
+    TOOL: "toolchain pins in pyproject.toml and the CI workflow; asserted by tests/fitness/test_governance_ops.py"

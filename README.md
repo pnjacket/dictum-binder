@@ -13,7 +13,61 @@ dictum-binder is an independent tool for Dictum binding maps. It is not part of
 the official Dictum project and is not endorsed or certified by it. It targets
 Dictum v1.2.0 binding maps (the vendored, authored-against release).
 
-Status: doc set published at Contract-grade (build-ready, 2026-09-18); slices 1–5 (Foundation, Query, Writes, Comments, Format) built and verified at the merge gate on 2026-09-18; slice 6 (Release) pending.
+Status: v1.0.0 (2026-09-18). The doc set is published at Contract-grade; all six
+build slices are Built and Verified at the release gate (`docs/IMPLEMENTATION.md`).
+
+## Install
+
+Python 3.11 or newer. Clone the repository and install the package into a
+virtual environment; the `lspd` executable lands in that environment's `bin/`.
+
+```
+git clone <this repository> dictum-binder
+cd dictum-binder
+python3 -m venv .venv
+.venv/bin/pip install .
+.venv/bin/lspd --help
+```
+
+The only runtime dependency is `ruamel.yaml` (MIT). There is no published
+wheel and no GitHub Release object: the release is the plain tag `v1.0.0`.
+
+For development, install the toolchain too and run the seven gates the CI
+workflow runs (`.github/workflows/ci.yml`):
+
+```
+.venv/bin/pip install ".[dev]"
+.venv/bin/python -m unittest discover -s tests -t .   # gate 1: five test tiers
+.venv/bin/python tools/coverage_report.py             # gate 2: 100% line coverage (stdlib trace)
+.venv/bin/ruff check . && .venv/bin/ruff format --check .   # gate 3
+.venv/bin/pyrefly check                               # gate 4: strict types
+.venv/bin/lspd schema | diff - lspd.schema.json       # gate 5: schema file and README checksum
+.venv/bin/lspd validate && .venv/bin/lspd format --check    # gate 6: this repo's own bindings.yaml
+.venv/bin/python tools/licence_gate.py                # gate 7: MIT-only dependencies
+```
+
+## Usage
+
+Every command prints one JSON envelope on stdout (`--human` for a readable
+form) and exits 0 (clean or warnings), 1 (something the caller can fix) or 2
+(environment). `lspd --help` and `lspd <command> --help` list every argument,
+exit code and error code.
+
+```
+lspd init                                   # the canonical empty map
+lspd validate [--check-paths]               # structural findings, nothing written
+lspd get ID [ID …]                          # bindings with their comments
+lspd list [--kind K …] [--full]             # summaries in file order
+lspd set ID --json DOC                      # create or replace a whole binding
+lspd add-locator ID --path P [--symbol S] [--role producer|consumer] [--comment T]
+lspd add-field ID NAME --path P [--symbol S] [--comment T]
+lspd add-assertion ID (--path P --symbol S --run R | --owed REF) [--arm A] [--comment T]
+lspd remove ID [--locator --path P [--symbol S] | --field NAME | --assertion …]
+lspd coverage get | fully-bound add|remove KIND | curated set KIND --reason T | unset KIND
+lspd comment get|set|unset <anchor> [--text T]
+lspd format [--check]                       # canonical layout and order; the only reordering
+lspd schema [--checksum]                    # the embedded JSON Schema
+```
 
 ## Licence and contributions
 
